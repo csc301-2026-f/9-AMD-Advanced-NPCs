@@ -15,3 +15,16 @@
 **Evidence:** [prototype PR #8](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/8), [prototype source and setup](../../Examples/AdaptiveTag/README.md), [native tests](evidence/adaptive-native-tests.txt), [packaged learning report](evidence/adaptive-packaged-test.json), and [arena report](evidence/adaptive-arena-smoke.json).
 
 The current result is a native Unreal + RLtools proof of concept. Integration with Schola's APIs remains future work.
+
+## Clementine
+
+**Role:** Shared Policy NPCs — Unreal Engine Integration
+
+- **Per-NPC Head Bindings (PR #7):** Implemented NPC-to-head configuration and validation, including 14 Unreal automation tests.
+- **Shared Policy Stepper:** Designed `ISharedPolicy` and implemented `USharedPolicyStepper` to collect observations, perform batched head-aware inference routing, and dispatch actions to the correct NPCs.
+- Added 9 automation tests covering routing, validation, and failure handling.
+- Verified C++ compilation. Unreal automation tests and real ONNX/NNE integration remain pending.
+
+**Evidence:**
+- [PR #7 — Per-NPC Head Bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
+- [Shared Policy Stepper Implementation](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/tree/feature/shared-policy-stepper)
