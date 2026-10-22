@@ -4,8 +4,10 @@
 //   online_sac_tests chase <outdir> [trainSteps] [adaptSteps]
 //   online_sac_tests push <outdir> [trainSteps] [adaptSteps]
 //   online_sac_tests lifecycle <outdir>
+//   online_sac_tests checkpoint <outdir>
 //   online_sac_tests pendulum <outdir> [steps]
 #include "ChasePushExperiment.h"
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -112,6 +114,110 @@ int Lifecycle(const std::string& out) {
     return passed ? 0 : 1;
 }
 
+const char* Name(CheckpointResult r) {
+    switch (r) {
+    case CheckpointResult::Ok: return "Ok";
+    case CheckpointResult::IoError: return "IoError";
+    case CheckpointResult::BadFormat: return "BadFormat";
+    case CheckpointResult::Mismatch: return "Mismatch";
+    }
+    return "?";
+}
+void PushRandom(OnlineSACLearner& learner, unsigned count, std::mt19937& rng) {
+    std::uniform_real_distribution<float> u(-1.0f, 1.0f);
+    for (unsigned n = 0; n < count; ++n) {
+        float o[ObservationDim], a[ActionDim], next[ObservationDim];
+        for (float& v : o) v = u(rng);
+        for (float& v : next) v = u(rng);
+        for (float& v : a) v = u(rng);
+        learner.AddExperience(o, ObservationDim, a, ActionDim, -std::fabs(o[0]), next, ObservationDim, false, false);
+    }
+}
+std::vector<float> Outputs(const OnlineSACLearner& learner) {
+    std::vector<float> out;
+    for (unsigned i = 0; i < 20; ++i) {
+        float o[ObservationDim], a[ActionDim] = {};
+        for (unsigned j = 0; j < ObservationDim; ++j) o[j] = std::sin(0.37f * (i + 1) + 1.3f * j);
+        learner.Act(o, ObservationDim, a, ActionDim, true);
+        out.insert(out.end(), a, a + ActionDim);
+    }
+    return out;
+}
+std::vector<char> ReadAll(const std::string& path) {
+    std::ifstream file(path, std::ios::binary);
+    return std::vector<char>(std::istreambuf_iterator<char>(file), {});
+}
+void WriteAll(const std::string& path, const std::vector<char>& bytes) {
+    std::ofstream file(path, std::ios::binary);
+    file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+}
+
+int Checkpoint(const std::string& out) {
+    std::string report = "OnlineSACLearner checkpoint checks (FR-11, test 7)\n";
+    bool passed = true;
+    const auto check = [&](bool ok, const std::string& name, const std::string& detail) {
+        report += std::string(ok ? "PASS " : "FAIL ") + name + ": " + detail + "\n";
+        passed = passed && ok;
+    };
+    OnlineSACConfig config;
+    config.updateEvery = 50;
+    config.warmupExperiences = 100;
+    std::mt19937 rng(5);
+    OnlineSACLearner trained(config);
+    for (int round = 0; round < 6; ++round) { PushRandom(trained, 50, rng); trained.WaitForLearner(0, 60000); }
+    const std::vector<float> reference = Outputs(trained);
+    const unsigned trainedVersion = trained.Version();
+    const std::string path = out + "/native-checkpoint.osac";
+    const CheckpointResult saved = trained.SaveCheckpoint(path.c_str());
+    const std::vector<char> good = ReadAll(path);
+    check(saved == CheckpointResult::Ok && !good.empty(), "save", std::string(Name(saved)) + ", " + std::to_string(good.size()) + " bytes, trained version " + std::to_string(trainedVersion) + ", updates " + std::to_string(trained.ReadStats().updates));
+
+    OnlineSACConfig freshConfig = config;
+    freshConfig.seed = 2;
+    OnlineSACLearner fresh(freshConfig);
+    const std::vector<float> before = Outputs(fresh);
+    const CheckpointResult loaded = fresh.LoadCheckpoint(path.c_str());
+    const std::vector<float> after = Outputs(fresh);
+    const bool identical = after.size() == reference.size() && std::memcmp(after.data(), reference.data(), after.size() * sizeof(float)) == 0;
+    check(loaded == CheckpointResult::Ok && identical && before != reference, "round trip", std::string(Name(loaded)) + ", deterministic outputs on 20 observations " + (identical ? "bit-identical" : "DIFFER") + " to the saved learner");
+    check(fresh.Version() >= trainedVersion && fresh.Version() >= 1, "version after load", "fresh learner version 0 -> " + std::to_string(fresh.Version()) + " (saved " + std::to_string(trainedVersion) + ")");
+    const unsigned trainedBefore = trained.Version();
+    const CheckpointResult reload = trained.LoadCheckpoint(path.c_str());
+    check(reload == CheckpointResult::Ok && trained.Version() == trainedBefore + 1, "version never goes backwards", "reloading into the saved learner: " + std::to_string(trainedBefore) + " -> " + std::to_string(trained.Version()));
+
+    const auto refused = [&](const std::string& name, const std::vector<char>& bytes) {
+        const std::string bad = out + "/native-checkpoint-bad.osac";
+        WriteAll(bad, bytes);
+        const unsigned v = fresh.Version();
+        const CheckpointResult r = fresh.LoadCheckpoint(bad.c_str());
+        const bool unchanged = Outputs(fresh) == after && fresh.Version() == v;
+        check(r != CheckpointResult::Ok && unchanged, name, std::string("refused with ") + Name(r) + (unchanged ? ", model and version unchanged" : ", MODEL CHANGED"));
+        std::remove(bad.c_str());
+    };
+    refused("truncated file", std::vector<char>(good.begin(), good.begin() + good.size() / 2));
+    refused("header only", std::vector<char>(good.begin(), good.begin() + 48));
+    std::vector<char> flipped = good;
+    flipped[48 + flipped.size() / 2 - 24] ^= 0x01;
+    refused("one flipped payload byte", flipped);
+    std::vector<char> magic = good;
+    magic[0] = 'X';
+    refused("wrong magic", magic);
+    // Valid header and checksum but a renamed tar entry: must be refused by the structural check, not abort inside RLtools.
+    std::vector<char> renamed = good;
+    renamed[48] = renamed[48] == 'z' ? 'y' : 'z';
+    uint32_t hash = 2166136261u;
+    for (size_t i = 48; i < renamed.size(); ++i) { hash ^= static_cast<unsigned char>(renamed[i]); hash *= 16777619u; }
+    std::memcpy(renamed.data() + 40, &hash, sizeof(hash));
+    refused("renamed entry with valid checksum", renamed);
+    const CheckpointResult missing = fresh.LoadCheckpoint((out + "/does-not-exist.osac").c_str());
+    check(missing == CheckpointResult::IoError, "missing file", Name(missing));
+    std::remove(path.c_str());
+
+    std::fputs(report.c_str(), stdout);
+    Save(out + "/native-checkpoint.txt", report);
+    return passed ? 0 : 1;
+}
+
 int Pendulum(const std::string& out, unsigned steps) {
     const PendulumSACResult r = RunPendulumSAC(1, steps);
     std::string report = "RLtools SAC on Pendulum (fallback diagnostic), mean return of last 10 training episodes every 1000 steps:\n";
@@ -131,6 +237,7 @@ int main(int argc, char** argv) {
     if (mode == "chase") return Chase(out, arg(3, 20000), arg(4, 0), false);
     if (mode == "push") return Chase(out, arg(3, 20000), arg(4, 0), true, arg(5, OnlineSACConfig{}.updateEvery));
     if (mode == "lifecycle") return Lifecycle(out);
+    if (mode == "checkpoint") return Checkpoint(out);
     if (mode == "pendulum") return Pendulum(out, arg(3, 10000));
     std::fprintf(stderr, "unknown mode %s\n", mode.c_str());
     return 2;

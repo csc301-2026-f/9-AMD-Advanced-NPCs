@@ -15,6 +15,15 @@
 #include <rl_tools/rl/algorithms/sac/loop/core/config.h>
 #include <rl_tools/rl/algorithms/sac/loop/core/operations_generic.h>
 #include <rl_tools/rl/algorithms/sac/operations_generic.h>
+// Checkpoint persistence (in-memory tar backend, no external dependencies).
+#include <rl_tools/persist/backends/tar/operations_cpu.h>
+#include <rl_tools/nn/layers/dense/persist.h>
+#include <rl_tools/nn/layers/sample_and_squash/persist.h>
+#include <rl_tools/nn/optimizers/adam/instance/persist.h>
+#include <rl_tools/nn/optimizers/adam/persist.h>
+#include <rl_tools/nn_models/mlp/persist.h>
+#include <rl_tools/nn_models/sequential/persist.h>
+#include <rl_tools/random/persist.h>
 
 namespace online_sac::detail {
 namespace rlt = rl_tools;

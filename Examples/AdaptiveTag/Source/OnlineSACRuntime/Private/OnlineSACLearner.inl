@@ -1,10 +1,14 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 #include "OnlineSACLearner.h"
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 #include <condition_variable>
 #include <deque>
+#include <string>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -35,6 +39,52 @@ bool Finite(const float* values, unsigned count) {
     for (unsigned i = 0; i < count; ++i) if (!std::isfinite(values[i])) return false;
     return true;
 }
+
+constexpr char CheckpointMagic[8] = {'O', 'S', 'A', 'C', 'C', 'K', 'P', 'T'};
+constexpr uint32_t CheckpointFormat = 1;
+struct CheckpointHeader {
+    char magic[8];
+    uint32_t format, observationDim, actionDim, version;
+    uint64_t updates, payloadSize;
+    uint32_t checksum, reserved;
+};
+static_assert(sizeof(CheckpointHeader) == 48);
+uint32_t Fnv1a(const char* bytes, size_t size) {
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < size; ++i) { hash ^= static_cast<unsigned char>(bytes[i]); hash *= 16777619u; }
+    return hash;
+}
+struct TarEntry { std::string name; size_t offset, size; };
+// Independent, non-aborting walk over a ustar archive. Returns false on any malformed header or out-of-bounds entry.
+bool ListTar(const char* data, size_t size, std::vector<TarEntry>& entries) {
+    constexpr size_t Block = 512;
+    size_t at = 0;
+    for (;;) {
+        if (at + Block > size) return false;
+        const char* h = data + at;
+        if (h[0] == '\0') return true;
+        if (std::memcmp(h + 257, "ustar", 5) != 0) return false;
+        size_t length = 0;
+        for (int i = 0; i < 12 && h[124 + i] >= '0' && h[124 + i] <= '7'; ++i) length = length * 8 + (h[124 + i] - '0');
+        at += Block;
+        if (length > size - at) return false;
+        entries.push_back({std::string(h, strnlen(h, 100)), at, length});
+        at += (length + Block - 1) / Block * Block;
+    }
+}
+bool EndsWith(const std::string& s, const char* suffix) {
+    const size_t n = std::strlen(suffix);
+    return s.size() >= n && s.compare(s.size() - n, n, suffix) == 0;
+}
+bool SameStructure(const std::vector<char>& reference, const char* data, size_t size) {
+    std::vector<TarEntry> a, b;
+    if (!ListTar(reference.data(), reference.size(), a) || !ListTar(data, size, b) || a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (a[i].name != b[i].name || a[i].size != b[i].size) return false;
+        if (EndsWith(a[i].name, "meta") && std::memcmp(reference.data() + a[i].offset, data + b[i].offset, a[i].size) != 0) return false;
+    }
+    return true;
+}
 }
 
 struct OnlineSACLearner::Impl {
@@ -50,6 +100,10 @@ struct OnlineSACLearner::Impl {
     uint64_t covered = 0;
     bool stop = false;
     std::atomic<bool> stopFlag{false}, frozen{false};
+
+    // Held by Run() while storing, updating and publishing, and by checkpoint save/load. Guards *ts and version.
+    std::mutex stateMutex;
+    unsigned version = 0;
 
     mutable std::mutex snapshotMutex;
     std::shared_ptr<const Snapshot> snapshot;
@@ -108,7 +162,6 @@ struct OnlineSACLearner::Impl {
     void Run() {
         std::vector<Experience> batch;
         uint64_t pending = 0, storedTotal = 0;
-        unsigned version = 0;
         for (;;) {
             {
                 std::unique_lock<std::mutex> lock(mutex);
@@ -118,7 +171,10 @@ struct OnlineSACLearner::Impl {
                 queue.clear();
                 stats.queued = 0;
             }
-            for (const Experience& e : batch) Store(e);
+            {
+                std::lock_guard<std::mutex> state(stateMutex);
+                for (const Experience& e : batch) Store(e);
+            }
             storedTotal += batch.size();
             pending += batch.size();
             {
@@ -130,13 +186,10 @@ struct OnlineSACLearner::Impl {
             const auto start = LearnerClock::now();
             const uint64_t updates = (!frozen && storedTotal >= config.warmupExperiences) ? pending : 0;
             uint64_t done = 0;
+            std::unique_lock<std::mutex> state(stateMutex);
             for (; done < updates && !stopFlag; ++done) Update();
             if (stopFlag) return;
-            if (updates > 0) {
-                auto next = std::make_shared<const Snapshot>(device, ts->actor_critic.actor, ++version);
-                std::lock_guard<std::mutex> lock(snapshotMutex);
-                snapshot = std::move(next);
-            }
+            if (updates > 0) Publish(version + 1);
             {
                 std::lock_guard<std::mutex> lock(mutex);
                 stats.updates += done;
@@ -146,9 +199,57 @@ struct OnlineSACLearner::Impl {
                 stats.lastRoundMs = std::chrono::duration<double, std::milli>(LearnerClock::now() - start).count();
                 covered += pending;
             }
+            state.unlock();
             pending = 0;
             roundDone.notify_all();
         }
+    }
+    // Caller holds stateMutex.
+    void Publish(unsigned number) {
+        version = number;
+        auto next = std::make_shared<const Snapshot>(device, ts->actor_critic.actor, number);
+        std::lock_guard<std::mutex> lock(snapshotMutex);
+        snapshot = std::move(next);
+    }
+    // Caller holds stateMutex.
+    std::vector<char> Serialize() {
+        namespace tar = rlt::persist::backends::tar;
+        tar::Writer writer;
+        tar::WriterGroup<tar::WriterGroupSpecification<TI, tar::Writer>> root;
+        root.writer = &writer;
+        auto& ac = ts->actor_critic;
+        { auto g = rlt::create_group(device, root, "actor"); rlt::save(device, ac.actor, g); }
+        { auto g = rlt::create_group(device, root, "critic0"); rlt::save(device, ac.critics[0], g); }
+        { auto g = rlt::create_group(device, root, "critic1"); rlt::save(device, ac.critics[1], g); }
+        { auto g = rlt::create_group(device, root, "critic_target0"); rlt::save(device, ac.critics_target[0], g); }
+        { auto g = rlt::create_group(device, root, "critic_target1"); rlt::save(device, ac.critics_target[1], g); }
+        { auto g = rlt::create_group(device, root, "actor_optimizer"); rlt::save(device, ac.actor_optimizer, g); }
+        { auto g = rlt::create_group(device, root, "critic_optimizer0"); rlt::save(device, ac.critic_optimizers[0], g); }
+        { auto g = rlt::create_group(device, root, "critic_optimizer1"); rlt::save(device, ac.critic_optimizers[1], g); }
+        { auto g = rlt::create_group(device, root, "alpha_optimizer"); rlt::save(device, ac.alpha_optimizer, g); }
+        { auto g = rlt::create_group(device, root, "training"); rlt::save(device, ts->rng, g); }
+        tar::finalize(device, writer);
+        return std::move(writer.buffer);
+    }
+    // Caller holds stateMutex and has verified the structure against Serialize(), so no RLtools assert can fire.
+    bool Deserialize(const char* data, size_t size) {
+        namespace tar = rlt::persist::backends::tar;
+        tar::ReaderGroup<tar::ReaderGroupSpecification<TI>> root;
+        root.data.data = data;
+        root.data.size = static_cast<TI>(size);
+        auto& ac = ts->actor_critic;
+        bool ok = true;
+        { auto g = rlt::get_group(device, root, "actor"); ok = ok && rlt::load(device, ac.actor, g); }
+        { auto g = rlt::get_group(device, root, "critic0"); ok = ok && rlt::load(device, ac.critics[0], g); }
+        { auto g = rlt::get_group(device, root, "critic1"); ok = ok && rlt::load(device, ac.critics[1], g); }
+        { auto g = rlt::get_group(device, root, "critic_target0"); ok = ok && rlt::load(device, ac.critics_target[0], g); }
+        { auto g = rlt::get_group(device, root, "critic_target1"); ok = ok && rlt::load(device, ac.critics_target[1], g); }
+        { auto g = rlt::get_group(device, root, "actor_optimizer"); ok = ok && rlt::load(device, ac.actor_optimizer, g); }
+        { auto g = rlt::get_group(device, root, "critic_optimizer0"); ok = ok && rlt::load(device, ac.critic_optimizers[0], g); }
+        { auto g = rlt::get_group(device, root, "critic_optimizer1"); ok = ok && rlt::load(device, ac.critic_optimizers[1], g); }
+        { auto g = rlt::get_group(device, root, "alpha_optimizer"); ok = ok && rlt::load(device, ac.alpha_optimizer, g); }
+        { auto g = rlt::get_group(device, root, "training"); ok = ok && rlt::load(device, ts->rng, g); }
+        return ok;
     }
     std::shared_ptr<const Snapshot> Current() const {
         std::lock_guard<std::mutex> lock(snapshotMutex);
@@ -224,6 +325,58 @@ bool OnlineSACLearner::WaitForLearner(unsigned maxBacklog, unsigned timeoutMs) {
     return data->roundDone.wait_for(lock, std::chrono::milliseconds(timeoutMs), [&] {
         return data->stop || data->stats.accepted - data->covered <= maxBacklog;
     });
+}
+CheckpointResult OnlineSACLearner::SaveCheckpoint(const char* path) {
+    if (!path) return CheckpointResult::IoError;
+    std::vector<char> payload;
+    CheckpointHeader header{};
+    {
+        std::lock_guard<std::mutex> state(data->stateMutex);
+        payload = data->Serialize();
+        header.version = data->version;
+        std::lock_guard<std::mutex> lock(data->mutex);
+        header.updates = data->stats.updates;
+    }
+    std::memcpy(header.magic, CheckpointMagic, sizeof(header.magic));
+    header.format = CheckpointFormat;
+    header.observationDim = ObservationDim;
+    header.actionDim = ActionDim;
+    header.payloadSize = payload.size();
+    header.checksum = Fnv1a(payload.data(), payload.size());
+    const std::string tmp = std::string(path) + ".tmp";
+    FILE* file = std::fopen(tmp.c_str(), "wb");
+    if (!file) return CheckpointResult::IoError;
+    bool ok = std::fwrite(&header, sizeof(header), 1, file) == 1 && std::fwrite(payload.data(), 1, payload.size(), file) == payload.size();
+    ok = (std::fclose(file) == 0) && ok;
+    if (!ok || std::rename(tmp.c_str(), path) != 0) { std::remove(tmp.c_str()); return CheckpointResult::IoError; }
+    return CheckpointResult::Ok;
+}
+CheckpointResult OnlineSACLearner::LoadCheckpoint(const char* path) {
+    if (!path) return CheckpointResult::IoError;
+    FILE* file = std::fopen(path, "rb");
+    if (!file) return CheckpointResult::IoError;
+    std::vector<char> bytes;
+    char chunk[65536];
+    for (size_t n; (n = std::fread(chunk, 1, sizeof(chunk), file)) > 0;) bytes.insert(bytes.end(), chunk, chunk + n);
+    const bool readError = std::ferror(file) != 0;
+    std::fclose(file);
+    if (readError) return CheckpointResult::IoError;
+    CheckpointHeader header;
+    if (bytes.size() < sizeof(header)) return CheckpointResult::BadFormat;
+    std::memcpy(&header, bytes.data(), sizeof(header));
+    if (std::memcmp(header.magic, CheckpointMagic, sizeof(header.magic)) != 0 || header.format != CheckpointFormat) return CheckpointResult::BadFormat;
+    if (header.payloadSize != bytes.size() - sizeof(header)) return CheckpointResult::BadFormat;
+    const char* payload = bytes.data() + sizeof(header);
+    if (Fnv1a(payload, header.payloadSize) != header.checksum) return CheckpointResult::BadFormat;
+    if (header.observationDim != ObservationDim || header.actionDim != ActionDim) return CheckpointResult::Mismatch;
+    std::lock_guard<std::mutex> state(data->stateMutex);
+    if (!SameStructure(data->Serialize(), payload, header.payloadSize)) return CheckpointResult::Mismatch;
+    if (!data->Deserialize(payload, header.payloadSize)) return CheckpointResult::BadFormat; // unreachable after the structural match
+    const unsigned next = std::max(data->version + 1, header.version);
+    data->Publish(next);
+    std::lock_guard<std::mutex> lock(data->mutex);
+    data->stats.version = next;
+    return CheckpointResult::Ok;
 }
 void OnlineSACLearner::Shutdown() { data->StopAndJoin(); }
 }

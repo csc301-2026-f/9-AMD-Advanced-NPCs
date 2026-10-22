@@ -13,6 +13,7 @@ struct OnlineSACConfig {
     bool frozen = false;
 };
 enum class AddResult { Accepted, Rejected, Dropped, Frozen };
+enum class CheckpointResult { Ok, IoError, BadFormat, Mismatch };
 struct OnlineSACStats {
     uint64_t accepted = 0, rejected = 0, dropped = 0, ignoredFrozen = 0;
     uint64_t stored = 0, updates = 0;
@@ -40,6 +41,13 @@ public:
     unsigned Version() const;
     OnlineSACStats ReadStats() const;
     bool WaitForLearner(unsigned maxBacklog, unsigned timeoutMs);
+    // Checkpoints (FR-11) hold the actor, both critics and their targets, all Adam optimizers (incl. alpha) and the training RNG.
+    // The replay buffer is NOT saved (FR-12): after a load the learner keeps its current buffer and refills it from new experience.
+    // Save writes `path`.tmp and renames it over `path`. Load refuses any file whose header, checksum, dimensions or tar
+    // structure differ from this build's model, leaving the learner unchanged; on success it publishes a new snapshot
+    // with version max(current + 1, saved), so the version never goes backwards.
+    CheckpointResult SaveCheckpoint(const char* path);
+    CheckpointResult LoadCheckpoint(const char* path);
     // Stops the learner thread (abandoning a round in progress) and joins it. Safe to call more than once.
     void Shutdown();
 private:

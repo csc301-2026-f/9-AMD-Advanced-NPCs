@@ -1,0 +1,11 @@
+OnlineSACLearner checkpoint checks (FR-11, test 7)
+PASS save: Ok, 631344 bytes, trained version 5, updates 250
+PASS round trip: Ok, deterministic outputs on 20 observations bit-identical to the saved learner
+PASS version after load: fresh learner version 0 -> 5 (saved 5)
+PASS version never goes backwards: reloading into the saved learner: 5 -> 6
+PASS truncated file: refused with BadFormat, model and version unchanged
+PASS header only: refused with BadFormat, model and version unchanged
+PASS one flipped payload byte: refused with BadFormat, model and version unchanged
+PASS wrong magic: refused with BadFormat, model and version unchanged
+PASS renamed entry with valid checksum: refused with Mismatch, model and version unchanged
+PASS missing file: IoError
