@@ -181,7 +181,9 @@ bool FAdaptivePolicyBlueprintTest::RunTest(const FString& Parameters)
 {
     for (auto* Record : {FAdaptiveDecision::StaticStruct(), FAdaptiveExperience::StaticStruct()})
     {
+#if WITH_METADATA
         TestTrue(TEXT("Record type is available to Blueprint"), Record->HasMetaData(TEXT("BlueprintType")));
+#endif
         for (TFieldIterator<FProperty> Property(Record); Property; ++Property)
         {
             TestTrue(Property->GetName(), Property->HasAnyPropertyFlags(CPF_BlueprintVisible));

@@ -326,7 +326,9 @@ bool FAdaptiveDecisionBlueprintTest::RunTest(const FString& Parameters)
         TestTrue(Name, Function && Function->HasAnyFunctionFlags(FUNC_BlueprintCallable));
     }
     TestFalse(TEXT("Blueprint cannot manufacture readiness"), Policy->FindFunction(TEXT("StartSession")) != nullptr);
+#if WITH_METADATA
     TestTrue(TEXT("Request record available to Blueprint"), FAdaptiveDecisionRequest::StaticStruct()->HasMetaData(TEXT("BlueprintType")));
+#endif
     for (TFieldIterator<FProperty> Property(FAdaptiveDecisionRequest::StaticStruct()); Property; ++Property)
     {
         TestTrue(Property->GetName(), Property->HasAnyPropertyFlags(CPF_BlueprintVisible));
