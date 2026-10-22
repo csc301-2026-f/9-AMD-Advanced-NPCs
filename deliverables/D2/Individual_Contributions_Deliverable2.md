@@ -9,8 +9,9 @@
 - Fixed pipelined-stepper oversubscription and stale callbacks, addressed UE 5.8 build issues, and added backend, codec, scheduler, and adapter tests, including 100,000 fault-injection requests per dispatch strategy.
 - Wrote the literature review and experiment plans; built Python/C++ benchmarks comparing batching, worker dispatch, Actor/Mass processing, and CPU/GPU execution.
 - Ran automation, lifecycle/memory diagnostics, and replicated benchmarks. Local reference runs sustained 31,000 decisions/s on each adapter with zero Busy rejections or expired requests; documented unresolved Actor pool growth and inconclusive rendered-performance results.
+- Built the `Examples/BackgroundNPCs` comparison project. It runs the same 20,000-agent Mass crowd with per-agent synchronous inference and with the background API, with a live statistics HUD and measurement/recording scripts. Measured 10.4 FPS without the API vs. the 60 FPS cap with it, at the same ~200,000 decisions/s. Wrote the README's background-agents use case and the background NPC sections of the iteration review.
 
-**Evidence:** [Merged PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6). Research, benchmark scripts, and results are retained in local commit `66b25b3` on `local/tempstuff-66b25b3` and are not yet published on `main`.
+**Evidence:** [Merged PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](../../Examples/BackgroundNPCs/README.md), [side-by-side recording](evidence/background-npc-side-by-side.mp4), and [measurements](evidence/background-npc-comparison.md). Research, benchmark scripts, and results are retained in local commit `66b25b3` on `local/tempstuff-66b25b3` and are not yet published on `main`.
 
 ## Jace
 

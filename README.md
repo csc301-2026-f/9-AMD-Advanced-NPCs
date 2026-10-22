@@ -8,11 +8,13 @@ The adaptive NPC work focuses on **continued learning during gameplay**. Instead
 
 For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools prototype**: a tagger learns which route to favor while a player or scripted runner tries to escape. Training runs inside the game process without a Python service. Schola integration remains future work for this prototype.
 
+The background NPC work focuses on **scaling ML-controlled agents within a frame budget**. Schola's inference API can now batch decisions from many Actors or Mass entities and run them on worker threads, so the game thread never waits for the model. For D2, the [comparison example](Examples/BackgroundNPCs/README.md) shows a 20,000-agent Mass crowd with and without the API.
+
 ### Other project features
 
 | Subteam / feature | Description and value |
 | --- | --- |
-| | |
+| Efficient background agents | Batched, non-blocking inference for large populations of ML-controlled Actors and Mass entities. The game thread submits observations and applies actions on a later frame. Background workers run the ONNX policy in batches. Researchers can scale agent counts and decision rates without the model running inside the frame. |
 | | |
 
 ## Access the D2 product
@@ -23,6 +25,9 @@ For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools protot
 | D2 release and download | |
 | Adaptive NPC source | [Examples/AdaptiveTag](Examples/AdaptiveTag/README.md) |
 | Demo recording | |
+| Background NPC comparison source | [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) |
+| Background NPC side-by-side recording | [background-npc-side-by-side.mp4](deliverables/D2/evidence/background-npc-side-by-side.mp4) |
+| Background NPC API guide | [NPC inference paradigms: Background NPCs](Docs/Sphinx/guides/mock_inference_paradigms.rst) |
 | Other feature access links | |
 
 **Current availability:** the repository includes the standalone Unreal project, arena assets, and pinned RLtools headers under `Examples/AdaptiveTag`. You can build and run the simulation from a clone using the instructions below. A downloadable D2 package, independent-machine check, and final release URL still need confirmation.
@@ -91,7 +96,7 @@ Changes to the runner mode preserve the learned weights. Fresh launches and **T*
 
 | Feature | Access and steps | Expected result |
 | --- | --- | --- |
-| | | |
+| Background NPC comparison | Build and run [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) (see [setup](#background-npc-comparison)). It starts with the background API enabled. Press **Tab** to switch to per-agent synchronous inference and back. | 20,000 Mass agents walk toward goals, steered by the ONNX policy. The HUD shows frame rate, frame time, game-thread inference time, decisions per second, agents per model call, and action latency for the active mode. |
 | | | |
 
 ## Key use cases
@@ -116,15 +121,38 @@ This is online reinforcement learning: the policy learns from fresh interactions
 
 The display shows action probabilities, recent experiences and rewards, training counts, and runtime statistics. **L** lets the tester freeze learning, and **B** selects a fixed comparison policy. These controls support inspection; a controlled learning-versus-frozen performance study remains future work.
 
-### Other subteam use case
+### Efficient background agents: batch inference across many agents
 
-**User story:**
+**User story:** As a researcher, I want to batch inference requests across many background agents, including agents managed through Unreal's Mass Entity framework, so that I can study large-scale interactions between ML-controlled agents while staying within the simulation's performance budget.
 
-**Description:**
+**Description:** Running a policy once per agent on the game thread makes every frame wait for every model call. The cost grows with agent count and decision rate. The background NPC API instead collects due agents' observations into rows, batches compatible rows into shared buckets, and runs them on dedicated worker threads. Actions are applied on a later frame. The game thread only gathers and applies rows; it never waits for a model call. The same scheduler serves ordinary Actors (`UBackgroundStepper`) and Mass entities (`ScholaMass` processors), and Blueprint users can submit and poll requests directly.
 
 **Implemented functionality:**
 
-**Demo and validation:**
+- A bounded batching scheduler with configurable workers, batch size, pending-row and byte limits, dispatch strategies, cancellation, and action-age expiry. Over capacity, it rejects work as Busy rather than queueing without limit.
+- `UNNEBatchBackendProvider` (ORT CPU or BasicCpu), giving each worker its own model context. Typed row encoding covers Box, Discrete, and flat Dict spaces.
+- **Actor integration:** `UBackgroundStepper` phases agents by decision rate and applies results only when they are still current. Agents can write rows directly with `INPCBackgroundRowAgent`.
+- **Mass integration:** `UScholaMassGatherProcessor` and `UScholaMassApplyProcessor` base classes, schedule/state fragments, a shared bucket fragment, and a signal for immediate decisions. The `ScholaMass` module depends only on the engine's Mass runtime modules.
+- Statistics for real model calls, rows per call, rejections, expiry, and worker time, available from C++ and Blueprint.
+
+**Demo and validation:** [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) runs the same Mass crowd **without** the API (each due agent makes its own batch-1 `RunSync` call on the game thread) and **with** it. The scene, ONNX policy, observations, decision schedule, and movement code are identical; only the inference path changes. [Watch the side-by-side recording](deliverables/D2/evidence/background-npc-side-by-side.mp4). Without the API is on the left; with the API is on the right.
+
+[![Side-by-side: without the API (left) and with it (right)](deliverables/D2/evidence/background-npc-side-by-side.jpg)](deliverables/D2/evidence/background-npc-side-by-side.mp4)
+
+Measured with `Scripts/compare.sh` on one Linux machine (Ryzen 5 7600X, Radeon RX 7800 XT, UE 5.8.3 packaged Development build, Vulkan, 1280×720). The workload was 20,000 Mass agents, each deciding 10 times per second (200,000 decisions/s), with a 60 FPS cap. Each mode ran in its own process: 10 s warm-up, then 30 s measured. [Raw reports](deliverables/D2/evidence/background-npc-comparison.md).
+
+| Metric | Without API (per-agent sync) | With background NPC API |
+| --- | ---: | ---: |
+| Frame rate | 10.4 FPS | 60.0 FPS (at cap) |
+| Mean / p99 frame time | 95.5 / 101.2 ms | 16.7 / 16.7 ms |
+| Game-thread inference per frame | 93.0 ms | 1.6 ms |
+| Decisions per second | 199,272 | 199,979 |
+| Agents per model call | 1 | 62.9 |
+| Inference time per second of play | 970 ms (game thread) | 327 ms (summed over 2 workers) |
+| Observation-to-action latency | ≈0 ms | 15.8 ms (about one frame) |
+| Dropped requests | 0 | 0 |
+
+Both modes make the same number of decisions. Without the API, the model calls take about 97% of game-thread time, so the frame rate falls to about 10 FPS. With the API, the game thread spends 1.6 ms per frame gathering and applying rows, and the frame stays at the 60 FPS cap. Batching also cuts total model time to about a third. The trade-off is that actions arrive about one frame after their observation. The synchronous baseline's time includes writing observations. The policy is a synthetic steering network, so these results show frame cost, not behavior quality. With the frame cap removed in shorter smoke runs, the API mode reached about 325 FPS and the per-agent mode stayed near 10 FPS.
 
 ### Additional subteam use case
 
@@ -204,6 +232,29 @@ The native and packaged learning results use the current actor rate of 0.006. Th
 
 **Tests and known limitations:**
 
+## Background NPC implementation
+
+![Background NPC architecture](Docs/Diagrams/background-npc-architecture.svg)
+
+| Component | Location | Role |
+| --- | --- | --- |
+| Scheduler | `Source/ScholaInferenceUtils/.../BackgroundInferenceScheduler.*` | Admits rows within pending limits, assembles batches, dispatches them to workers, and tracks request status and statistics |
+| Policy and subsystem | `UNPCInferencePolicy` (`Paradigm = Background`), `UNPCBackgroundInferenceSubsystem` | Configures the scheduler and shares one reference-counted bucket per compatible model, schema, and settings in a world |
+| NNE backend | `Source/ScholaNNE/.../NNEBatchBackendProvider.*` | Creates one ORT CPU or BasicCpu model context per worker and binds rows to model tensors |
+| Actor adapter | `UBackgroundStepper`, `INPCBackgroundRowAgent` | Schedules Actor agents by decision rate, submits due rows, and applies current results |
+| Mass adapter | `Source/ScholaMass` | Gather/apply processor bases, schedule and state fragments, a bucket shared fragment, and the `ScholaDecideNow` signal |
+
+For Mass, derive a gather processor that writes observation rows and an apply processor that consumes action rows. Give entities the `FScholaInferenceScheduleFragment`, `FScholaInferenceStateFragment`, and a `FScholaInferenceBucketFragment` from `UScholaMassInferenceSubsystem::AcquireBucket`. [`CrowdProcessors.cpp`](Examples/BackgroundNPCs/Source/BackgroundNPCs/CrowdProcessors.cpp) is a complete example. The [API guide](Docs/Sphinx/guides/mock_inference_paradigms.rst) covers the Actor and Blueprint paths.
+
+### Current limitations
+
+- Actions arrive at least one frame after their observation. Results older than `MaxActionAgeMs` (100 ms by default) are discarded, and the agent keeps its previous action.
+- Execution is CPU-only (ORT CPU or BasicCpu). GPU execution has not been integrated.
+- The comparison policy is a synthetic network that steers agents toward goals. It demonstrates frame cost, not behavior quality. The measurements come from one Linux machine.
+- The Mass gather processor's `MaxRowsPerFrame` must not exceed the scheduler's `MaxPendingRows` (both default to 4,096). A larger submission is rejected as Invalid on every frame, and no decisions are made.
+- Synchronous `Think`/`BatchedThink` remain available for compatibility and still block the caller.
+- Earlier diagnostics left Actor-adapter pool growth unresolved (see [individual contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max)).
+
 ## Development requirements and setup
 
 ### Adaptive NPC sandbox
@@ -243,6 +294,32 @@ For the existing Schola plugin's installation and Python tooling, use [the Schol
 
 Gameplay writes experience and telemetry CSV files beneath the packaged game's `CSC301Host/Saved/TagLearning` directory. New sessions overwrite those files, so copy them before starting another recording session if you need to retain them.
 
+### Background NPC comparison
+
+**Prerequisites:** Unreal Engine 5.8 with the bundled NNERuntimeORT plugin. The example was built, packaged, and measured on Linux with UE 5.8.3, `clang`, and Vulkan. Recording also needs X11, `ffmpeg`, and `xdotool`. The Windows steps below have not been tested.
+
+**Setup and run steps** (from `Examples/BackgroundNPCs`):
+
+```bash
+export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8.3
+Scripts/build.sh      # links Plugins/Schola to this repository and builds the editor target
+Scripts/run.sh        # play; Tab switches between the API and per-agent synchronous inference
+Scripts/package.sh    # standalone Development game in Saved/Package/Linux
+Scripts/compare.sh    # measures both modes and writes Saved/Comparison/summary.md
+Scripts/record.sh     # records both modes and writes Saved/Recording/side-by-side.mp4
+```
+
+On Windows, run `New-Item -ItemType Junction -Path Plugins/Schola -Target ../../..` once in `Examples/BackgroundNPCs`, then open `BackgroundNPCs.uproject`. Use `-Agents=`, `-DecisionHz=`, `-MaxFPS=`, `-Workers=`, and `-MaxBatch=` to change the workload; see the [example README](Examples/BackgroundNPCs/README.md).
+
+**Validation commands:** the plugin's automation tests cover the scheduler, NNE backend, Actor stepper, and Mass bridge:
+
+```bash
+"$UE_ENGINE_ROOT/Engine/Binaries/Linux/UnrealEditor-Cmd" "$PWD/BackgroundNPCs.uproject" -nullrhi -unattended -nosound \
+  "-ExecCmds=Automation RunTests Schola.Inference.Background+Schola.Mass;Quit" "-TestExit=Automation Test Queue Empty"
+```
+
+On the development machine, all 43 `Schola.Inference.Background` and `Schola.Mass` automation tests passed from the example project (UE 5.8.3, Linux).
+
 ### Other subteam development setup
 
 **Prerequisites:**
@@ -275,6 +352,8 @@ The existing Schola codebase carries an MIT license in [LICENSE.txt](LICENSE.txt
 
 Proposed next steps for the adaptive NPC experiment are to compare learning and frozen actors under the same runner behavior changes, introduce useful observations and richer decisions, and design the Schola integration after evaluating the native approach.
 
+Proposed next steps for background agents are to validate the comparison example on Windows, run it with a trained policy, measure scaling with more workers and larger crowds, and resolve the Actor-adapter pool growth. GPU execution would be added only if CPU workers become the bottleneck.
+
 **Team MVP priorities:**
 
 **Owners and milestones through D4:**
@@ -283,9 +362,11 @@ Proposed next steps for the adaptive NPC experiment are to compare learning and 
 
 ## Iteration review and partner feedback
 
-See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the online learning reflections and space for the other subteams.
+See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the online learning and background NPC reflections, and space for the other subteams.
 
 **Online learning demo:** We shared a video demo of the adaptive tag game with the partner and are currently waiting to hear back.
+
+**Background NPC demo:** We shared the [side-by-side recording](deliverables/D2/evidence/background-npc-side-by-side.mp4) of the Mass crowd without and with the background API along with the adaptive tag video, and are waiting for feedback.
 
 **What worked well:**
 
@@ -302,7 +383,7 @@ See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the on
 | Student | Role | Specific contributions and PR / commit links |
 | --- | --- | --- |
 | Jace | Created the adaptive tag game and explored online learning integration options. | [Detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md) |
-| Max Xu | Implemented batched background NPC inference with Actor/Mass support; researched and benchmarked scheduling and CPU/GPU execution strategies. | [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max) |
+| Max Xu | Implemented batched background NPC inference with Actor/Mass support; researched and benchmarked scheduling and CPU/GPU execution strategies; built the with/without-API Mass comparison example. | [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](Examples/BackgroundNPCs/README.md), [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max) |
 | | | |
 | | | |
 
