@@ -18,13 +18,14 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 
 ## Clementine
 
-**Role:** Shared Policy NPCs — Unreal Engine Integration
+**Role:** Shared Policy NPCs — Unreal Engine Integration and D2 Demo Development
 
-- **Per-NPC Head Bindings (PR #7):** Implemented NPC-to-head configuration and validation, including 14 Unreal automation tests.
-- **Shared Policy Stepper:** Designed `ISharedPolicy` and implemented `USharedPolicyStepper` to collect observations, perform batched head-aware inference routing, and dispatch actions to the correct NPCs.
-- Added 9 automation tests covering routing, validation, and failure handling.
-- Verified C++ compilation. Unreal automation tests and real ONNX/NNE integration remain pending.
+- **Per-NPC Head Bindings (PR #7):** Implemented NPC-to-head configuration, head lookup, and binding validation, including 14 Unreal automation tests.
+- **Shared Policy Stepper (PR #13):** Designed the `ISharedPolicy` interface and implemented `USharedPolicyStepper` to collect NPC observations, perform a single batched policy call, and route actions to the correct NPCs based on their assigned heads.
+- **Testing and Validation:** Added 9 Stepper automation tests covering head routing, observation collection, invalid bindings, and inference failures. Checked C++ compilation; Unreal automation tests and real ONNX/NNE integration remain pending.
+- **Interactive Demo:** Developed a Streamlit-based UI to demonstrate real ONNX Runtime inference, per-NPC head selection, and dynamic observation inputs.
+- **Documentation and Presentation:** Prepared individual contribution documentation, README, D2 iteration review content, and Shared Policy presentation materials for the D2 demonstration.
 
 **Evidence:**
 - [PR #7 — Per-NPC Head Bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
-- [Shared Policy Stepper Implementation](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/tree/feature/shared-policy-stepper)
+- [PR #13 — Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
