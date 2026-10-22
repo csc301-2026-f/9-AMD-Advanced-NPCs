@@ -1,0 +1,5 @@
+RLtools SAC (sac::loop::core) on chase, trainSteps=20000 adaptSteps=0
+seed 1: after 20000 steps bounce catch_rate=0.980 steps_to_catch=81.3 | circle (zero-shot) catch_rate=1.000 | train 77.6s -> PASS
+seed 2: after 20000 steps bounce catch_rate=0.990 steps_to_catch=85.8 | circle (zero-shot) catch_rate=1.000 | train 77.8s -> PASS
+seed 3: after 20000 steps bounce catch_rate=0.980 steps_to_catch=77.2 | circle (zero-shot) catch_rate=1.000 | train 77.1s -> PASS
+thresholds: catch_rate >= 0.80 and steps_to_catch <= 100 on every seed -> PASS

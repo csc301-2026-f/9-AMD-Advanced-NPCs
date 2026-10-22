@@ -1,0 +1,48 @@
+﻿[2026.10.22-19.08.18:417][  0]LogUnrealEdMisc: Total Editor Startup Time, took 10.600
+[2026.10.22-19.08.19:916][  0]LogLoad: (Engine Initialization) Total time: 12.10 seconds
+[2026.10.22-19.08.26:112][594]LogAutomationController: Received FindWorkersResponseMessage from 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:112][594]LogAutomationController: Requesting test list from 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:180][595]LogAutomationController: Received RequestTestsReplyCompleteMessage from 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:189][595]LogAutomationController: 4848 tests available on 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:235][595]LogAutomationController: Sending StopTests to 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:244][595]LogAutomationController: Display: Loading results html template...
+[2026.10.22-19.08.26:246][595]LogAutomationController: Display: Successfully wrote html results file!
+[2026.10.22-19.08.26:246][595]LogAutomationController: Sending StartTestSession to 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:246][595]LogAutomationController: Display: Clearing ../../../../../../Users/olivia/Documents/code/9-AMD-Advanced-NPCs/Examples/AdaptiveTag/Saved/Automation/Logs/ and ../../../../../../Users/olivia/Documents/code/9-AMD-Advanced-NPCs/Examples/AdaptiveTag/Saved/Automation/Tmp/
+[2026.10.22-19.08.26:248][595]LogAutomationController: Sending RunTest Lifecycle to 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.26:248][596]LogAutomationController: Display: Test Started. Name={Lifecycle} Path={ScholaOnlineLearning.SAC.Learner.Lifecycle}
+[2026.10.22-19.08.30:968][597]LogAutomationController: Ignoring very large delta of 4.72 seconds in calls to FAutomationControllerManager::Tick() and not penalizing unresponsive tests
+[2026.10.22-19.08.30:970][597]LogAutomationController: Display: Test Completed. Result={Success} Name={Lifecycle} Path={ScholaOnlineLearning.SAC.Learner.Lifecycle}
+[2026.10.22-19.08.30:970][597]LogAutomationController: BeginEvents: ScholaOnlineLearning.SAC.Learner.Lifecycle
+[2026.10.22-19.08.30:970][597]LogAutomationController: invalid experiences are rejected without changing state: rejected=8/8 stats.rejected=8 accepted=0 stored=0 updates=0 version=0 act_rejected=1
+[2026.10.22-19.08.30:970][597]LogAutomationController: published version increases: versions: 0 0 1 2 3 4 5 updates=250 frozen_add_ignored=1 frozen_act_deterministic=1
+[2026.10.22-19.08.30:970][597]LogAutomationController: shutdown during a learning round returns promptly: in_round=1 shutdown=0.003s running_after=0 version=0 act_after_shutdown=1
+[2026.10.22-19.08.30:970][597]LogAutomationController: Act from other threads while snapshots are replaced: act_calls=1698217 invalid=0 versions_published=191
+[2026.10.22-19.08.30:970][597]LogAutomationController: EndEvents: ScholaOnlineLearning.SAC.Learner.Lifecycle
+[2026.10.22-19.08.30:971][597]LogAutomationController: Sending RunTest Chase to 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.08.30:971][598]LogAutomationController: Display: Test Started. Name={Chase} Path={ScholaOnlineLearning.SAC.Chase}
+[2026.10.22-19.09.43:981][599]LogAutomationController: Ignoring very large delta of 73.00 seconds in calls to FAutomationControllerManager::Tick() and not penalizing unresponsive tests
+[2026.10.22-19.09.43:995][600]LogAutomationController: Display: Test Completed. Result={Success} Name={Chase} Path={ScholaOnlineLearning.SAC.Chase}
+[2026.10.22-19.09.43:995][600]LogAutomationController: BeginEvents: ScholaOnlineLearning.SAC.Chase
+[2026.10.22-19.09.43:995][600]LogAutomationController: seed 1: bounce catch_rate 0.070 -> 0.950, steps_to_catch 90.4, circle (zero-shot) 1.000, train 72.3s
+[2026.10.22-19.09.43:995][600]LogAutomationController: seed 2: bounce catch_rate 0.070 -> 0.860, steps_to_catch 96.1, circle (zero-shot) 0.970, train 73.0s
+[2026.10.22-19.09.43:995][600]LogAutomationController: seed 3: bounce catch_rate 0.050 -> 0.990, steps_to_catch 80.3, circle (zero-shot) 0.970, train 72.1s
+[2026.10.22-19.09.43:995][600]LogAutomationController: total 73.0s, curves in ../../../../../../Users/olivia/Documents/code/9-AMD-Advanced-NPCs/Examples/AdaptiveTag/Saved/OnlineSAC/Unreal
+[2026.10.22-19.09.43:995][600]LogAutomationController: EndEvents: ScholaOnlineLearning.SAC.Chase
+[2026.10.22-19.09.43:997][600]LogAutomationController: Sending RunTest ChasePush to 9A09FF5E4705AFF28565A1BBC5231B89
+[2026.10.22-19.09.43:997][600]LogAutomationController: Display: Test Started. Name={ChasePush} Path={ScholaOnlineLearning.SAC.ChasePush}
+[2026.10.22-19.10.58:347][601]LogAutomationController: Ignoring very large delta of 74.35 seconds in calls to FAutomationControllerManager::Tick() and not penalizing unresponsive tests
+[2026.10.22-19.10.58:361][602]LogAutomationController: Display: Test Completed. Result={Success} Name={ChasePush} Path={ScholaOnlineLearning.SAC.ChasePush}
+[2026.10.22-19.10.58:361][602]LogAutomationController: BeginEvents: ScholaOnlineLearning.SAC.ChasePush
+[2026.10.22-19.10.58:361][602]LogAutomationController: seed 1: bounce catch_rate 0.070 -> 0.940, steps_to_catch 86.2, circle (zero-shot) 1.000, train 74.3s
+[2026.10.22-19.10.58:361][602]LogAutomationController: seed 2: bounce catch_rate 0.070 -> 0.980, steps_to_catch 87.2, circle (zero-shot) 1.000, train 73.3s
+[2026.10.22-19.10.58:361][602]LogAutomationController: seed 3: bounce catch_rate 0.050 -> 1.000, steps_to_catch 81.6, circle (zero-shot) 1.000, train 73.0s
+[2026.10.22-19.10.58:361][602]LogAutomationController: total 74.3s
+[2026.10.22-19.10.58:361][602]LogAutomationController: EndEvents: ScholaOnlineLearning.SAC.ChasePush
+[2026.10.22-19.10.58:363][602]LogAutomationController: Display: Exporting Automation Report to C:\Users\olivia\Documents\code\9-AMD-Advanced-NPCs\Examples\AdaptiveTag\Saved\OnlineSAC\UnrealReport.
+[2026.10.22-19.10.58:363][602]LogAutomationController: Writing reports to C:\Users\olivia\Documents\code\9-AMD-Advanced-NPCs\Examples\AdaptiveTag\Saved\OnlineSAC\UnrealReport...
+[2026.10.22-19.10.58:363][602]LogAutomationController: Display: Converting results to json object...
+[2026.10.22-19.10.58:364][602]LogAutomationController: Display: Successfully wrote json results file!
+[2026.10.22-19.10.58:364][602]LogAutomationController: Exported report to 'C:\Users\olivia\Documents\code\9-AMD-Advanced-NPCs\Examples\AdaptiveTag\Saved\OnlineSAC\UnrealReport' in 0.00 Seconds
+[2026.10.22-19.10.58:364][602]LogAutomationController: Display: Report can be opened in the editor at 'C:\Users\olivia\Documents\code\9-AMD-Advanced-NPCs\Examples\AdaptiveTag\Saved\OnlineSAC\UnrealReport'
+[2026.10.22-19.10.58:364][602]LogAutomationController: Sending StopTestSession to 9A09FF5E4705AFF28565A1BBC5231B89
