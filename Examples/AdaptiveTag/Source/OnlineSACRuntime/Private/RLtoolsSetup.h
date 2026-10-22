@@ -12,6 +12,7 @@
 #include <rl_tools/nn/optimizers/adam/operations_generic.h>
 #include <rl_tools/rl/environments/pendulum/operations_cpu.h>
 #include "ChaseEnvironment.h"
+#include "SpacesEnvironment.h"
 #include <rl_tools/rl/algorithms/sac/loop/core/config.h>
 #include <rl_tools/rl/algorithms/sac/loop/core/operations_generic.h>
 #include <rl_tools/rl/algorithms/sac/operations_generic.h>
