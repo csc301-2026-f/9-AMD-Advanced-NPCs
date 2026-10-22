@@ -1,0 +1,27 @@
+Test 8: OnlineSACLearner native timing
+machine:  Apple M4 (10 logical CPUs), macOS 15.3
+compiler: Apple clang 17.0.0 (clang-1700.0.13.5)
+flags:    -std=c++20 -O2 -fno-exceptions -fno-rtti -DNOMINMAX -DRL_TOOLS_DEBUG
+date:     2026-10-22 18:52:15 EDT
+NOTE: these are macOS/clang numbers, not the Windows/MSVC build used by Unreal.
+config:   seed=1 queueCapacity=4096 updateEvery=50 warmupExperiences=256; synthetic experiences (6 obs, 2 actions, uniform [-1,1])
+
+(a) Act latency, idle learner, version=1
+Act deterministic                  n=10000  median=0.00554 p95=0.00613 max=0.03021 ms
+Act sampled                        n=10000  median=0.00621 p95=0.00629 max=0.05275 ms
+
+(b) Training rounds at updateEvery=50 (20 rounds, 1000 gradient steps, wall 1581.5 ms)
+round time (lastRoundMs)           n=20     median=79.31804 p95=98.35021 max=98.35021 ms
+per gradient step (round/50)       n=20     median=1.58636 p95=1.96700 max=1.96700 ms
+headroom 5000/round ms: 63.0x at median, 50.8x at max
+
+(c) Act latency while a round runs (5 rounds, 1730 training polls)
+Act deterministic (contention)     n=27680  median=0.00688 p95=0.00804 max=0.07204 ms
+Act sampled (contention)           n=27680  median=0.00696 p95=0.00817 max=0.07233 ms
+
+Verdicts (targets: Act median and p95 < 0.1 ms; 50-step round < 5000 ms)
+PASS Act deterministic idle: median 0.00554 ms, p95 0.00613 ms
+PASS Act sampled idle: median 0.00621 ms, p95 0.00629 ms
+PASS 50-step round: median 79.3 ms, max 98.4 ms over 20 rounds, headroom 63.0x
+PASS Act deterministic during round: median 0.00688 ms, p95 0.00804 ms
+PASS Act sampled during round: median 0.00696 ms, p95 0.00817 ms
