@@ -5,7 +5,7 @@
 - **When:**
 - **Where:**
 
-The online learning entries cover our adaptive NPC prototype. The other subteam sections are open for their own reflections and integration updates.
+The online learning entries cover our adaptive NPC prototype. The Background NPCs rows cover batched background inference (Max, the only member of that subteam). The remaining subteam rows are open for their own reflections and integration updates.
 
 Format reference: [course D2 iteration review template](https://github.com/csc301-2026-f/deliverable-documents/blob/main/deliverables/D2/iteration-02-review.md).
 
@@ -25,7 +25,7 @@ Supporting artifacts: [prototype setup](../../Examples/AdaptiveTag/README.md), [
 
 | Subteam | What worked well and supporting evidence |
 | --- | --- |
-| | |
+| Background NPCs | **Decisions were driven by measurements and written success gates.** Before implementing, Max wrote a literature review, a plan, and pass/fail gates, then benchmarked the options. Batching a trained 3DBall policy at 64 rows gave 10.5× the throughput of single calls, so batching was adopted. No other dispatch strategy beat the shared queue by the required 10%, so it stayed the default. INT8, GPU execution, and deduplication were not built because the measurements never showed a need for them. **Correctness tests came before performance work.** Two pipelined-stepper defects were reproduced in failing tests before being fixed. The scheduler's fault-injection test sends 100,000 requests per dispatch strategy, and all 43 background and Mass automation tests pass. **The final comparison changes only one variable.** The same 20,000-agent Mass crowd ran at 10.4 FPS with per-agent synchronous inference and at the 60 FPS cap with the API, at the same ~200,000 decisions/s. Evidence: [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](../../Examples/BackgroundNPCs/README.md), [measurements](evidence/background-npc-comparison.md), [recording](evidence/background-npc-side-by-side.mp4). |
 | | |
 
 ### Q2. What did not work well
@@ -39,7 +39,7 @@ Supporting artifacts: [prototype setup](../../Examples/AdaptiveTag/README.md), [
 
 | Subteam | What did not work well, its impact, and supporting evidence |
 | --- | --- |
-| | |
+| Background NPCs | **Validation stayed on one machine.** Everything was built and measured on Linux with UE 5.8.3, while the team develops on Windows with UE 5.7. The benchmark scripts and research documents remain in a local commit rather than on `main`, so teammates cannot yet reproduce them. **Some integration problems only appeared at the end.** Packaging the comparison example showed that editor-only test code on `main` (`HasMetaData`) broke every game build using Schola. It also revealed that a Mass `MaxRowsPerFrame` above the scheduler's `MaxPendingRows` silently rejects every request. Both are fixed or documented in the [README limitations](../../README.md#background-npc-implementation). |
 | | |
 
 ### Q3(a). Planned changes
@@ -56,7 +56,7 @@ These are proposed process changes for the next iteration:
 
 | Subteam | Planned process change and why it should help |
 | --- | --- |
-| | |
+| Background NPCs | **Size measurement plans to the time budget from the start** and rank the gates, so the most important ones get full-length runs first instead of every gate getting reduced runs at the end. **Test on the team's platform early:** build and package on Windows with UE 5.7 and ask a teammate to run the example, so platform problems surface before the deliverable. **Package an end-to-end example early and keep using it as an integration test.** Problems in game builds and configuration mistakes that unit tests miss should then appear within days. The `MaxRowsPerFrame` mistake should also become a validation warning in the API. |
 | | |
 
 ### Q3(b). Integration & Next steps
@@ -69,7 +69,7 @@ Within the prototype, we connected the arena's outcomes to the native learner an
 
 | Subteam | Components integrated, division of work, and next steps |
 | --- | --- |
-| | |
+| Background NPCs | **Integrated:** the batching scheduler sits behind Schola's existing policy interface (`UNPCInferencePolicy` with `Paradigm = Background`). It works with the NNE ORT/BasicCpu backends, Actor steppers (`UBackgroundStepper`), Blueprint submit/poll calls, StateTree's existing policy task, and Mass Entity (`ScholaMass`). **Division of work:** Max did the research, implementation, tests, benchmarks, comparison example, and documentation. **Next steps:** check the example on Windows/UE 5.7; fix Actor pool growth by preallocating the request pool, then re-measure; run the comparison with a trained policy. With the other subteams, explore whether the shared-policy stepper and the adaptive actor's decisions can be served through background batching. |
 | | |
 
 ## Product - Review
@@ -88,5 +88,5 @@ We shared a video demo of the adaptive tag game with the partner and are current
 
 | Subteam | Demo, partner feedback, and follow-up |
 | --- | --- |
-| | |
+| Background NPCs | The [side-by-side recording](evidence/background-npc-side-by-side.mp4) was shared with the partner along with the team's adaptive tag video. It shows the same 20,000-agent Mass crowd without and with the background API, with live frame-rate, frame-time, and inference statistics on screen. We are waiting for the partner's feedback. **Follow-up:** record the feedback and any change requests here. Ask the partner which agent counts, decision rates, and policies matter most for their research, so the next measurements match their use. |
 | | |
