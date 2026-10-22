@@ -15,5 +15,5 @@ Other required D2 documents:
 - [Individual contributions](Individual_Contributions_Deliverable2.md)
 
 The review contains online learning reflections and space for the other
-subteams. The contributions document currently contains Jace's entry only.
+subteams. The contributions document currently contains entries for Jace and Max.
 Partner feedback is pending, and release access still needs confirmation.

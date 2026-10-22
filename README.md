@@ -302,7 +302,7 @@ See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the on
 | Student | Role | Specific contributions and PR / commit links |
 | --- | --- | --- |
 | Jace | Created the adaptive tag game and explored online learning integration options. | [Detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md) |
-| | | |
+| Max Xu | Implemented batched background NPC inference with Actor/Mass support; researched and benchmarked scheduling and CPU/GPU execution strategies. | [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max) |
 | | | |
 | | | |
 
