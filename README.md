@@ -290,6 +290,21 @@ For Mass, derive a gather processor that writes observation rows and an apply pr
 - Synchronous `Think`/`BatchedThink` remain available for compatibility and still block the caller.
 - Earlier diagnostics left Actor-adapter pool growth unresolved (see [individual contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max)).
 
+## Event-based NPCs implementation
+
+- Created **UEventStepper**, implementing Schola's **IStepper** interface.
+- Added initialization support for agents and their associated inference policy.
+- Implemented **TriggerInference()** to initiate the inference process.
+- Integrated Schola's observation, inference, and action execution flow: **Observe → BatchedThink → Act**
+- Connected the Stepper to an Unreal Engine Blueprint demonstration using a simulated gameplay event.
+- Demonstrated an NPC responding to the trigger through visible movement in the Unreal environment.
+
+### Current limitations:
+
+- Gameplay events are manually connected to the Stepper rather than automatically subscribed to (So multiple event-based subscriptions and unsubscriptions are a work in progress)
+- The demonstration uses a test policy and hardcoded movement in the agent's **Act** implementation rather than model-controlled movement.
+- The current demonstration validates the basic event-triggered execution flow, not a complete production-ready Event NPC system.
+
 ## Development requirements and setup
 
 ### Adaptive NPC sandbox
@@ -389,6 +404,8 @@ Proposed next steps for the adaptive NPC experiment are to compare learning and 
 
 Proposed next steps for background agents are to validate the comparison example on Windows, run it with a trained policy, measure scaling with more workers and larger crowds, and resolve the Actor-adapter pool growth. GPU execution would be added only if CPU workers become the bottleneck.
 
+Extend Event NPCs with configurable gameplay event subscriptions and unsubscriptions.
+
 **Team MVP priorities:**
 
 **Owners and milestones through D4:**
@@ -421,6 +438,7 @@ See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the on
 | Max Xu | Implemented batched background NPC inference with Actor/Mass support; researched and benchmarked scheduling and CPU/GPU execution strategies; built the with/without-API Mass comparison example. | [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](Examples/BackgroundNPCs/README.md), [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max) |
 | Clementine | Implemented Unreal-side Shared Policy NPC bindings and the Shared Policy Stepper, and developed the interactive Streamlit demonstration. | [PR #7](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7), [PR #13](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13), and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#clementine) |
 | Hiu Yan (Jaela) Kwok | Investigated Schola's inference architecture, authored the Shared Policy project plan, implemented and tested the ONNX reference prototype, and prepared the D2 presentation materials. | [PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5), [prototype documentation](Prototypes/SharedPolicy/README.md), and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#hiu-yan-jaela-kwok) |
+| Prithvi | Implemented the initial Event-based NPC inference prototype for AMD Schola. Developed UEventStepper to support explicitly triggered inference using the existing agent and policy interfaces, integrated the observation–inference–action pipeline, and built an Unreal Engine Blueprint demonstration showing an NPC responding to a simulated gameplay event.|
 | | | |
 
 ## D2 submission checklist
