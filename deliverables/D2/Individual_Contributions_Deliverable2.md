@@ -42,3 +42,23 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 **Evidence:**
 - [PR #7 — Per-NPC Head Bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
 - [PR #13 — Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
+
+
+## Hiu Yan (Jaela) Kwok
+
+**Role:** Shared Policy investigation, planning, and ONNX reference prototype
+
+- Investigated Schola’s existing inference path, including `Think`, `BatchedThink`, model ownership, buffers, bindings, and the distinction between API-level batching and tensor-batched execution.
+- Authored the Shared Policy project guide defining the proposed scope, tensor and routing contracts, failure behaviour, architecture, responsibility split, six-week delivery plan, acceptance criteria, risks, and questions for AMD.
+- Implemented a deterministic PyTorch reference model containing a shared layer and two named outputs for Combat and Support actions.
+- Added dynamic-batch ONNX export, model validation, and a two-NPC ONNX Runtime example that executes one model call and preserves per-NPC routing order.
+- Added 11 Python tests covering tensor shapes, metadata, exact outputs, routing order, runtime call count, malformed observations, and invalid model contracts.
+- Documented the prototype’s setup, verified behaviour, and limitations, including that it does not yet prove Unreal NNE integration or a performance improvement.
+- Prepared the Shared Policy D2 presentation materials covering the project objective, planning work, prototype evidence, AMD feedback, architecture alternatives, and revised next steps.
+
+**Evidence:**
+
+- [PR #5 — Shared Policy ONNX reference prototype](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5)
+- [Prototype source and instructions](../../Prototypes/SharedPolicy/README.md)
+- [Shared Policy project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit)
+- [Shared Policy D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
