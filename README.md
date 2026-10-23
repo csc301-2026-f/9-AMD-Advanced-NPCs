@@ -304,6 +304,7 @@ For Mass, derive a gather processor that writes observation rows and an apply pr
 - Gameplay events are manually connected to the Stepper rather than automatically subscribed to (So multiple event-based subscriptions and unsubscriptions are a work in progress)
 - The demonstration uses a test policy and hardcoded movement in the agent's **Act** implementation rather than model-controlled movement.
 - The current demonstration validates the basic event-triggered execution flow, not a complete production-ready Event NPC system.
+- Compatibility issues with newer versions of Unreal and other NPCs. 
 
 ## Development requirements and setup
 
