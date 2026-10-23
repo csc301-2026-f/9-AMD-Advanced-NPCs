@@ -10,6 +10,8 @@ For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools protot
 
 The background NPC work focuses on **scaling ML-controlled agents within a frame budget**. Schola's inference API can now batch decisions from many Actors or Mass entities and run them on worker threads, so the game thread never waits for the model. For D2, the [comparison example](Examples/BackgroundNPCs/README.md) shows a 20,000-agent Mass crowd with and without the API.
 
+The event-based NPC work focuses on allowing NPCs to perform inference in response to explicit gameplay events rather than continuously evaluating decisions every frame. This is particularly useful for turn-based games and event-driven interactions, where NPCs only need to make decisions when relevant gameplay conditions change. For D2, we implemented a prototype Event Stepper in Unreal Engine that supports a triggered inference. 
+
 ### Other project features
 
 | Subteam / feature | Description and value |
