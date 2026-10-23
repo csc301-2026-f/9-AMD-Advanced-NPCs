@@ -62,3 +62,15 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 - [Prototype source and instructions](../../Prototypes/SharedPolicy/README.md)
 - [Shared Policy project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit)
 - [Shared Policy D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
+
+## Prithvi
+
+**Role:** Implemented the initial Event-based NPC inference prototype, enabling NPC decisions to be triggered by gameplay events.
+
+Event Stepper Implementation: Developed UEventStepper using Schola's existing IStepper interface to support triggered NPC inference.
+Inference Pipeline Integration: Implemented TriggerInference() to execute the existing workflow **(Observe → BatchedThink → Act)**, reusing Schola's agent and policy interfaces.
+Unreal Engine Integration: Integrated the Event Stepper into an Unreal Engine test project and exposed the triggering functionality for use with Blueprints.
+
+**Evidence:**
+- [Header File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Public/Steppers/EventStepper.h)
+- [Implementation File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Private/Steppers/EventStepper.cpp)
