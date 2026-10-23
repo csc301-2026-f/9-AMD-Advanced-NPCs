@@ -17,11 +17,28 @@ background inference API):
   [synchronous](evidence/background-npc-sync.json) and
   [background](evidence/background-npc-background.json) reports
 
+Recorded Shared Policy NPC evidence:
+
+- [ONNX reference prototype](../../Prototypes/SharedPolicy/README.md) and [merged PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5)
+- [Shared Policy project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit)
+- [D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
+- [PR #7: per-NPC head bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
+- [PR #13: Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
+
+The Python prototype verifies dynamic-batch ONNX export, one two-NPC ONNX
+Runtime call, deterministic outputs, and ordered Combat/Support routing. The
+Unreal-side work adds NPC-to-head configuration and a Stepper that calls the
+Shared Policy interface with a batch and routes the returned actions. These
+pieces are not yet connected to a real Unreal NNE policy, and the team has not
+demonstrated a performance improvement.
+
 Other required D2 documents:
 
 - [Iteration 02 review and retrospective](iteration-02-review.md)
 - [Individual contributions](Individual_Contributions_Deliverable2.md)
 
-The review contains online learning and background NPC reflections, with space
-for the other subteams. The contributions document currently contains entries for Jace and Max.
-Partner feedback is pending, and release access still needs confirmation.
+The review contains reflections from the online learning, background NPC, and
+Shared Policy subteams. The individual-contributions document records the work
+completed by each contributor represented in the current D2 snapshot. Final
+partner feedback, release access, and any remaining team-member entries still
+need confirmation.
