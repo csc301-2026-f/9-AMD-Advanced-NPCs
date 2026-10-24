@@ -2,10 +2,10 @@
 
 ## Iteration 02 - Review & Retrospect
 
-- **When:**
-- **Where:**
+- **When: 10/22/2026 8pm**
+- **Where: Online**
 
-The online learning entries cover our adaptive NPC prototype. The Background NPCs rows cover batched background inference (Max, the only member of that subteam). The remaining subteam rows are open for their own reflections and integration updates.
+The online learning entries cover our adaptive NPC prototype. The Background NPCs rows cover batched background inference (Max, the only member of that subteam), and then Event NPCs.
 
 Format reference: [course D2 iteration review template](https://github.com/csc301-2026-f/deliverable-documents/blob/main/deliverables/D2/iteration-02-review.md).
 
