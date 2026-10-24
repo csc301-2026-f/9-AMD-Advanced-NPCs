@@ -43,6 +43,19 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 - [PR #7 — Per-NPC Head Bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
 - [PR #13 — Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
 
+## Chloe
+
+**Role:** Adaptive NPCs: checkpoint saving and loading, timing tests, and the evaluation plan for the online SAC learner.
+
+- **Checkpoint save and load (FR-11):** Added `SaveCheckpoint` and `LoadCheckpoint` to `OnlineSACLearner`. A checkpoint stores the actor, both critics and target critics, Adam state and the training RNG. Files are checked for size, checksum and structure before loading, so a bad file is refused and the running model is left unchanged instead of crashing.
+- **Checkpoint tests (test 7):** Added 10 native checks: bit-identical actor outputs after a round trip, version handling, and refusal of truncated, corrupted, renamed and missing files. All pass, and the existing learner lifecycle checks still pass.
+- **Timing test (test 8):** Added a native timing harness. A decision takes about 0.006 ms against a 0.1 ms target, and a 50-step training round takes 79 ms against a 5,000 ms budget.
+- **Evaluation plan (test 9):** Showed that the current circle pattern cannot demonstrate adaptation, because a policy trained on bouncing targets already catches it 100% of the time with no further training. Proposed a harder second pattern and a fixed adaptive-vs-frozen protocol.
+- **Spec:** Wrote the Person D spec for the learner thread, experience queue, snapshots, frozen mode, saving format and tests 6 to 9.
+
+All tests ran natively on macOS with clang, not yet inside Unreal.
+
+**Evidence:** [branch `feature/adaptive-sac-checkpoint`](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/tree/feature/adaptive-sac-checkpoint) (commits `56c01b5`, `8cbe90b`), with test output in `Examples/AdaptiveTag/Evidence/SAC/native-checkpoint/` and `native-timing/`.
 
 ## Hiu Yan (Jaela) Kwok
 
@@ -75,3 +88,19 @@ Unreal Engine Integration: Integrated the Event Stepper into an Unreal Engine te
 - [Header File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Public/Steppers/EventStepper.h), [Implementation File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Private/Steppers/EventStepper.cpp)
 - [Event Diagram](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-blueprint.png)
 - [Stepper Initialization](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-initialization.png), [Event-triggered Inference Execution](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-inference-execution.png)
+## Olivia Markow
+
+**Role:** Online learning: in-engine SAC learner, chase task and interactive simulator.
+
+- Compared ways to train inside Unreal with no Python (Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack, hand-written C++, RLtools) and chose RLtools' SAC.
+- Built the `OnlineSACRuntime` module: a chase environment and RLtools' own SAC loop, with pass criteria fixed from baselines before training. Unreal automation tests passed on 3 seeds (catch rate 0.86 to 0.99).
+- Built `OnlineSACLearner`, a push-style learner with a validated experience queue, a background learner thread, versioned actor snapshots and a frozen mode. Lifecycle tests rejected 8 of 8 invalid experiences and ran about 1.6 million concurrent `Act` calls across 191 snapshot swaps with no invalid action.
+- Built `chase_sim`, an interactive console simulator on an engine-neutral `ChaseSession` core: equal-speed chaser and runner, straight, square and circle runner patterns, live training, snapshots, frozen mode, watch and replay, and one config file for every setting. An Unreal automation test runs the same core.
+- Wrote `UOnlineSACPolicy` and the `AdaptiveSAC` host to connect the learner to Schola's `UAdaptiveNPCPolicy` without Python. The recorded results do not yet include this part.
+- Result: after 300 circle episodes the chaser catches 100% of the evaluation starts on 3 seeds, up from 8% to 22% (greedy pursuit 40%, random 18%). Adaptation to a changed pattern is not yet shown: the circle-trained policy already catches every square start.
+
+**Evidence:** 
+
+- [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
+- [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
+- [SAC test results, baselines and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)

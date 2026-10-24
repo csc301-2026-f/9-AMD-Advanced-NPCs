@@ -1,0 +1,11 @@
+# Check 2 (learning on circle) and check 3 (adaptation to square), seed 1.
+log learning-seed1-and-adaptation.csv
+eval 50
+train 300
+eval 50
+snapshot
+pattern square
+eval 50
+train 150
+eval 50
+quit

@@ -1,0 +1,8 @@
+OnlineSACLearner (push, our own loop) on chase, trainSteps=20000 adaptSteps=10000
+seed 1: after 20000 steps bounce catch_rate=0.860 steps_to_catch=95.7 | circle (zero-shot) catch_rate=0.980 | train 73.2s -> PASS
+seed 1: after 10000 more steps on circle: circle catch_rate=1.000 steps_to_catch=80.7, bounce catch_rate=0.980 | adapt 38.9s
+seed 2: after 20000 steps bounce catch_rate=0.840 steps_to_catch=99.6 | circle (zero-shot) catch_rate=0.950 | train 74.2s -> PASS
+seed 2: after 10000 more steps on circle: circle catch_rate=1.000 steps_to_catch=76.4, bounce catch_rate=0.890 | adapt 38.7s
+seed 3: after 20000 steps bounce catch_rate=0.960 steps_to_catch=78.4 | circle (zero-shot) catch_rate=1.000 | train 73.2s -> PASS
+seed 3: after 10000 more steps on circle: circle catch_rate=1.000 steps_to_catch=66.8, bounce catch_rate=1.000 | adapt 38.3s
+thresholds: catch_rate >= 0.80 and steps_to_catch <= 100 on every seed -> PASS

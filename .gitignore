@@ -138,3 +138,6 @@ coverage_html_report/*
 
 # ignore log files from pytest or OpenCPPCoverage
 *.log
+
+# virtual environment
+.venv/
