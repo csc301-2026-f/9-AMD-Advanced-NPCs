@@ -24,6 +24,7 @@ Recorded Shared Policy NPC evidence:
 - [D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
 - [PR #7: per-NPC head bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
 - [PR #13: Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
+- [PR #16: RLtools SAC learner and interactive chase simulator](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
 
 The Python prototype verifies dynamic-batch ONNX export, one two-NPC ONNX
 Runtime call, deterministic outputs, and ordered Combat/Support routing. The

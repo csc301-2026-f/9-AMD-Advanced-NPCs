@@ -77,5 +77,4 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 **Evidence:** 
 
 - [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
-- [demo script](../../Examples/AdaptiveTag/Evidence/SAC/chase_sim/scripts/demo.txt)
-- [demo video]
+- [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
