@@ -401,19 +401,17 @@ The adaptive prototype has repeatable build, test, and packaging scripts under `
 
 Existing Schola development conventions are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Team branch and pull request workflow:**
+**Branching and pull requests:** Our team uses main as the shared integration branch. Members develop their assigned NPC paradigms and documentation on separate feature branches, then submit pull requests to incorporate completed work. PRs allow changes to be reviewed and merge conflicts to be resolved before integration.
 
-**Review and merge requirements:**
+**Development practices:** We follow the existing Schola contribution guidelines, which recommend focused pull requests, relevant testing, issue references where applicable, and Conventional Commits. Validation varies by component, including Unreal automation tests, Python tests, and prototype-specific tests. Experimental implementations that have not completed integration may remain on separate branches, with source and evidence linked from the D2 documentation.
 
-**Release and deployment process:**
+**Deployment:** Schola is a source-distributed Unreal Engine plugin rather than a hosted web application. Its general installation process involves adding the plugin to an Unreal project's Plugins directory and recompiling against a compatible engine version. See README-Schola.md for the upstream installation requirements.
 
-**Fresh-machine validation and runtime prerequisites:**
+**For D2,** individual prototypes have their own evaluation instructions, supported environments, and known limitations, documented in the sections above. The team will use a GitHub release tagged D2 to identify the submitted snapshot.
 
 ## Licensing
 
 The existing Schola codebase carries an MIT license in [LICENSE.txt](LICENSE.txt). RLtools also uses the MIT license. The adaptive sandbox retains the RLtools notice and stages it with the packaged demo.
-
-**Team license choice and rationale:**
 
 ## Remaining work and priorities
 
@@ -423,29 +421,15 @@ Proposed next steps for background agents are to validate the comparison example
 
 Extend Event NPCs with configurable gameplay event subscriptions and unsubscriptions.
 
-**Team MVP priorities:**
-
-**Owners and milestones through D4:**
-
-**Cross-subteam dependencies:**
-
 ## Iteration review and partner feedback
 
-See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the online learning and background NPC reflections, and space for the other subteams.
+See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the online learning, background and other NPC reflections.
 
 **Online learning demo:** We shared a video demo of the adaptive tag game with the partner and are currently waiting to hear back.
 
 **Background NPC demo:** We shared the [side-by-side recording](deliverables/D2/evidence/background-npc-side-by-side.mp4) of the Mass crowd without and with the background API along with the adaptive tag video, and are waiting for feedback.
 
-**What worked well:**
-
-**What did not work well:**
-
-**Changes for the next iteration:**
-
-**Partner demo date and participants:**
-
-**Partner feedback and resulting decisions:**
+Others included in link
 
 ## Individual contributions
 
@@ -458,6 +442,8 @@ See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the on
 | Prithvi | Implemented the initial Event-based NPC inference prototype for AMD Schola. Developed UEventStepper to support explicitly triggered inference using the existing agent and policy interfaces, integrated the observation–inference–action pipeline, and built an Unreal Engine Blueprint demonstration showing an NPC responding to a simulated gameplay event.| [Detailed contributions](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/edit/docs/tornadoguy26-d2/deliverables/D2/Individual_Contributions_Deliverable2.md)|
 | Olivia Markow | Built the in-engine SAC learner, the chase task and the interactive `chase_sim` simulator, and compared options for training inside Unreal without Python. Connected the learner to Schola's `UAdaptiveNPCPolicy` in a test host. | [PR #16](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16), [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing) and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#olivia-markow) |
 | | | |
+
+More in [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md)
 
 ## D2 submission checklist
 
