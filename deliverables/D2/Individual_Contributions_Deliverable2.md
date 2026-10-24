@@ -104,3 +104,16 @@ Unreal Engine Integration: Integrated the Event Stepper into an Unreal Engine te
 - [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
 - [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
 - [SAC test results, baselines and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)
+
+## Jason Panusopone
+
+**Role**: Online learning: Implemented and evaluated a native learning-versus-frozen policy comparison for Adaptive Tag.
+
+- Extended the existing C++ tests with paired adaptive and frozen learners across four seeds, using matching pretraining and runner sequences.
+- Added checks for matching initial policies and unchanged frozen-policy probabilities, versions, and update counts.
+- Recorded 2,048 post-switch outcomes in CSV files. Continued learning achieved a 63.1% catch rate versus 24.8% for frozen policies in the native route-choice simulation.
+- Documented the experiment, results, limitations, and reproduction steps.
+- 
+**Evidence:**
+  
+- [PR #23 — Matched learning-versus-frozen policy experiment](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/23).
