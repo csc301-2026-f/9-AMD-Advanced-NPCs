@@ -72,5 +72,6 @@ Inference Pipeline Integration: Implemented TriggerInference() to execute the ex
 Unreal Engine Integration: Integrated the Event Stepper into an Unreal Engine test project and exposed the triggering functionality for use with Blueprints.
 
 **Evidence:**
-- [Header File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Public/Steppers/EventStepper.h)
-- [Implementation File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Private/Steppers/EventStepper.cpp)
+- [Header File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Public/Steppers/EventStepper.h), [Implementation File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Private/Steppers/EventStepper.cpp)
+- [Event Diagram](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-blueprint.png)
+- [Stepper Initialization](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-initialization.png), [Event-triggered Inference Execution](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-inference-execution.png)
