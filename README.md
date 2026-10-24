@@ -6,7 +6,7 @@ Schola is an AMD toolkit that connects Unreal Engine environments and agents to 
 
 The adaptive NPC work focuses on **continued learning during gameplay**. Instead of freezing an NPC's behavior after training, we want it to improve its decisions from new gameplay experiences and respond when player habits change.
 
-For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools prototype**: a tagger learns which route to favor while a player or scripted runner tries to escape. Training runs inside the game process without a Python service. Schola integration remains future work for this prototype.
+For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools prototype**: a tagger learns which route to favor while a player or scripted runner tries to escape. Training runs inside the game process without a Python service. A second adaptive prototype, `chase_sim`, trains RLtools' SAC on a continuous-movement chase task and shows the catch rate rising live in a console. Schola integration remains future work for the tag prototype, and is written but not yet validated for the SAC learner.
 
 The background NPC work focuses on **scaling ML-controlled agents within a frame budget**. Schola's inference API can now batch decisions from many Actors or Mass entities and run them on worker threads, so the game thread never waits for the model. For D2, the [comparison example](Examples/BackgroundNPCs/README.md) shows a 20,000-agent Mass crowd with and without the API.
 
@@ -24,7 +24,7 @@ The background NPC work focuses on **scaling ML-controlled agents within a frame
 | Course repository | [9-AMD-Advanced-NPCs](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs) |
 | D2 release and download | |
 | Adaptive NPC source | [Examples/AdaptiveTag](Examples/AdaptiveTag/README.md) |
-| Demo recording | |
+| Demo recording | [SAC Learner demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing) |
 | Background NPC comparison source | [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) |
 | Background NPC side-by-side recording | [background-npc-side-by-side.mp4](deliverables/D2/evidence/background-npc-side-by-side.mp4) |
 | Background NPC API guide | [NPC inference paradigms: Background NPCs](Docs/Sphinx/guides/mock_inference_paradigms.rst) |
@@ -116,7 +116,7 @@ The actor currently receives a constant observation, **`[1.0]`**. It cannot see 
 
 ### Adaptive NPC: SAC learns to intercept a moving target
 
-**User story:** As a game developer, I want an NPC to adjust its decisions from gameplay outcomes so that it can respond to changing player habits.
+**User story:** As a game developer, I want NPC policies to learn from player interactions during gameplay, so that NPCs can adapt their strategies to the player's behavior.
 
 **D2 result:** `chase_sim`, an interactive simulator where a chaser learns with SAC (Soft Actor-Critic) to catch a runner that moves at the same speed, so it cannot win by simply following. Learning runs on a background thread while episodes play, and the NPC acts from versioned snapshots. There is no Python.
 
@@ -130,6 +130,8 @@ Run it without `--script` to type commands yourself: `help`, `config`, `eval 20`
 **Result:** on the circle pattern, 3 seeds, the chaser's catch rate rose from 8-22% to 100% after 300 training episodes (greedy pursuit: 40%, random: 18%).
 
 **Limitation:** adaptation to a changed pattern is not yet demonstrated, because the circle-trained policy already catches every square start. Schola integration is written but not yet validated.
+
+**Evidence:** [SAC test results, baselines and learning curves](Examples/AdaptiveTag/Evidence/SAC/README.md).
 
 ### Adaptive NPC: continue learning after behavior changes
 
@@ -273,6 +275,7 @@ The native and packaged learning results use the current actor rate of 0.006. Th
 - Learning depends on collecting enough scored rounds. Faster computation alone does not provide more experience.
 - Models do not persist across launches.
 - Testing establishes this small task. Larger agent counts, frame-time budgets, richer observations, and controlled comparisons need further evaluation.
+- SAC chase (`chase_sim`): adaptation to a changed runner pattern is not yet demonstrated, the results were recorded on one Windows machine, and the Schola policy (`UOnlineSACPolicy`) is not yet validated.
 
 ### Other principal components
 

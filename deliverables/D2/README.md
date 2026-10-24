@@ -8,6 +8,7 @@ Recorded adaptive NPC validation:
 - [Native four-seed learner tests](evidence/adaptive-native-tests.txt)
 - [Packaged Unreal learning report](evidence/adaptive-packaged-test.json)
 - [Arena input and collision smoke report](evidence/adaptive-arena-smoke.json)
+ [SAC learner evidence: baselines, thresholds, chase_sim transcripts and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)
 
 Recorded background NPC comparison (20,000 Mass agents, without and with the
 background inference API):

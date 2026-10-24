@@ -67,7 +67,7 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 
 **Role:** Online learning: in-engine SAC learner, chase task and interactive simulator.
 
-- Compared ways to train inside Unreal with no Python (Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack, hand-written C++, RLtools) and chose RLtools' SAC. Built a hand-written Eigen check inside Unreal as a fallback: gradients matched finite differences to better than 2e-8, at about 91 µs per pass.
+- Compared ways to train inside Unreal with no Python (Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack, hand-written C++, RLtools) and chose RLtools' SAC.
 - Built the `OnlineSACRuntime` module: a chase environment and RLtools' own SAC loop, with pass criteria fixed from baselines before training. Unreal automation tests passed on 3 seeds (catch rate 0.86 to 0.99).
 - Built `OnlineSACLearner`, a push-style learner with a validated experience queue, a background learner thread, versioned actor snapshots and a frozen mode. Lifecycle tests rejected 8 of 8 invalid experiences and ran about 1.6 million concurrent `Act` calls across 191 snapshot swaps with no invalid action.
 - Built `chase_sim`, an interactive console simulator on an engine-neutral `ChaseSession` core: equal-speed chaser and runner, straight, square and circle runner patterns, live training, snapshots, frozen mode, watch and replay, and one config file for every setting. An Unreal automation test runs the same core.
@@ -78,3 +78,4 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 
 - [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
 - [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
+- [SAC test results, baselines and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)
