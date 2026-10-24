@@ -114,6 +114,23 @@ The tagger commits to a route before the runner commits. A catch earns **+1**, a
 
 The actor currently receives a constant observation, **`[1.0]`**. It cannot see the runner's position, chosen route, or scripted bias. Its weights learn a general route preference from rewards. This is a deliberately small learning task rather than learned navigation.
 
+### Adaptive NPC: SAC learns to intercept a moving target
+
+**User story:** As a game developer, I want an NPC to adjust its decisions from gameplay outcomes so that it can respond to changing player habits.
+
+**D2 result:** `chase_sim`, an interactive simulator where a chaser learns with SAC (Soft Actor-Critic) to catch a runner that moves at the same speed, so it cannot win by simply following. Learning runs on a background thread while episodes play, and the NPC acts from versioned snapshots. There is no Python.
+
+**Try it** (Windows, from `Examples/AdaptiveTag`, in PowerShell):
+
+    Tools\ChaseSim\Build-ChaseSim.cmd
+    .\Saved\ChaseSim\chase_sim.exe --pattern circle --seed 2 --script Evidence\SAC\chase_sim\scripts\demo.txt
+
+Run it without `--script` to type commands yourself: `help`, `config`, `eval 20`, `watch 1 40`, `train 80`, `snapshot`, `pattern square`, `freeze`, `replay`, `quit`. Every setting is in `Source/OnlineSACRuntime/Public/ChaseConfig.h`. `eval` compares the current model with greedy pursuit and random movement on fixed start positions.
+
+**Result:** on the circle pattern, 3 seeds, the chaser's catch rate rose from 8-22% to 100% after 300 training episodes (greedy pursuit: 40%, random: 18%).
+
+**Limitation:** adaptation to a changed pattern is not yet demonstrated, because the circle-trained policy already catches every square start. Schola integration is written but not yet validated.
+
 ### Adaptive NPC: continue learning after behavior changes
 
 The scripted runner can switch its preference without resetting the learner. Later decisions use updated actor weights. Learning happens during the same gameplay session, with training on a background worker.
@@ -207,7 +224,7 @@ performance claim has been made.
 
 ## Adaptive NPC implementation
 
-The current learner is a small **custom categorical actor-critic** built with RLtools' C++ neural network, backpropagation, and Adam optimizer operations. It does not use RLtools' built-in SAC or PPO training loop.
+The current learner is a small **custom categorical actor-critic** built with RLtools' C++ neural network, backpropagation, and Adam optimizer operations. A second learner, OnlineSACRuntime, uses RLtools’ built-in SAC.
 
 | Component | Role in this demo |
 | --- | --- |
@@ -419,6 +436,7 @@ See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the on
 | Max Xu | Implemented batched background NPC inference with Actor/Mass support; researched and benchmarked scheduling and CPU/GPU execution strategies; built the with/without-API Mass comparison example. | [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](Examples/BackgroundNPCs/README.md), [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max) |
 | Clementine | Implemented Unreal-side Shared Policy NPC bindings and the Shared Policy Stepper, and developed the interactive Streamlit demonstration. | [PR #7](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7), [PR #13](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13), and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#clementine) |
 | Hiu Yan (Jaela) Kwok | Investigated Schola's inference architecture, authored the Shared Policy project plan, implemented and tested the ONNX reference prototype, and prepared the D2 presentation materials. | [PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5), [prototype documentation](Prototypes/SharedPolicy/README.md), and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#hiu-yan-jaela-kwok) |
+| Olivia Markow | Built the in-engine SAC learner, the chase task and the interactive `chase_sim` simulator, and compared options for training inside Unreal without Python. Connected the learner to Schola's `UAdaptiveNPCPolicy` in a test host. | [PR #16](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16), [demo video]()m and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#olivia-markow) |
 | | | |
 
 ## D2 submission checklist
