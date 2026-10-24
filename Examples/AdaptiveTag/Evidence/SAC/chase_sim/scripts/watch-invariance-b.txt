@@ -1,0 +1,4 @@
+# Same seed as watch-invariance-a.txt, training only.
+train 10
+train 10
+quit

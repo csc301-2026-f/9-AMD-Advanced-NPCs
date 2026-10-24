@@ -5,6 +5,7 @@
     "Description": "Native RLtools adaptive tag sandbox. Schola integration is disabled for this demo.",
     "Modules": [
         { "Name": "TagLearningRuntime", "Type": "Runtime", "LoadingPhase": "Default" },
+        { "Name": "OnlineSACRuntime", "Type": "Runtime", "LoadingPhase": "Default" },
         { "Name": "CSC301Host", "Type": "Runtime", "LoadingPhase": "Default" }
     ],
     "Plugins": [

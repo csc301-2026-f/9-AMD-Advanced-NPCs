@@ -56,3 +56,39 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 All tests ran natively on macOS with clang, not yet inside Unreal.
 
 **Evidence:** [branch `feature/adaptive-sac-checkpoint`](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/tree/feature/adaptive-sac-checkpoint) (commits `56c01b5`, `8cbe90b`), with test output in `Examples/AdaptiveTag/Evidence/SAC/native-checkpoint/` and `native-timing/`.
+
+## Hiu Yan (Jaela) Kwok
+
+**Role:** Shared Policy investigation, planning, and ONNX reference prototype
+
+- Investigated Schola’s existing inference path, including `Think`, `BatchedThink`, model ownership, buffers, bindings, and the distinction between API-level batching and tensor-batched execution.
+- Authored the Shared Policy project guide defining the proposed scope, tensor and routing contracts, failure behaviour, architecture, responsibility split, six-week delivery plan, acceptance criteria, risks, and questions for AMD.
+- Implemented a deterministic PyTorch reference model containing a shared layer and two named outputs for Combat and Support actions.
+- Added dynamic-batch ONNX export, model validation, and a two-NPC ONNX Runtime example that executes one model call and preserves per-NPC routing order.
+- Added 11 Python tests covering tensor shapes, metadata, exact outputs, routing order, runtime call count, malformed observations, and invalid model contracts.
+- Documented the prototype’s setup, verified behaviour, and limitations, including that it does not yet prove Unreal NNE integration or a performance improvement.
+- Prepared the Shared Policy D2 presentation materials covering the project objective, planning work, prototype evidence, AMD feedback, architecture alternatives, and revised next steps.
+
+**Evidence:**
+
+- [PR #5 — Shared Policy ONNX reference prototype](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5)
+- [Prototype source and instructions](../../Prototypes/SharedPolicy/README.md)
+- [Shared Policy project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit)
+- [Shared Policy D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
+
+## Olivia Markow
+
+**Role:** Online learning: in-engine SAC learner, chase task and interactive simulator.
+
+- Compared ways to train inside Unreal with no Python (Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack, hand-written C++, RLtools) and chose RLtools' SAC.
+- Built the `OnlineSACRuntime` module: a chase environment and RLtools' own SAC loop, with pass criteria fixed from baselines before training. Unreal automation tests passed on 3 seeds (catch rate 0.86 to 0.99).
+- Built `OnlineSACLearner`, a push-style learner with a validated experience queue, a background learner thread, versioned actor snapshots and a frozen mode. Lifecycle tests rejected 8 of 8 invalid experiences and ran about 1.6 million concurrent `Act` calls across 191 snapshot swaps with no invalid action.
+- Built `chase_sim`, an interactive console simulator on an engine-neutral `ChaseSession` core: equal-speed chaser and runner, straight, square and circle runner patterns, live training, snapshots, frozen mode, watch and replay, and one config file for every setting. An Unreal automation test runs the same core.
+- Wrote `UOnlineSACPolicy` and the `AdaptiveSAC` host to connect the learner to Schola's `UAdaptiveNPCPolicy` without Python. The recorded results do not yet include this part.
+- Result: after 300 circle episodes the chaser catches 100% of the evaluation starts on 3 seeds, up from 8% to 22% (greedy pursuit 40%, random 18%). Adaptation to a changed pattern is not yet shown: the circle-trained policy already catches every square start.
+
+**Evidence:** 
+
+- [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
+- [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
+- [SAC test results, baselines and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)

@@ -6,7 +6,7 @@ Schola is an AMD toolkit that connects Unreal Engine environments and agents to 
 
 The adaptive NPC work focuses on **continued learning during gameplay**. Instead of freezing an NPC's behavior after training, we want it to improve its decisions from new gameplay experiences and respond when player habits change.
 
-For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools prototype**: a tagger learns which route to favor while a player or scripted runner tries to escape. Training runs inside the game process without a Python service. Schola integration remains future work for this prototype.
+For D2, the adaptive work demonstrates a **native Unreal Engine + RLtools prototype**: a tagger learns which route to favor while a player or scripted runner tries to escape. Training runs inside the game process without a Python service. A second adaptive prototype, `chase_sim`, trains RLtools' SAC on a continuous-movement chase task and shows the catch rate rising live in a console. Schola integration remains future work for the tag prototype, and is written but not yet validated for the SAC learner.
 
 The background NPC work focuses on **scaling ML-controlled agents within a frame budget**. Schola's inference API can now batch decisions from many Actors or Mass entities and run them on worker threads, so the game thread never waits for the model. For D2, the [comparison example](Examples/BackgroundNPCs/README.md) shows a 20,000-agent Mass crowd with and without the API.
 
@@ -15,7 +15,7 @@ The background NPC work focuses on **scaling ML-controlled agents within a frame
 | Subteam / feature | Description and value |
 | --- | --- |
 | Efficient background agents | Batched, non-blocking inference for large populations of ML-controlled Actors and Mass entities. The game thread submits observations and applies actions on a later frame. Background workers run the ONNX policy in batches. Researchers can scale agent counts and decision rates without the model running inside the frame. |
-| | |
+| Shared Policy NPC inference | A reference ONNX model batches observations from multiple NPCs and supports role-specific Combat and Support outputs. Unreal-side bindings associate each NPC with a head, while the Shared Policy Stepper collects observations and routes returned actions. The reference model and Unreal routing infrastructure are implemented separately; real NNE integration and performance evaluation remain future work. |
 
 ## Access the D2 product
 
@@ -24,11 +24,14 @@ The background NPC work focuses on **scaling ML-controlled agents within a frame
 | Course repository | [9-AMD-Advanced-NPCs](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs) |
 | D2 release and download | |
 | Adaptive NPC source | [Examples/AdaptiveTag](Examples/AdaptiveTag/README.md) |
-| Demo recording | |
+| Demo recording | [SAC Learner demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing) |
 | Background NPC comparison source | [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) |
 | Background NPC side-by-side recording | [background-npc-side-by-side.mp4](deliverables/D2/evidence/background-npc-side-by-side.mp4) |
 | Background NPC API guide | [NPC inference paradigms: Background NPCs](Docs/Sphinx/guides/mock_inference_paradigms.rst) |
-| Other feature access links | |
+| Shared Policy prototype | [Source, tests, and instructions](Prototypes/SharedPolicy/README.md) |
+| Shared Policy implementation PRs | [ONNX prototype PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5), [head bindings PR #7](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7), and [Stepper PR #13](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13) |
+| Shared Policy planning | [Project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit) |
+| Shared Policy presentation | [D2 slide deck](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit) |
 
 **Current availability:** the repository includes the standalone Unreal project, arena assets, and pinned RLtools headers under `Examples/AdaptiveTag`. You can build and run the simulation from a clone using the instructions below. A downloadable D2 package, independent-machine check, and final release URL still need confirmation.
 
@@ -97,7 +100,7 @@ Changes to the runner mode preserve the learned weights. Fresh launches and **T*
 | Feature | Access and steps | Expected result |
 | --- | --- | --- |
 | Background NPC comparison | Build and run [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) (see [setup](#background-npc-comparison)). It starts with the background API enabled. Press **Tab** to switch to per-agent synchronous inference and back. | 20,000 Mass agents walk toward goals, steered by the ONNX policy. The HUD shows frame rate, frame time, game-thread inference time, decisions per second, agents per model call, and action latency for the active mode. |
-| | | |
+| Shared Policy ONNX reference prototype | Follow the setup and execution commands in [Prototypes/SharedPolicy/README.md](Prototypes/SharedPolicy/README.md). The prototype requires Python 3.12 and `uv`. | The test suite reports 11 passing tests. The demo processes two NPC observations in one ONNX Runtime call and selects the Combat output for one row and the Support output for the other. This verifies the reference contract outside Unreal; it does not verify NNE integration. |
 
 ## Key use cases
 
@@ -110,6 +113,25 @@ Changes to the runner mode preserve the learned weights. Fresh launches and **T*
 The tagger commits to a route before the runner commits. A catch earns **+1**, and an escape earns **-1**. One scored round produces one training experience and one update. Aborted rounds and idle timeouts do not train the model.
 
 The actor currently receives a constant observation, **`[1.0]`**. It cannot see the runner's position, chosen route, or scripted bias. Its weights learn a general route preference from rewards. This is a deliberately small learning task rather than learned navigation.
+
+### Adaptive NPC: SAC learns to intercept a moving target
+
+**User story:** As a game developer, I want NPC policies to learn from player interactions during gameplay, so that NPCs can adapt their strategies to the player's behavior.
+
+**D2 result:** `chase_sim`, an interactive simulator where a chaser learns with SAC (Soft Actor-Critic) to catch a runner that moves at the same speed, so it cannot win by simply following. Learning runs on a background thread while episodes play, and the NPC acts from versioned snapshots. There is no Python.
+
+**Try it** (Windows, from `Examples/AdaptiveTag`, in PowerShell):
+
+    Tools\ChaseSim\Build-ChaseSim.cmd
+    .\Saved\ChaseSim\chase_sim.exe --pattern circle --seed 2 --script Evidence\SAC\chase_sim\scripts\demo.txt
+
+Run it without `--script` to type commands yourself: `help`, `config`, `eval 20`, `watch 1 40`, `train 80`, `snapshot`, `pattern square`, `freeze`, `replay`, `quit`. Every setting is in `Source/OnlineSACRuntime/Public/ChaseConfig.h`. `eval` compares the current model with greedy pursuit and random movement on fixed start positions.
+
+**Result:** on the circle pattern, 3 seeds, the chaser's catch rate rose from 8-22% to 100% after 300 training episodes (greedy pursuit: 40%, random: 18%).
+
+**Limitation:** adaptation to a changed pattern is not yet demonstrated, because the circle-trained policy already catches every square start. Schola integration is written but not yet validated.
+
+**Evidence:** [SAC test results, baselines and learning curves](Examples/AdaptiveTag/Evidence/SAC/README.md).
 
 ### Adaptive NPC: continue learning after behavior changes
 
@@ -154,15 +176,45 @@ Measured with `Scripts/compare.sh` on one Linux machine (Ryzen 5 7600X, Radeon R
 
 Both modes make the same number of decisions. Without the API, the model calls take about 97% of game-thread time, so the frame rate falls to about 10 FPS. With the API, the game thread spends 1.6 ms per frame gathering and applying rows, and the frame stays at the 60 FPS cap. Batching also cuts total model time to about a third. The trade-off is that actions arrive about one frame after their observation. The synchronous baseline's time includes writing observations. The policy is a synthetic steering network, so these results show frame cost, not behavior quality. With the frame cap removed in shorter smoke runs, the API mode reached about 325 FPS and the per-agent mode stayed near 10 FPS.
 
-### Additional subteam use case
+### Shared Policy NPCs: batch role-specific inference
 
-**User story:**
+**User story:** As a game developer, I want multiple NPCs to share compatible
+inference work while selecting outputs for their assigned roles, so that I can
+support specialized NPC behaviour without running an unrelated complete model
+design for every agent.
 
-**Description:**
+**Description:** The Shared Policy investigation explores how Schola could
+collect observations from several NPCs, process them as a tensor batch, and
+route each returned action according to the NPC's configured role. The initial
+reference architecture uses one shared layer with named Combat and Support
+outputs. Following AMD feedback, the team is also considering role-conditioned
+policies, batching NPCs separately by role, and separate backbone and head
+models.
 
 **Implemented functionality:**
 
-**Demo and validation:**
+- A deterministic PyTorch reference model with one shared layer and two named
+  outputs.
+- Dynamic-batch ONNX export with `observations`, `combat_actions`, and
+  `support_actions` tensors.
+- A two-NPC ONNX Runtime example that performs one inference call and preserves
+  request order while selecting each NPC's configured output.
+- Eleven Python tests covering shapes, metadata, exact values, routing order,
+  runtime call count, malformed observations, and invalid model contracts.
+- Unreal-side NPC-to-head bindings with configuration validation and lookup
+  utilities.
+- A Shared Policy Stepper that collects NPC observations, calls the
+  `ISharedPolicy` batch interface, and routes returned actions to the
+  corresponding NPCs.
+
+**Demo and validation:** [PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5)
+and the [prototype instructions](Prototypes/SharedPolicy/README.md) contain the
+reference implementation, reproduction commands, expected output, and tests.
+[PR #7](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7) and
+[PR #13](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13) contain
+the Unreal configuration and Stepper work. The Python and Unreal components
+have not yet been connected through a real NNE policy, and no production
+performance claim has been made.
 
 ### Connected product workflow
 
@@ -174,7 +226,7 @@ Both modes make the same number of decisions. Without the API, the model calls t
 
 ## Adaptive NPC implementation
 
-The current learner is a small **custom categorical actor-critic** built with RLtools' C++ neural network, backpropagation, and Adam optimizer operations. It does not use RLtools' built-in SAC or PPO training loop.
+The current learner is a small **custom categorical actor-critic** built with RLtools' C++ neural network, backpropagation, and Adam optimizer operations. A second learner, OnlineSACRuntime, uses RLtools’ built-in SAC.
 
 | Component | Role in this demo |
 | --- | --- |
@@ -223,6 +275,7 @@ The native and packaged learning results use the current actor rate of 0.006. Th
 - Learning depends on collecting enough scored rounds. Faster computation alone does not provide more experience.
 - Models do not persist across launches.
 - Testing establishes this small task. Larger agent counts, frame-time budgets, richer observations, and controlled comparisons need further evaluation.
+- SAC chase (`chase_sim`): adaptation to a changed runner pattern is not yet demonstrated, the results were recorded on one Windows machine, and the Schola policy (`UOnlineSACPolicy`) is not yet validated.
 
 ### Other principal components
 
@@ -384,7 +437,9 @@ See the [Iteration 02 review](deliverables/D2/iteration-02-review.md) for the on
 | --- | --- | --- |
 | Jace | Created the adaptive tag game and explored online learning integration options. | [Detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md) |
 | Max Xu | Implemented batched background NPC inference with Actor/Mass support; researched and benchmarked scheduling and CPU/GPU execution strategies; built the with/without-API Mass comparison example. | [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](Examples/BackgroundNPCs/README.md), [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#max) |
-| | | |
+| Clementine | Implemented Unreal-side Shared Policy NPC bindings and the Shared Policy Stepper, and developed the interactive Streamlit demonstration. | [PR #7](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7), [PR #13](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13), and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#clementine) |
+| Hiu Yan (Jaela) Kwok | Investigated Schola's inference architecture, authored the Shared Policy project plan, implemented and tested the ONNX reference prototype, and prepared the D2 presentation materials. | [PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5), [prototype documentation](Prototypes/SharedPolicy/README.md), and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#hiu-yan-jaela-kwok) |
+| Olivia Markow | Built the in-engine SAC learner, the chase task and the interactive `chase_sim` simulator, and compared options for training inside Unreal without Python. Connected the learner to Schola's `UAdaptiveNPCPolicy` in a test host. | [PR #16](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16), [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing) and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#olivia-markow) |
 | | | |
 
 ## D2 submission checklist

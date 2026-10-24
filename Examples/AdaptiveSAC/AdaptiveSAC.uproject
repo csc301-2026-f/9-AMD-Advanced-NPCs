@@ -1,0 +1,17 @@
+{
+    "FileVersion": 3,
+    "EngineAssociation": "5.7",
+    "Category": "Development",
+    "Description": "Test host: RLtools SAC (OnlineSACRuntime) behind Schola's UAdaptiveNPCPolicy. Schola is the repository root, reached through the Plugins/Schola junction made by Prepare-AdaptiveSAC.ps1.",
+    "Modules": [
+        { "Name": "OnlineSACRuntime", "Type": "Runtime", "LoadingPhase": "Default" },
+        { "Name": "OnlineSACSchola", "Type": "Runtime", "LoadingPhase": "Default" }
+    ],
+    "Plugins": [
+        { "Name": "Schola", "Enabled": true },
+        { "Name": "EnhancedInput", "Enabled": true },
+        { "Name": "StateTree", "Enabled": true },
+        { "Name": "GameplayStateTree", "Enabled": true },
+        { "Name": "NNERuntimeORT", "Enabled": true }
+    ]
+}
