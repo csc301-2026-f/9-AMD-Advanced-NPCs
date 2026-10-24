@@ -43,6 +43,19 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 - [PR #7 — Per-NPC Head Bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
 - [PR #13 — Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
 
+## Chloe
+
+**Role:** Adaptive NPCs: checkpoint saving and loading, timing tests, and the evaluation plan for the online SAC learner.
+
+- **Checkpoint save and load (FR-11):** Added `SaveCheckpoint` and `LoadCheckpoint` to `OnlineSACLearner`. A checkpoint stores the actor, both critics and target critics, Adam state and the training RNG. Files are checked for size, checksum and structure before loading, so a bad file is refused and the running model is left unchanged instead of crashing.
+- **Checkpoint tests (test 7):** Added 10 native checks: bit-identical actor outputs after a round trip, version handling, and refusal of truncated, corrupted, renamed and missing files. All pass, and the existing learner lifecycle checks still pass.
+- **Timing test (test 8):** Added a native timing harness. A decision takes about 0.006 ms against a 0.1 ms target, and a 50-step training round takes 79 ms against a 5,000 ms budget.
+- **Evaluation plan (test 9):** Showed that the current circle pattern cannot demonstrate adaptation, because a policy trained on bouncing targets already catches it 100% of the time with no further training. Proposed a harder second pattern and a fixed adaptive-vs-frozen protocol.
+- **Spec:** Wrote the Person D spec for the learner thread, experience queue, snapshots, frozen mode, saving format and tests 6 to 9.
+
+All tests ran natively on macOS with clang, not yet inside Unreal.
+
+**Evidence:** [branch `feature/adaptive-sac-checkpoint`](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/tree/feature/adaptive-sac-checkpoint) (commits `56c01b5`, `8cbe90b`), with test output in `Examples/AdaptiveTag/Evidence/SAC/native-checkpoint/` and `native-timing/`.
 
 ## Hiu Yan (Jaela) Kwok
 
