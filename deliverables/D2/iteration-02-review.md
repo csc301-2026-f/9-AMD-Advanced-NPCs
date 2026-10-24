@@ -27,6 +27,7 @@ Supporting artifacts: [prototype setup](../../Examples/AdaptiveTag/README.md), [
 | --- | --- |
 | Background NPCs | **Decisions were driven by measurements and written success gates.** Before implementing, Max wrote a literature review, a plan, and pass/fail gates, then benchmarked the options. Batching a trained 3DBall policy at 64 rows gave 10.5× the throughput of single calls, so batching was adopted. No other dispatch strategy beat the shared queue by the required 10%, so it stayed the default. INT8, GPU execution, and deduplication were not built because the measurements never showed a need for them. **Correctness tests came before performance work.** Two pipelined-stepper defects were reproduced in failing tests before being fixed. The scheduler's fault-injection test sends 100,000 requests per dispatch strategy, and all 43 background and Mass automation tests pass. **The final comparison changes only one variable.** The same 20,000-agent Mass crowd ran at 10.4 FPS with per-agent synchronous inference and at the 60 FPS cap with the API, at the same ~200,000 decisions/s. Evidence: [PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](../../Examples/BackgroundNPCs/README.md), [measurements](evidence/background-npc-comparison.md), [recording](evidence/background-npc-side-by-side.mp4). |
 | Shared Policy NPCs | The subteam produced two adjacent but not yet connected layers: Jaela’s tested ONNX reference contract and Clementine’s Unreal configuration and Stepper work. The prototype gave the team concrete batching and routing behaviour to discuss. However, the team committed too early to a shared-backbone and specialized-head architecture. AMD asked the team to investigate other batching and inference options before finalizing the design. |
+| Event NPCs| We successfully implemented and demonstrated the basic event-driven inference workflow. By reusing Scholas IStepper interface and agent/policy architecture, we could focus on triggering inference through gameplay events. A local Unreal Engine Blueprint prototype simulated a turn-ending event using a three-second delay before invoking TriggerInference(). Debug messages confirmed successful initialization and execution of the Observe(), Policy Think(), and Act() methods. This provided an initial proof of concept for event-triggered NPC decisions.Evidence: |
 
 ### Q2. What did not work well
 
@@ -40,7 +41,7 @@ Supporting artifacts: [prototype setup](../../Examples/AdaptiveTag/README.md), [
 | Subteam | What did not work well, its impact, and supporting evidence |
 | --- | --- |
 | Background NPCs | **Validation stayed on one machine.** Everything was built and measured on Linux with UE 5.8.3, while the team develops on Windows with UE 5.7. The benchmark scripts and research documents remain in a local commit rather than on `main`, so teammates cannot yet reproduce them. **Some integration problems only appeared at the end.** Packaging the comparison example showed that editor-only test code on `main` (`HasMetaData`) broke every game build using Schola. It also revealed that a Mass `MaxRowsPerFrame` above the scheduler's `MaxPendingRows` silently rejects every request. Both are fixed or documented in the [README limitations](../../README.md#background-npc-implementation). |
-| | |
+| Event NPCs| Due to compatibility issues, Event NPCs (and only this NPC) cannot run outside the local working environment. Mainly with Unreal having compilation issues with the MassCore module. Additionally, the implementation currently requires gameplay events to be connected manually to TriggerInference(). Automatic event subscriptions remain unimplemented.|
 
 ### Q3(a). Planned changes
 
@@ -70,7 +71,7 @@ Within the prototype, we connected the arena's outcomes to the native learner an
 | Subteam | Components integrated, division of work, and next steps |
 | --- | --- |
 | Background NPCs | **Integrated:** the batching scheduler sits behind Schola's existing policy interface (`UNPCInferencePolicy` with `Paradigm = Background`). It works with the NNE ORT/BasicCpu backends, Actor steppers (`UBackgroundStepper`), Blueprint submit/poll calls, StateTree's existing policy task, and Mass Entity (`ScholaMass`). **Division of work:** Max did the research, implementation, tests, benchmarks, comparison example, and documentation. **Next steps:** check the example on Windows/UE 5.7; fix Actor pool growth by preallocating the request pool, then re-measure; run the comparison with a trained policy. With the other subteams, explore whether the shared-policy stepper and the adaptive actor's decisions can be served through background batching. |
-| | |
+| Event NPCs| **Next steps:**. **Ensure** this is compatible with the remaining environments of the other NPCs for D3. Extend the prototype to support configurable subscriptions to one or more gameplay events, implement event unsubscriptions, and establish a reproducible Unreal demonstration. Investigate potential integration with Background NPC inference for non-blocking event-triggered decisions. |
 
 ## Product - Review
 
