@@ -24,7 +24,6 @@ The event-based NPC work focuses on allowing NPCs to perform inference in respon
 | Item | Location |
 | --- | --- |
 | Course repository | [9-AMD-Advanced-NPCs](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs) |
-| D2 release and download | |
 | Adaptive NPC source | [Examples/AdaptiveTag](Examples/AdaptiveTag/README.md) |
 | Demo recording | [SAC Learner demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing) |
 | Background NPC comparison source | [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) |
@@ -445,15 +444,3 @@ Others included in link
 
 More in [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md)
 
-## D2 submission checklist
-
-The README supports the product demonstration. The iteration review and individual contribution document are separate required deliverables.
-
-| Required item | Owner | Location / confirmation |
-| --- | --- | --- |
-| Root `README.md` with final access links and completed team sections | | |
-| `deliverables/D2/iteration-02-review.md` | | |
-| `deliverables/D2/Individual_Contributions_Deliverable2.md` | | |
-| Stable deployed product and GitHub release tagged `D2` | | |
-| Partner demonstration and feedback | | |
-| One team submission linking the D2 release on Quercus | | |
