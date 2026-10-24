@@ -1,0 +1,11 @@
+Chase baselines (deterministic start states, eval seed 4242)
+[pattern0/bounce]
+random   (100 eps)           catch_rate=0.140 (14/100) mean_steps_to_catch=125.9 mean_return=11.34
+greedy   (100 eps)           catch_rate=1.000 (100/100) mean_steps_to_catch=66.8 mean_return=68.64
+random   (1000 eps, seed 7)  catch_rate=0.091 (91/1000) mean_steps_to_catch=126.4 mean_return=7.16
+greedy   (1000 eps, seed 7)  catch_rate=1.000 (1000/1000) mean_steps_to_catch=64.1 mean_return=65.46
+[pattern1/circle]
+random   (100 eps)           catch_rate=0.030 (3/100) mean_steps_to_catch=81.3 mean_return=5.03
+greedy   (100 eps)           catch_rate=1.000 (100/100) mean_steps_to_catch=62.6 mean_return=60.61
+random   (1000 eps, seed 7)  catch_rate=0.083 (83/1000) mean_steps_to_catch=109.8 mean_return=6.07
+greedy   (1000 eps, seed 7)  catch_rate=1.000 (1000/1000) mean_steps_to_catch=59.8 mean_return=61.70

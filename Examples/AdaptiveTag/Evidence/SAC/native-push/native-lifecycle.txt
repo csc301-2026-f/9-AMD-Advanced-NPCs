@@ -1,0 +1,5 @@
+OnlineSACLearner lifecycle checks
+PASS invalid experiences are rejected without changing state: rejected=8/8 stats.rejected=8 accepted=0 stored=0 updates=0 version=0 act_rejected=1
+PASS published version increases: versions: 0 0 1 2 3 4 5 updates=250 frozen_add_ignored=1 frozen_act_deterministic=1
+PASS shutdown during a learning round returns promptly: in_round=1 shutdown=0.000s running_after=0 version=0 act_after_shutdown=1
+PASS Act from other threads while snapshots are replaced: act_calls=1608239 invalid=0 versions_published=191
