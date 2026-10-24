@@ -17,6 +17,8 @@
 #endif
 #include <io.h>
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 using namespace online_sac;
@@ -289,6 +291,8 @@ int main(int argc, char** argv) {
         DWORD mode = 0;
         if (GetConsoleMode(out, &mode)) SetConsoleMode(out, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
+#else
+    app.interactiveTerminal = isatty(fileno(stdout)) != 0;
 #endif
     ChaseConfig config;
     ChaseLearnerConfig learner;
