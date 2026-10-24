@@ -62,3 +62,20 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 - [Prototype source and instructions](../../Prototypes/SharedPolicy/README.md)
 - [Shared Policy project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit)
 - [Shared Policy D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
+
+## Olivia Markow
+
+**Role:** Online learning: in-engine SAC learner, chase task and interactive simulator.
+
+- Compared ways to train inside Unreal with no Python (Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack, hand-written C++, RLtools) and chose RLtools' SAC.
+- Built the `OnlineSACRuntime` module: a chase environment and RLtools' own SAC loop, with pass criteria fixed from baselines before training. Unreal automation tests passed on 3 seeds (catch rate 0.86 to 0.99).
+- Built `OnlineSACLearner`, a push-style learner with a validated experience queue, a background learner thread, versioned actor snapshots and a frozen mode. Lifecycle tests rejected 8 of 8 invalid experiences and ran about 1.6 million concurrent `Act` calls across 191 snapshot swaps with no invalid action.
+- Built `chase_sim`, an interactive console simulator on an engine-neutral `ChaseSession` core: equal-speed chaser and runner, straight, square and circle runner patterns, live training, snapshots, frozen mode, watch and replay, and one config file for every setting. An Unreal automation test runs the same core.
+- Wrote `UOnlineSACPolicy` and the `AdaptiveSAC` host to connect the learner to Schola's `UAdaptiveNPCPolicy` without Python. The recorded results do not yet include this part.
+- Result: after 300 circle episodes the chaser catches 100% of the evaluation starts on 3 seeds, up from 8% to 22% (greedy pursuit 40%, random 18%). Adaptation to a changed pattern is not yet shown: the circle-trained policy already catches every square start.
+
+**Evidence:** 
+
+- [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
+- [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
+- [SAC test results, baselines and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)

@@ -18,6 +18,8 @@ Format reference: [course D2 iteration review template](https://github.com/csc30
 1. **We isolated the technical uncertainty in a small playable experiment.** Building adaptive tag independently of Schola let us test native training inside Unreal before committing to a production integration. The two-route game made the actor's decisions, rewards, and changing probabilities easy to inspect and explain.
 2. **We used repeatable tests to guide changes.** Tests across four random seeds checked that the same learner could adapt after the runner's bias reversed. A trial actor learning rate of 0.01 failed that reversal for one seed, so we rejected it and used 0.006, which passed all four. This kept a more dramatic demo setting from hiding a learning failure.
 3. **We checked reproducibility from a fresh checkout.** After bringing the project into the repository, we built and packaged it without copying the old host's generated files or plugin junction. The fresh checkout passed the native tests, 26 arena checks, and nine packaged learning checks. This provides stronger setup evidence than testing only the original developer folder.
+4. **We compared training options before committing.** We checked Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack and hand-written C++ against one requirement: learn inside Unreal with no Python. RLtools was chosen because it ships SAC as header-only C++ and a teammate's prototype showed it builds in Unreal.
+5. **We fixed pass criteria before training.** Random and greedy-pursuit baselines set the thresholds (catch rate of at least 0.80 and at most 100 steps to catch) before any SAC run. All 3 seeds passed in Unreal.
 
 Supporting artifacts: [prototype setup](../../Examples/AdaptiveTag/README.md), [learning-rate experiment](../../Examples/AdaptiveTag/Evidence/FasterActor/README.md), and [recorded test reports](README.md).
 
@@ -34,6 +36,9 @@ Supporting artifacts: [prototype setup](../../Examples/AdaptiveTag/README.md), [
 
 1. **We clarified the runtime goal too late.** Our earlier direction focused on an Unreal-to-Python request interface before we had settled whether continued learning should run inside the game. Revisiting that assumption changed the direction toward a native experiment. We need to confirm constraints such as a separate Python process and the expected learning behavior before expanding the integration layers around them.
 2. **The first setup depended on local project structure.** The host project initially lived outside the repository and used a machine-specific Unreal path. A clone alone therefore did not contain the playable experiment. Moving the source and assets into `Examples/AdaptiveTag`, bundling the pinned dependency, and adding engine discovery addressed that gap. Validation on another person's machine still remains to be done.
+3. **Our first chase task could not show adaptation.** The chaser was faster than the runner, so greedy pursuit caught the runner every time on every pattern. Chase v2 uses equal speeds, and greedy pursuit now catches 40% on circle. A circle-trained policy still catches every square start (one seed), so adaptation is not yet demonstrated.
+4. **Results varied run to run when updating every 50 experiences.** The test harness raced the learner's snapshot swap. The v2 simulator waits for the learner's backlog, so it repeats exactly.
+5. **Schola did not build unmodified for us on UE 5.7.** ScholaMass depends on MassCore, which UE 5.7 does not have. Our test host excludes it, and the shared-plugin fix is for the team.
 
 #### Other subteams
 
@@ -51,6 +56,7 @@ These are proposed process changes for the next iteration:
 1. **Agree on the experiment's question and acceptance criteria before implementation.** Separate proving that native training runs from proving useful adaptation or Schola integration. For adaptation, compare learning and frozen actors against the same runner behavior changes rather than judging success from one demo recording.
 2. **Keep experiments reproducible throughout development.** Store the required source, authored assets, dependency revision, and run instructions together. Check the documented setup from a fresh checkout before sharing a build, then ask another developer to verify it on their own machine.
 3. **Review integration boundaries before expanding the prototype.** Identify what the learner owns and what Schola should supply before adding adapters. Keep experimental code changes separate from deliverable documentation so each review has a clear purpose.
+4. **Check that a simple baseline cannot already solve the task before training, and agree a merge order for files two people edit.** The learner header is changed on two branches.
 
 #### Other subteams
 
@@ -63,7 +69,9 @@ These are proposed process changes for the next iteration:
 
 #### Online learning
 
-Within the prototype, we connected the arena's outcomes to the native learner and returned updated actor snapshots to gameplay. Schola API integration and integration with the other subteams' features remain future work.
+Within the prototype, we connected the arena's outcomes to the native learner and returned updated actor snapshots to gameplay. Schola API integration is written (`UOnlineSACPolicy`) but not yet validated, and integration with the other subteams' features remains future work.
+
+The learner core (`ChaseSession`) has no Unreal or printing code, so an Unreal actor can call it each frame and draw its state; the console is only a front end. `UOnlineSACPolicy` plugs the learner into the existing `UAdaptiveNPCPolicy` ticket API. Chloe's checkpoint save and load branch builds on the same learner and still needs merging. Proposed next steps: a harder pattern that really needs adaptation, an adaptive-versus-frozen comparison on 3 seeds, and running the learner in the tag arena.
 
 #### Other subteams
 
@@ -80,9 +88,9 @@ Within the prototype, we connected the arena's outcomes to the native learner an
 
 We shared a video demo of the adaptive tag game with the partner and are currently waiting to hear back.
 
-**Partner feedback and change requests:**
+**Partner feedback and change requests:** None received as of 23 October 2026.
 
-**Follow-up actions:**
+**Follow-up actions:** Ask the partner which behaviors matter most for their research, and whether the adaptive tag game or the SAC chase simulator is the better base for the next iteration.
 
 #### Other subteams
 

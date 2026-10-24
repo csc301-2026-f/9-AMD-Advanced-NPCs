@@ -8,6 +8,7 @@ Recorded adaptive NPC validation:
 - [Native four-seed learner tests](evidence/adaptive-native-tests.txt)
 - [Packaged Unreal learning report](evidence/adaptive-packaged-test.json)
 - [Arena input and collision smoke report](evidence/adaptive-arena-smoke.json)
+ [SAC learner evidence: baselines, thresholds, chase_sim transcripts and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)
 
 Recorded background NPC comparison (20,000 Mass agents, without and with the
 background inference API):
@@ -24,6 +25,7 @@ Recorded Shared Policy NPC evidence:
 - [D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
 - [PR #7: per-NPC head bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
 - [PR #13: Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
+- [PR #16: RLtools SAC learner and interactive chase simulator](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
 
 The Python prototype verifies dynamic-batch ONNX export, one two-NPC ONNX
 Runtime call, deterministic outputs, and ordered Combat/Support routing. The
