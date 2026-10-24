@@ -217,14 +217,6 @@ the Unreal configuration and Stepper work. The Python and Unreal components
 have not yet been connected through a real NNE policy, and no production
 performance claim has been made.
 
-### Connected product workflow
-
-**Start-to-finish user journey:**
-
-**Connections between subteam features:**
-
-**Acceptance evidence:**
-
 ## Adaptive NPC implementation
 
 The current learner is a small **custom categorical actor-critic** built with RLtools' C++ neural network, backpropagation, and Adam optimizer operations. A second learner, OnlineSACRuntime, uses RLtools’ built-in SAC.
@@ -277,14 +269,6 @@ The native and packaged learning results use the current actor rate of 0.006. Th
 - Models do not persist across launches.
 - Testing establishes this small task. Larger agent counts, frame-time budgets, richer observations, and controlled comparisons need further evaluation.
 - SAC chase (`chase_sim`): adaptation to a changed runner pattern is not yet demonstrated, the results were recorded on one Windows machine, and the Schola policy (`UOnlineSACPolicy`) is not yet validated.
-
-### Other principal components
-
-**User interface / developer experience:**
-
-**Backend / API structure:**
-
-**Tests and known limitations:**
 
 ## Background NPC implementation
 
