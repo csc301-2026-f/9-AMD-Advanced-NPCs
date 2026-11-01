@@ -1,4 +1,4 @@
-"""Correctness-gated smoke benchmark for shared-policy architectures A–E."""
+"""Correctness-gated trial and smoke benchmarks for architectures A–E."""
 
 from __future__ import annotations
 
@@ -62,9 +62,38 @@ class ExperimentSettings:
     tolerances: Tolerances
 
 
+@dataclass(frozen=True)
+class TrialSpec:
+    """One profile/workload trial with explicit measurement controls."""
+
+    profile_name: str
+    batch_size: int
+    expert_0_fraction: float
+    warmup_requests: int
+    measured_requests: int
+    trial_index: int
+    seed: int
+
+    def __post_init__(self) -> None:
+        if not self.profile_name:
+            raise ValueError("profile_name must not be empty")
+        _positive_int("batch_size", self.batch_size)
+        _fraction("expert_0_fraction", self.expert_0_fraction)
+        _positive_int("warmup_requests", self.warmup_requests)
+        _positive_int("measured_requests", self.measured_requests)
+        _nonnegative_int("trial_index", self.trial_index)
+        _nonnegative_int("seed", self.seed)
+
+
 def _positive_int(name: str, value: object) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+def _nonnegative_int(name: str, value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{name} must be a nonnegative integer")
     return value
 
 
@@ -153,7 +182,7 @@ def generate_workload(
     """Create deterministic observations and a shuffled two-expert role mix."""
 
     if len(roles) != 2:
-        raise ValueError("the smoke workload currently requires exactly two experts")
+        raise ValueError("the benchmark workload currently requires exactly two experts")
     _positive_int("batch_size", batch_size)
     fraction = _fraction("expert_0_fraction", expert_0_fraction)
     expert_0_count = round(batch_size * fraction)
@@ -252,30 +281,32 @@ def _smoke_selection(settings: ExperimentSettings) -> tuple[int, float]:
     return batch_size, fraction
 
 
-def run_smoke_benchmark(
+def run_benchmark_trial(
     config_path: str | Path,
     artifacts_dir: str | Path,
+    spec: TrialSpec,
 ) -> dict[str, object]:
-    """Run a short correctness-gated benchmark suitable for harness validation."""
+    """Run one correctness-gated trial using the caller's exact settings."""
 
     config = load_benchmark_config(config_path)
     experiment = load_experiment_settings(config_path)
     runtime_settings = load_runtime_settings(config_path)
-    profile_name = "small" if "small" in config.profiles else next(iter(config.profiles))
-    batch_size, expert_0_fraction = _smoke_selection(experiment)
+    if spec.profile_name not in config.profiles:
+        raise ValueError(f"unknown benchmark profile: {spec.profile_name}")
+
     observations, roles = generate_workload(
-        config.seed,
+        spec.seed,
         config.observation_size,
         config.roles,
-        batch_size,
-        expert_0_fraction,
+        spec.batch_size,
+        spec.expert_0_fraction,
     )
 
     initialization_started_ns = time.perf_counter_ns()
     runtime = BenchmarkRuntime.from_paths(
         config_path,
         artifacts_dir,
-        profile_name,
+        spec.profile_name,
     )
     initialization_ns = time.perf_counter_ns() - initialization_started_ns
 
@@ -302,10 +333,8 @@ def run_smoke_benchmark(
             "calls": _serialize_calls(result),
         }
 
-    warmup_requests = min(experiment.measurement.warmup_requests, 2)
-    measured_requests = min(experiment.measurement.measured_requests, 5)
-    order_rng = random.Random(config.seed)
-    for _ in range(warmup_requests):
+    order_rng = random.Random(spec.seed)
+    for _ in range(spec.warmup_requests):
         order = list(SUPPORTED_ARCHITECTURES)
         order_rng.shuffle(order)
         for architecture in order:
@@ -320,7 +349,7 @@ def run_smoke_benchmark(
         for architecture in SUPPORTED_ARCHITECTURES
     }
     measured_orders: list[list[str]] = []
-    for _ in range(measured_requests):
+    for _ in range(spec.measured_requests):
         order = list(SUPPORTED_ARCHITECTURES)
         order_rng.shuffle(order)
         measured_orders.append(order)
@@ -354,7 +383,7 @@ def run_smoke_benchmark(
             "summary": summarize_samples(
                 request_samples,
                 model_samples,
-                batch_size,
+                spec.batch_size,
             ),
         }
 
@@ -362,18 +391,19 @@ def run_smoke_benchmark(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     role_counts = {role: roles.count(role) for role in config.roles}
     return {
-        "mode": "smoke",
-        "seed": config.seed,
-        "profile": profile_name,
+        "mode": "trial",
+        "seed": spec.seed,
+        "profile": spec.profile_name,
         "workload": {
-            "batch_size": batch_size,
-            "requested_expert_0_fraction": expert_0_fraction,
+            "batch_size": spec.batch_size,
+            "requested_expert_0_fraction": spec.expert_0_fraction,
             "actual_role_counts": role_counts,
         },
         "measurement": {
             "trials": 1,
-            "warmup_requests_per_architecture": warmup_requests,
-            "measured_requests_per_architecture": measured_requests,
+            "trial_index": spec.trial_index,
+            "warmup_requests_per_architecture": spec.warmup_requests,
+            "measured_requests_per_architecture": spec.measured_requests,
             "candidate_orders": measured_orders,
         },
         "runtime": {
@@ -396,7 +426,7 @@ def run_smoke_benchmark(
         "artifact_manifest": {
             "format_version": manifest["format_version"],
             "opset": manifest["opset"],
-            "profile": manifest["profiles"][profile_name],
+            "profile": manifest["profiles"][spec.profile_name],
         },
         "correctness": {
             "passed": True,
@@ -406,6 +436,35 @@ def run_smoke_benchmark(
         },
         "results": results,
     }
+
+
+def run_smoke_benchmark(
+    config_path: str | Path,
+    artifacts_dir: str | Path,
+) -> dict[str, object]:
+    """Run a short preset through the reusable single-trial engine."""
+
+    config = load_benchmark_config(config_path)
+    experiment = load_experiment_settings(config_path)
+    profile_name = (
+        "small" if "small" in config.profiles else next(iter(config.profiles))
+    )
+    batch_size, expert_0_fraction = _smoke_selection(experiment)
+    report = run_benchmark_trial(
+        config_path,
+        artifacts_dir,
+        TrialSpec(
+            profile_name=profile_name,
+            batch_size=batch_size,
+            expert_0_fraction=expert_0_fraction,
+            warmup_requests=min(experiment.measurement.warmup_requests, 2),
+            measured_requests=min(experiment.measurement.measured_requests, 5),
+            trial_index=0,
+            seed=config.seed,
+        ),
+    )
+    report["mode"] = "smoke"
+    return report
 
 
 def write_report(report: dict[str, object], output_path: str | Path) -> Path:

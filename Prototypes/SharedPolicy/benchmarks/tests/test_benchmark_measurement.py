@@ -11,9 +11,11 @@ import pytest
 
 from benchmarks.benchmark import (
     Tolerances,
+    TrialSpec,
     assert_equivalent,
     generate_workload,
     load_experiment_settings,
+    run_benchmark_trial,
     run_smoke_benchmark,
     summarize_samples,
     write_report,
@@ -143,6 +145,87 @@ def test_rejects_invalid_experiment_configuration(
 
     with pytest.raises(ValueError, match=message):
         load_experiment_settings(config_path)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("profile_name", "", "must not be empty"),
+        ("batch_size", 0, "positive integer"),
+        ("expert_0_fraction", 1.1, "between 0 and 1"),
+        ("warmup_requests", 0, "positive integer"),
+        ("measured_requests", 0, "positive integer"),
+        ("trial_index", -1, "nonnegative integer"),
+        ("seed", -1, "nonnegative integer"),
+    ],
+)
+def test_trial_spec_rejects_invalid_values(
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    values = {
+        "profile_name": "small",
+        "batch_size": 16,
+        "expert_0_fraction": 0.5,
+        "warmup_requests": 2,
+        "measured_requests": 5,
+        "trial_index": 0,
+        "seed": 301,
+    }
+    values[field] = value
+
+    with pytest.raises(ValueError, match=message):
+        TrialSpec(**values)
+
+
+def test_trial_runner_honours_caller_selected_profile_and_workload(
+    tmp_path: Path,
+) -> None:
+    artifacts_dir = tmp_path / "artifacts"
+    export_models(CONFIG_PATH, artifacts_dir, profiles=("balanced",))
+    spec = TrialSpec(
+        profile_name="balanced",
+        batch_size=4,
+        expert_0_fraction=0.0,
+        warmup_requests=1,
+        measured_requests=2,
+        trial_index=2,
+        seed=90210,
+    )
+
+    report = run_benchmark_trial(CONFIG_PATH, artifacts_dir, spec)
+
+    assert report["mode"] == "trial"
+    assert report["seed"] == 90210
+    assert report["profile"] == "balanced"
+    assert report["workload"] == {
+        "batch_size": 4,
+        "requested_expert_0_fraction": 0.0,
+        "actual_role_counts": {"expert_0": 0, "expert_1": 4},
+    }
+    assert report["measurement"]["trial_index"] == 2
+    assert report["measurement"]["warmup_requests_per_architecture"] == 1
+    assert report["measurement"]["measured_requests_per_architecture"] == 2
+    assert len(report["measurement"]["candidate_orders"]) == 2
+    assert report["correctness"]["passed"] is True
+    for result in report["results"].values():
+        assert result["summary"]["sample_count"] == 2
+
+
+def test_trial_runner_rejects_unknown_profile(tmp_path: Path) -> None:
+    spec = TrialSpec(
+        profile_name="unknown",
+        batch_size=4,
+        expert_0_fraction=0.5,
+        warmup_requests=1,
+        measured_requests=2,
+        trial_index=0,
+        seed=301,
+    )
+
+    with pytest.raises(ValueError, match="unknown benchmark profile"):
+        run_benchmark_trial(CONFIG_PATH, tmp_path / "artifacts", spec)
 
 
 def test_smoke_report_contains_raw_and_summary_evidence(
