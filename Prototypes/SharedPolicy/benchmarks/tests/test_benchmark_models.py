@@ -25,7 +25,7 @@ def test_loads_expected_benchmark_model_contract() -> None:
     assert config.seed == 301
     assert config.observation_size == 64
     assert config.action_size == 2
-    assert config.roles == ("combat", "support")
+    assert config.roles == ("expert_0", "expert_1")
     assert config.profiles["small"] == ProfileWidths(backbone=128, head=32)
     assert config.profiles["balanced"] == ProfileWidths(
         backbone=256,
@@ -50,7 +50,7 @@ def test_seeded_policy_returns_ordered_float32_actions(
 
     outputs = model(observations)
 
-    assert model.roles == ("combat", "support")
+    assert model.roles == ("expert_0", "expert_1")
     assert len(outputs) == len(config.roles)
     assert all(
         output.shape == (batch_size, config.action_size) for output in outputs
@@ -100,7 +100,7 @@ def test_rejects_invalid_model_dimensions(
         "backbone": 8,
         "head": 4,
         "action": 2,
-        "roles": ("combat", "support"),
+        "roles": ("expert_0", "expert_1"),
     }
     values[field] = value
 
@@ -112,8 +112,8 @@ def test_rejects_invalid_model_dimensions(
     ("roles", "message"),
     [
         ((), "at least one"),
-        (("combat", "combat"), "unique"),
-        (("combat", "support-role"), "identifiers"),
+        (("expert_0", "expert_0"), "unique"),
+        (("expert_0", "expert-1"), "identifiers"),
     ],
 )
 def test_rejects_invalid_roles(
@@ -175,7 +175,7 @@ def test_benchmark_config_rejects_duplicate_roles() -> None:
             seed=301,
             observation_size=64,
             action_size=2,
-            roles=("combat", "combat"),
+            roles=("expert_0", "expert_0"),
             profiles={"small": ProfileWidths(backbone=8, head=4)},
         )
 
@@ -196,7 +196,7 @@ def test_masked_policy_selects_one_head_per_row() -> None:
 
 @pytest.mark.parametrize(
     ("role", "error"),
-    [("missing", ValueError), ("support-role", ValueError)],
+    [("missing", ValueError), ("expert-1", ValueError)],
 )
 def test_complete_role_model_rejects_unknown_role(
     role: str,

@@ -3,8 +3,8 @@
   "observation_size": 64,
   "action_size": 2,
   "roles": [
-    "combat",
-    "support"
+    "expert_0",
+    "expert_1"
   ],
   "profiles": {
     "small": {
@@ -27,7 +27,7 @@
       64,
       256
     ],
-    "combat_fractions": [
+    "expert_0_fractions": [
       1.0,
       0.5,
       0.1,

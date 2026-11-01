@@ -309,13 +309,13 @@ class ConditionalPolicyModel(nn.Module):
     def forward(
         self,
         observations: Tensor,
-        use_first_role: Tensor,
+        use_first_expert: Tensor,
     ) -> Tensor:
         """Run only the head selected by one scalar Boolean for this call."""
 
         features = self.backbone(observations)
         return torch.cond(
-            use_first_role,
+            use_first_expert,
             self.first_head,
             self.second_head,
             (features,),

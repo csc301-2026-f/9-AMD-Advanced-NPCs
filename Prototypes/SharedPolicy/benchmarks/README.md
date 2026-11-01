@@ -1,7 +1,7 @@
 # Shared policy architecture benchmarks
 
-Status: A–E can be exported from shared deterministic weights and have passed
-ONNX Runtime equivalence tests. Routing and timing are pending.
+Status: A–E can be exported from shared deterministic weights and run through
+one validated mixed-role routing contract. Timing is pending.
 
 This experiment evaluates how a shared-backbone, multi-head policy should avoid
 unused head computation. It directly tests the architectures raised in AMD
@@ -18,6 +18,8 @@ learn role assignments, or claim useful NPC behavior.
 
 Let `B` be the number of NPC rows and `K` the number of nonempty roles in a
 request. The host knows one role label for every row before inference.
+The synthetic roles are named `expert_0` and `expert_1` so the benchmark does
+not assume a combat game or any particular gameplay meaning.
 
 | Candidate | Execution for one mixed-role request | Model calls |
 | --- | --- | --- |
@@ -136,8 +138,10 @@ roles might change that decision.
 | `config.json` | Stores the network sizes, batch sizes, role mixtures, and timing settings |
 | `models.py` | Defines the shared backbone and role-head pieces that A–E will reuse |
 | `export_models.py` | Builds A–E and writes separate validated ONNX files |
+| `runtime.py` | Reuses loaded ONNX sessions, groups roles where needed, and restores original row order |
 | `tests/test_benchmark_models.py` | Checks that those shared pieces have the correct shapes and repeatable weights |
 | `tests/test_benchmark_exports.py` | Checks the exported contracts and proves equivalent action values |
+| `tests/test_benchmark_routing.py` | Sends the same mixed-role requests through A–E and checks actions and call counts |
 
 The older model, exporter, demo, and their tests now live in `../legacy/`. We
 keep them as a working baseline while building the benchmark.
@@ -146,7 +150,6 @@ keep them as a working baseline while building the benchmark.
 
 | Planned file | What it will do |
 | --- | --- |
-| `runtime.py` | Load the ONNX files, group NPCs by role when needed, run them, and restore the original NPC order |
 | `benchmark.py` | Check correctness first, then measure execution time and memory |
 | `evidence/` | Keep the selected results, profiles, Unreal reports, and final analysis |
 

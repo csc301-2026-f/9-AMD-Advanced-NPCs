@@ -129,7 +129,7 @@ def _build_export_specs(
                 observations,
                 torch.tensor(True, dtype=torch.bool),
             ),
-            input_names=("observations", "use_first_role"),
+            input_names=("observations", "use_first_expert"),
             output_names=("actions",),
             components=all_components,
         ),

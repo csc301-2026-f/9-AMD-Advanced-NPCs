@@ -17,12 +17,12 @@ CONFIG_PATH = Path(__file__).parents[1] / "config.json"
 EXPECTED_ARTIFACTS = {
     "A_all_heads",
     "B_masked",
-    "C_combat",
-    "C_support",
+    "C_expert_0",
+    "C_expert_1",
     "D_conditional",
     "E_backbone",
-    "E_combat_head",
-    "E_support_head",
+    "E_expert_0_head",
+    "E_expert_1_head",
 }
 
 
@@ -66,7 +66,7 @@ def test_exports_expected_separate_files_and_manifest(
             "dtype": "float32",
             "shape": ["batch_size", 64],
         },
-        {"name": "use_first_role", "dtype": "bool", "shape": []},
+        {"name": "use_first_expert", "dtype": "bool", "shape": []},
     ]
     assert all(
         tensor["dtype"] == "float32"
@@ -78,7 +78,7 @@ def test_exports_expected_separate_files_and_manifest(
     assert artifacts["A_all_heads"]["parameter_hashes"] == source_hashes
     assert artifacts["B_masked"]["parameter_hashes"] == source_hashes
     assert artifacts["D_conditional"]["parameter_hashes"] == source_hashes
-    assert artifacts["C_combat"]["parameter_hashes"]["backbone"] == (
+    assert artifacts["C_expert_0"]["parameter_hashes"]["backbone"] == (
         source_hashes["backbone"]
     )
     assert artifacts["E_backbone"]["parameter_hashes"]["backbone"] == (
@@ -118,12 +118,12 @@ def test_a_through_e_return_equivalent_actions(
     )
 
     conditional_session = _session(profile_dir, "D_conditional")
-    for role_index, use_first_role in enumerate((True, False)):
+    for role_index, use_first_expert in enumerate((True, False)):
         conditional_actions = conditional_session.run(
             None,
             {
                 "observations": observations,
-                "use_first_role": np.array(use_first_role, dtype=np.bool_),
+                "use_first_expert": np.array(use_first_expert, dtype=np.bool_),
             },
         )[0]
         np.testing.assert_allclose(
@@ -137,7 +137,7 @@ def test_a_through_e_return_equivalent_actions(
         None,
         {"observations": observations},
     )[0]
-    for role_index, role in enumerate(("combat", "support")):
+    for role_index, role in enumerate(("expert_0", "expert_1")):
         complete_actions = _session(profile_dir, f"C_{role}").run(
             None,
             {"observations": observations},
