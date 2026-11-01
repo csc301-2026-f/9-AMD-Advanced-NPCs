@@ -1,4 +1,4 @@
-"""Export equivalent A, B, C, and E benchmark architectures to ONNX."""
+"""Export equivalent A–E benchmark architectures to ONNX."""
 
 from __future__ import annotations
 
@@ -22,6 +22,7 @@ from benchmarks.models import (
     BackboneModel,
     BenchmarkConfig,
     CompleteRoleModel,
+    ConditionalPolicyModel,
     MaskedPolicyModel,
     RoleHeadModel,
     SharedPolicyBenchmarkModel,
@@ -80,7 +81,7 @@ def _component_hashes(
 def _build_export_specs(
     source: SharedPolicyBenchmarkModel,
 ) -> tuple[ExportSpec, ...]:
-    """Arrange one seeded policy into the required A, B, C, and E models."""
+    """Arrange one seeded policy into the required A–E models."""
 
     dimensions = source.dimensions
     observations = torch.zeros(
@@ -118,6 +119,18 @@ def _build_export_specs(
             example_inputs=(observations, role_masks),
             input_names=("observations", "role_masks"),
             output_names=("selected_actions",),
+            components=all_components,
+        ),
+        ExportSpec(
+            name="D_conditional",
+            architecture="D",
+            model=ConditionalPolicyModel(source).eval(),
+            example_inputs=(
+                observations,
+                torch.tensor(True, dtype=torch.bool),
+            ),
+            input_names=("observations", "use_first_role"),
+            output_names=("actions",),
             components=all_components,
         ),
     ]
@@ -196,7 +209,8 @@ def _export_one(
 
     batch_dimension = torch.export.Dim(BATCH_DIMENSION_NAME)
     dynamic_shapes = tuple(
-        {0: batch_dimension} for _ in spec.example_inputs
+        {0: batch_dimension} if value.ndim > 0 else None
+        for value in spec.example_inputs
     )
 
     registration_logger = logging.getLogger(_REGISTRATION_LOGGER_NAME)
@@ -240,7 +254,7 @@ def _export_one(
     session.run(
         list(spec.output_names),
         {
-            name: value.detach().cpu().numpy().astype(np.float32, copy=False)
+            name: value.detach().cpu().numpy()
             for name, value in zip(
                 spec.input_names,
                 spec.example_inputs,

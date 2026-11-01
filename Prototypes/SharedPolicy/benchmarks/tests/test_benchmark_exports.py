@@ -1,4 +1,4 @@
-"""Correctness and contract tests for exported A, B, C, and E models."""
+"""Correctness and contract tests for exported A–E models."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ EXPECTED_ARTIFACTS = {
     "B_masked",
     "C_combat",
     "C_support",
+    "D_conditional",
     "E_backbone",
     "E_combat_head",
     "E_support_head",
@@ -59,15 +60,24 @@ def test_exports_expected_separate_files_and_manifest(
     )
     assert all(artifact["bytes"] > 0 for artifact in artifacts.values())
     assert all(len(artifact["sha256"]) == 64 for artifact in artifacts.values())
+    assert artifacts["D_conditional"]["inputs"] == [
+        {
+            "name": "observations",
+            "dtype": "float32",
+            "shape": ["batch_size", 64],
+        },
+        {"name": "use_first_role", "dtype": "bool", "shape": []},
+    ]
     assert all(
         tensor["dtype"] == "float32"
         for artifact in artifacts.values()
-        for tensor in (*artifact["inputs"], *artifact["outputs"])
+        for tensor in artifact["outputs"]
     )
 
     source_hashes = profile["source_parameter_hashes"]
     assert artifacts["A_all_heads"]["parameter_hashes"] == source_hashes
     assert artifacts["B_masked"]["parameter_hashes"] == source_hashes
+    assert artifacts["D_conditional"]["parameter_hashes"] == source_hashes
     assert artifacts["C_combat"]["parameter_hashes"]["backbone"] == (
         source_hashes["backbone"]
     )
@@ -77,7 +87,7 @@ def test_exports_expected_separate_files_and_manifest(
 
 
 @pytest.mark.parametrize("batch_size", [1, 3])
-def test_a_b_c_and_e_return_equivalent_actions(
+def test_a_through_e_return_equivalent_actions(
     exported_small_profile: tuple[Path, dict[str, object]],
     batch_size: int,
 ) -> None:
@@ -106,6 +116,22 @@ def test_a_b_c_and_e_return_equivalent_actions(
         rtol=1e-4,
         atol=1e-5,
     )
+
+    conditional_session = _session(profile_dir, "D_conditional")
+    for role_index, use_first_role in enumerate((True, False)):
+        conditional_actions = conditional_session.run(
+            None,
+            {
+                "observations": observations,
+                "use_first_role": np.array(use_first_role, dtype=np.bool_),
+            },
+        )[0]
+        np.testing.assert_allclose(
+            conditional_actions,
+            all_actions[role_index],
+            rtol=1e-4,
+            atol=1e-5,
+        )
 
     features = _session(profile_dir, "E_backbone").run(
         None,
@@ -147,7 +173,11 @@ def test_every_export_has_a_dynamic_batch_dimension(
     for artifact_name in EXPECTED_ARTIFACTS:
         model = onnx.load(profile_dir / f"{artifact_name}.onnx")
         onnx.checker.check_model(model)
-        public_tensors = (*model.graph.input, *model.graph.output)
+        public_tensors = (
+            value
+            for value in (*model.graph.input, *model.graph.output)
+            if value.type.tensor_type.shape.dim
+        )
         assert all(
             value.type.tensor_type.shape.dim[0].dim_param == "batch_size"
             for value in public_tensors
@@ -167,3 +197,23 @@ def test_b_keeps_runtime_mask_and_both_head_computations(
     assert "ReduceSum" in operation_types
     # Two backbone Linear layers plus two Linear layers in each of two heads.
     assert operation_types.count("Gemm") == 6
+
+
+def test_d_contains_one_if_with_two_head_branches(
+    exported_small_profile: tuple[Path, dict[str, object]],
+) -> None:
+    profile_dir, _ = exported_small_profile
+    model = onnx.load(profile_dir / "D_conditional.onnx")
+    if_nodes = [node for node in model.graph.node if node.op_type == "If"]
+
+    assert len(if_nodes) == 1
+    branch_graphs = [
+        attribute.g
+        for attribute in if_nodes[0].attribute
+        if attribute.name in {"then_branch", "else_branch"}
+    ]
+    assert len(branch_graphs) == 2
+    assert all(
+        [node.op_type for node in branch.node].count("Gemm") == 2
+        for branch in branch_graphs
+    )

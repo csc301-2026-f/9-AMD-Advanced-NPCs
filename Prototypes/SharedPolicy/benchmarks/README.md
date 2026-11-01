@@ -1,7 +1,7 @@
 # Shared policy architecture benchmarks
 
-Status: A, B, C, and E can be exported from shared deterministic weights and
-have passed ONNX Runtime equivalence tests. D, routing, and timing are pending.
+Status: A–E can be exported from shared deterministic weights and have passed
+ONNX Runtime equivalence tests. Routing and timing are pending.
 
 This experiment evaluates how a shared-backbone, multi-head policy should avoid
 unused head computation. It directly tests the architectures raised in AMD
@@ -135,7 +135,7 @@ roles might change that decision.
 | `README.md` | Explains what we will compare and how we will judge the results |
 | `config.json` | Stores the network sizes, batch sizes, role mixtures, and timing settings |
 | `models.py` | Defines the shared backbone and role-head pieces that A–E will reuse |
-| `export_models.py` | Builds A, B, C, and E and writes separate validated ONNX files |
+| `export_models.py` | Builds A–E and writes separate validated ONNX files |
 | `tests/test_benchmark_models.py` | Checks that those shared pieces have the correct shapes and repeatable weights |
 | `tests/test_benchmark_exports.py` | Checks the exported contracts and proves equivalent action values |
 
@@ -146,14 +146,13 @@ keep them as a working baseline while building the benchmark.
 
 | Planned file | What it will do |
 | --- | --- |
-| D support in `export_models.py` | Add and validate the conditional ONNX model |
 | `runtime.py` | Load the ONNX files, group NPCs by role when needed, run them, and restore the original NPC order |
 | `benchmark.py` | Check correctness first, then measure execution time and memory |
 | `evidence/` | Keep the selected results, profiles, Unreal reports, and final analysis |
 
-Generated ONNX files will go in ignored `artifacts/`. Temporary results and
-profiles will go in ignored `runs/`. These generated files are not source code
-and will not be committed.
+Generated ONNX files go in ignored `artifacts/`. Temporary results and profiles
+go in ignored `runs/`. These generated files are not source code and will not be
+committed.
 
 ## References
 

@@ -293,6 +293,35 @@ class CompleteRoleModel(nn.Module):
         return self.head(self.backbone(observations))
 
 
+class ConditionalPolicyModel(nn.Module):
+    """Architecture D: one backbone and an ONNX-selectable role branch."""
+
+    def __init__(self, source: SharedPolicyBenchmarkModel) -> None:
+        super().__init__()
+        if len(source.roles) != 2:
+            raise ValueError(
+                "conditional policy currently requires exactly two roles"
+            )
+        self.backbone = deepcopy(source.backbone)
+        self.first_head = deepcopy(source.heads[source.roles[0]])
+        self.second_head = deepcopy(source.heads[source.roles[1]])
+
+    def forward(
+        self,
+        observations: Tensor,
+        use_first_role: Tensor,
+    ) -> Tensor:
+        """Run only the head selected by one scalar Boolean for this call."""
+
+        features = self.backbone(observations)
+        return torch.cond(
+            use_first_role,
+            self.first_head,
+            self.second_head,
+            (features,),
+        )
+
+
 class BackboneModel(nn.Module):
     """Architecture E stage one: expose shared features as model output."""
 
