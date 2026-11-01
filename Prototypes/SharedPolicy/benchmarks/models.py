@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -244,6 +245,84 @@ class SharedPolicyBenchmarkModel(nn.Module):
 
         features = self.backbone(observations)
         return tuple(self.heads[role](features) for role in self.roles)
+
+
+class MaskedPolicyModel(nn.Module):
+    """Architecture B: compute every head, then select with runtime masks."""
+
+    def __init__(self, source: SharedPolicyBenchmarkModel) -> None:
+        super().__init__()
+        self.policy = deepcopy(source)
+        self.role_count = len(source.roles)
+
+    def forward(self, observations: Tensor, role_masks: Tensor) -> Tensor:
+        """Combine all head outputs using one mask row per observation."""
+
+        if role_masks.ndim != 2 or role_masks.shape[1] != self.role_count:
+            raise ValueError(
+                "role_masks must have shape [batch, role_count] with "
+                f"role_count={self.role_count}"
+            )
+        if role_masks.dtype != torch.float32:
+            raise TypeError(
+                "role_masks must use torch.float32; "
+                f"received {role_masks.dtype}"
+            )
+
+        all_actions = torch.stack(self.policy(observations), dim=1)
+        return torch.sum(all_actions * role_masks.unsqueeze(-1), dim=1)
+
+
+class CompleteRoleModel(nn.Module):
+    """Architecture C: one complete backbone-plus-head model for one role."""
+
+    def __init__(
+        self,
+        source: SharedPolicyBenchmarkModel,
+        role: str,
+    ) -> None:
+        super().__init__()
+        if role not in source.roles:
+            raise ValueError(f"unknown role {role!r}")
+        self.backbone = deepcopy(source.backbone)
+        self.head = deepcopy(source.heads[role])
+
+    def forward(self, observations: Tensor) -> Tensor:
+        """Run one role's complete policy from observations to actions."""
+
+        return self.head(self.backbone(observations))
+
+
+class BackboneModel(nn.Module):
+    """Architecture E stage one: expose shared features as model output."""
+
+    def __init__(self, source: SharedPolicyBenchmarkModel) -> None:
+        super().__init__()
+        self.backbone = deepcopy(source.backbone)
+
+    def forward(self, observations: Tensor) -> Tensor:
+        """Convert observations into features for a later head model."""
+
+        return self.backbone(observations)
+
+
+class RoleHeadModel(nn.Module):
+    """Architecture E stage two: one role head that accepts shared features."""
+
+    def __init__(
+        self,
+        source: SharedPolicyBenchmarkModel,
+        role: str,
+    ) -> None:
+        super().__init__()
+        if role not in source.roles:
+            raise ValueError(f"unknown role {role!r}")
+        self.head = deepcopy(source.heads[role])
+
+    def forward(self, features: Tensor) -> Tensor:
+        """Convert shared features into actions for one role."""
+
+        return self.head(features)
 
 
 def build_seeded_policy(

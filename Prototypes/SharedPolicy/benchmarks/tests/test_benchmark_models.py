@@ -6,7 +6,9 @@ import pytest
 import torch
 
 from benchmarks.models import (
+    CompleteRoleModel,
     BenchmarkConfig,
+    MaskedPolicyModel,
     PolicyDimensions,
     ProfileWidths,
     build_seeded_policy,
@@ -176,3 +178,32 @@ def test_benchmark_config_rejects_duplicate_roles() -> None:
             roles=("combat", "combat"),
             profiles={"small": ProfileWidths(backbone=8, head=4)},
         )
+
+
+def test_masked_policy_selects_one_head_per_row() -> None:
+    config = load_benchmark_config(CONFIG_PATH)
+    source = build_seeded_policy(config, "small")
+    masked = MaskedPolicyModel(source)
+    observations = torch.zeros((2, config.observation_size))
+    role_masks = torch.tensor([[1.0, 0.0], [0.0, 1.0]])
+
+    all_actions = source(observations)
+    selected_actions = masked(observations, role_masks)
+
+    torch.testing.assert_close(selected_actions[0], all_actions[0][0])
+    torch.testing.assert_close(selected_actions[1], all_actions[1][1])
+
+
+@pytest.mark.parametrize(
+    ("role", "error"),
+    [("missing", ValueError), ("support-role", ValueError)],
+)
+def test_complete_role_model_rejects_unknown_role(
+    role: str,
+    error: type[Exception],
+) -> None:
+    config = load_benchmark_config(CONFIG_PATH)
+    source = build_seeded_policy(config, "small")
+
+    with pytest.raises(error, match="unknown role"):
+        CompleteRoleModel(source, role)
