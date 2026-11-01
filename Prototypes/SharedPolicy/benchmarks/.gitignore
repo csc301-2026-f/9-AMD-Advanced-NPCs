@@ -1,0 +1,3 @@
+# Generated models and temporary measurements; retain selected evidence separately.
+artifacts/
+runs/
