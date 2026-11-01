@@ -66,6 +66,29 @@ def test_all_architectures_restore_equivalent_actions(
         assert result.actions.dtype == np.float32
 
 
+def test_all_architectures_preserve_one_read_only_prepared_request(
+    runtime: BenchmarkRuntime,
+) -> None:
+    observations = _observations(3)
+    expected_observations = observations.copy()
+    observations.setflags(write=False)
+    roles = ("expert_1", "expert_0", "expert_1")
+    expected_actions = runtime.run("A", observations, roles).actions
+
+    for architecture in ARCHITECTURES:
+        result = runtime.run(architecture, observations, roles)
+        np.testing.assert_array_equal(observations, expected_observations)
+        np.testing.assert_allclose(
+            result.actions,
+            expected_actions,
+            rtol=1e-4,
+            atol=1e-5,
+        )
+
+    assert observations.flags.writeable is False
+    assert roles == ("expert_1", "expert_0", "expert_1")
+
+
 def test_mixed_roles_have_expected_model_calls(
     runtime: BenchmarkRuntime,
 ) -> None:
