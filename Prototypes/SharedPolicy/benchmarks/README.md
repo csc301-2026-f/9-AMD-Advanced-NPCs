@@ -1,7 +1,7 @@
 # Shared policy architecture benchmarks
 
-Status: A–E can be exported from shared deterministic weights and run through
-one validated mixed-role routing contract. Timing is pending.
+Status: A–E can be exported, routed through one validated request contract, and
+run through a correctness-gated timing smoke test. Full measurements are pending.
 
 This experiment evaluates how a shared-backbone, multi-head policy should avoid
 unused head computation. It directly tests the architectures raised in AMD
@@ -139,9 +139,11 @@ roles might change that decision.
 | `models.py` | Defines the shared backbone and role-head pieces that A–E will reuse |
 | `export_models.py` | Builds A–E and writes separate validated ONNX files |
 | `runtime.py` | Reuses loaded ONNX sessions, groups roles where needed, and restores original row order |
+| `benchmark.py` | Runs the correctness gate, warm-up, smoke timings, and raw JSON reporting |
 | `tests/test_benchmark_models.py` | Checks that those shared pieces have the correct shapes and repeatable weights |
 | `tests/test_benchmark_exports.py` | Checks the exported contracts and proves equivalent action values |
 | `tests/test_benchmark_routing.py` | Sends the same mixed-role requests through A–E and checks actions and call counts |
+| `tests/test_benchmark_measurement.py` | Checks workload generation, timing summaries, configuration failures, and smoke reports |
 
 The older model, exporter, demo, and their tests now live in `../legacy/`. We
 keep them as a working baseline while building the benchmark.
@@ -150,12 +152,24 @@ keep them as a working baseline while building the benchmark.
 
 | Planned file | What it will do |
 | --- | --- |
-| `benchmark.py` | Check correctness first, then measure execution time and memory |
+| Full-matrix benchmark mode | Run every configured profile, batch size, role mixture, and repeated trial |
 | `evidence/` | Keep the selected results, profiles, Unreal reports, and final analysis |
 
 Generated ONNX files go in ignored `artifacts/`. Temporary results and profiles
 go in ignored `runs/`. These generated files are not source code and will not be
 committed.
+
+After exporting the artifacts, validate the timing harness with:
+
+```bash
+uv run python -m benchmarks.benchmark \
+  --config benchmarks/config.json \
+  --smoke \
+  --output benchmarks/runs/smoke.json
+```
+
+Smoke results use only one short trial and must not be treated as the final
+architecture comparison.
 
 ## References
 

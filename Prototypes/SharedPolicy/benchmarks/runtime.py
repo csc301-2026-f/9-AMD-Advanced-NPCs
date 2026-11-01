@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
@@ -39,6 +40,7 @@ class ModelCall:
 
     artifact: str
     rows: int
+    duration_ns: int
 
 
 @dataclass(frozen=True)
@@ -298,11 +300,19 @@ class BenchmarkRuntime:
         rows: int,
         calls: list[ModelCall],
     ) -> list[np.ndarray]:
+        started_ns = time.perf_counter_ns()
         try:
             outputs = self._sessions[artifact].run(None, inputs)
         except Exception as error:
             raise RuntimeError(f"{artifact} inference failed") from error
-        calls.append(ModelCall(artifact=artifact, rows=rows))
+        duration_ns = time.perf_counter_ns() - started_ns
+        calls.append(
+            ModelCall(
+                artifact=artifact,
+                rows=rows,
+                duration_ns=duration_ns,
+            )
+        )
         return outputs
 
     def run(

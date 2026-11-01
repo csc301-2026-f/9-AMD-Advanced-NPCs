@@ -88,6 +88,7 @@ def test_mixed_roles_have_expected_model_calls(
         actual = tuple((call.artifact, call.rows) for call in result.calls)
         assert actual == expected
         assert result.call_count == len(expected)
+        assert all(call.duration_ns >= 0 for call in result.calls)
 
 
 def test_homogeneous_request_skips_empty_role_groups(
