@@ -9,8 +9,12 @@ import numpy as np
 import numpy.typing as npt
 import onnxruntime as ort
 
-from export_shared_policy import INPUT_NAME, OUTPUT_NAMES, export_shared_policy
-from shared_policy import SharedPolicyReferenceModel
+from legacy.export_shared_policy import (
+    INPUT_NAME,
+    OUTPUT_NAMES,
+    export_shared_policy,
+)
+from legacy.shared_policy import SharedPolicyReferenceModel
 
 HeadName = Literal["combat", "support"]
 FloatArray = npt.NDArray[np.float32]

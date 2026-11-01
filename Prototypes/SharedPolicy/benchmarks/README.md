@@ -1,7 +1,7 @@
 # Shared policy architecture benchmarks
 
-Status: directory scaffold only; architecture implementations and benchmark
-results are pending plan approval.
+Status: Increment 1 provides the shared configuration and deterministic model
+components. Architecture-specific A–E exports and benchmark results are pending.
 
 This experiment evaluates how a shared-backbone, multi-head policy should avoid
 unused head computation. It directly tests the architectures raised in AMD
@@ -128,21 +128,30 @@ If no selective architecture beats A, the valid recommendation is to retain the
 all-head model for the tested workload and document when larger heads or more
 roles might change that decision.
 
-## Planned source layout
+## Files that exist now
 
-| File | Responsibility |
+| File | What it does |
 | --- | --- |
-| `models.py` | Configurable seeded backbone/head layers and architecture builders |
-| `export_models.py` | Export, validate, and manifest A–E ONNX artifacts |
-| `runtime.py` | Persistent sessions, role grouping, staged execution, and row-order restoration |
-| `benchmark.py` | Correctness gate, warm-up, component/end-to-end timing, profiling, memory workers, and result serialization |
-| `config.json` | Dimensions, workloads, seed, runtime settings, warm-up, repetitions, and tolerances |
-| `evidence/` | Selected reproducible configurations, raw results, profiles, Unreal reports, and analysis |
+| `README.md` | Explains what we will compare and how we will judge the results |
+| `config.json` | Stores the network sizes, batch sizes, role mixtures, and timing settings |
+| `models.py` | Defines the shared backbone and role-head pieces that A–E will reuse |
+| `tests/test_benchmark_models.py` | Checks that those shared pieces have the correct shapes and repeatable weights |
 
-Correctness tests live in the existing `../tests/` directory. The parent
-prototype's Python environment provides dependencies. Generated ONNX models go
-in ignored `artifacts/`; temporary runs and profiles go in ignored `runs/`.
-Source, configuration, and curated evidence remain reviewable in Git.
+The older model, exporter, demo, and their tests now live in `../legacy/`. We
+keep them as a working baseline while building the benchmark.
+
+## Files we will add in later increments
+
+| Planned file | What it will do |
+| --- | --- |
+| `export_models.py` | Build A–E from the shared pieces and create separate ONNX files |
+| `runtime.py` | Load the ONNX files, group NPCs by role when needed, run them, and restore the original NPC order |
+| `benchmark.py` | Check correctness first, then measure execution time and memory |
+| `evidence/` | Keep the selected results, profiles, Unreal reports, and final analysis |
+
+Generated ONNX files will go in ignored `artifacts/`. Temporary results and
+profiles will go in ignored `runs/`. These generated files are not source code
+and will not be committed.
 
 ## References
 

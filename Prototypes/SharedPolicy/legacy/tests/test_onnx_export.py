@@ -5,7 +5,7 @@ from pathlib import Path
 import onnx
 from onnx import TensorProto
 
-from export_shared_policy import (
+from legacy.export_shared_policy import (
     BATCH_DIMENSION_NAME,
     INPUT_NAME,
     OUTPUT_NAMES,
