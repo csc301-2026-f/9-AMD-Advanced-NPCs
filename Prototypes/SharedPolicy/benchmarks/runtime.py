@@ -103,7 +103,10 @@ def load_runtime_settings(
     return settings
 
 
-def _session_options(settings: RuntimeSettings) -> ort.SessionOptions:
+def create_session_options(
+    settings: RuntimeSettings,
+    profile_prefix: str | Path | None = None,
+) -> ort.SessionOptions:
     """Translate human-readable config values into ORT options."""
 
     options = ort.SessionOptions()
@@ -119,6 +122,9 @@ def _session_options(settings: RuntimeSettings) -> ort.SessionOptions:
         "extended": ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED,
         "all": ort.GraphOptimizationLevel.ORT_ENABLE_ALL,
     }[settings.graph_optimization]
+    if profile_prefix is not None:
+        options.enable_profiling = True
+        options.profile_file_prefix = str(profile_prefix)
     return options
 
 
@@ -202,7 +208,7 @@ def _load_sessions(
             raise FileNotFoundError(f"missing ONNX artifact: {model_path}")
         sessions[artifact] = ort.InferenceSession(
             str(model_path),
-            sess_options=_session_options(settings),
+            sess_options=create_session_options(settings),
             providers=[settings.provider],
         )
     _validate_session_contracts(sessions, roles)

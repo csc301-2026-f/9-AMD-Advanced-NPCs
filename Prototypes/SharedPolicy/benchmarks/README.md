@@ -140,10 +140,12 @@ roles might change that decision.
 | `export_models.py` | Builds A–E and writes separate validated ONNX files |
 | `runtime.py` | Reuses loaded ONNX sessions, groups roles where needed, and restores original row order |
 | `benchmark.py` | Runs the correctness gate, warm-up, smoke timings, and raw JSON reporting |
+| `profiling.py` | Captures ORT operator events and maps optimized nodes back to backbone/head stages |
 | `tests/test_benchmark_models.py` | Checks that those shared pieces have the correct shapes and repeatable weights |
 | `tests/test_benchmark_exports.py` | Checks the exported contracts and proves equivalent action values |
 | `tests/test_benchmark_routing.py` | Sends the same mixed-role requests through A–E and checks actions and call counts |
 | `tests/test_benchmark_measurement.py` | Checks workload generation, timing summaries, configuration failures, and smoke reports |
+| `tests/test_benchmark_profiling.py` | Proves A/B execute both heads while each D call executes only its selected branch |
 
 The older model, exporter, demo, and their tests now live in `../legacy/`. We
 keep them as a working baseline while building the benchmark.
@@ -170,6 +172,17 @@ uv run python -m benchmarks.benchmark \
 
 Smoke results use only one short trial and must not be treated as the final
 architecture comparison.
+
+Operator profiling is a separate diagnostic run so its instrumentation does not
+affect reported benchmark latency. Durations inside the profile report are
+diagnostic metadata, not benchmark measurements:
+
+```bash
+uv run python -m benchmarks.benchmark \
+  --config benchmarks/config.json \
+  --profile \
+  --output benchmarks/runs/profile-summary.json
+```
 
 ## References
 

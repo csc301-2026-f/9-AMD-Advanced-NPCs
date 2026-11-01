@@ -27,6 +27,7 @@ from benchmarks.runtime import (
 
 DEFAULT_ARTIFACTS_DIR = Path(__file__).with_name("artifacts")
 DEFAULT_SMOKE_OUTPUT = Path(__file__).with_name("runs") / "smoke.json"
+DEFAULT_PROFILE_OUTPUT = Path(__file__).with_name("runs") / "profile-summary.json"
 
 
 @dataclass(frozen=True)
@@ -429,22 +430,35 @@ def _parse_args() -> argparse.Namespace:
         type=Path,
         default=DEFAULT_ARTIFACTS_DIR,
     )
-    parser.add_argument("--output", type=Path, default=DEFAULT_SMOKE_OUTPUT)
-    parser.add_argument(
+    parser.add_argument("--output", type=Path)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument(
         "--smoke",
         action="store_true",
         help="Run the short harness-validation workload.",
+    )
+    mode.add_argument(
+        "--profile",
+        action="store_true",
+        help="Capture isolated A/B/D ONNX Runtime operator profiles.",
     )
     return parser.parse_args()
 
 
 def main() -> None:
     args = _parse_args()
-    if not args.smoke:
-        raise SystemExit("Only --smoke is implemented in this increment")
-    report = run_smoke_benchmark(args.config, args.artifacts_dir)
-    output_path = write_report(report, args.output)
-    print(f"Correctness passed; smoke report: {output_path}")
+    if args.smoke:
+        report = run_smoke_benchmark(args.config, args.artifacts_dir)
+        output = args.output or DEFAULT_SMOKE_OUTPUT
+        success = "Correctness passed; smoke report"
+    else:
+        from benchmarks.profiling import run_operator_profiles
+
+        report = run_operator_profiles(args.config, args.artifacts_dir)
+        output = args.output or DEFAULT_PROFILE_OUTPUT
+        success = "Operator-profile validation passed; profile report"
+    output_path = write_report(report, output)
+    print(f"{success}: {output_path}")
 
 
 if __name__ == "__main__":
