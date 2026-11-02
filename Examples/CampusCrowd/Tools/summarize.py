@@ -13,6 +13,7 @@ ROWS = [
     ("p99 frame time (ms)", "frame_ms_p99", "{:.1f}"),
     ("Game-thread inference per frame (ms)", "inference_game_thread_ms_mean", "{:.2f}"),
     ("Decisions per second", "decisions_per_second", "{:,.0f}"),
+    ("Share of target decisions delivered", "target_fraction", "{:.0%}"),
     ("Agents per model call", "rows_per_model_call", "{:.1f}"),
     ("Inference time per second of play (ms)", "model_ms_per_second", "{:,.0f}"),
     ("Observation-to-action latency (ms)", "action_latency_ms_mean", "{:.1f}"),
@@ -26,4 +27,8 @@ print()
 print("| Metric | Without API (per-agent sync) | With background NPC API |")
 print("| --- | ---: | ---: |")
 for label, key, fmt in ROWS:
-    print(f"| {label} | {fmt.format(sync[key])} | {fmt.format(background[key])} |")
+    cells = [fmt.format(report[key]) if key in report else "n/a" for report in (sync, background)]
+    print(f"| {label} | {cells[0]} | {cells[1]} |")
+for name, report in (("Without API", sync), ("With background NPC API", background)):
+    if report.get("target_met") is False:
+        print(f"\n**{name} missed the target decision rate:** {report.get('shortfall', 'see report')}.")

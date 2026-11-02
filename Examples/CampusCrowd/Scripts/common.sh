@@ -2,7 +2,7 @@
 set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$PROJECT_DIR/CampusCrowd.uproject"
-ENGINE="${UE_ENGINE_ROOT:-/home/future/Downloads/UnrealEngine-5.8.3}"
+ENGINE="${UE_ENGINE_ROOT:-}"
 if [[ ! -x "$ENGINE/Engine/Build/BatchFiles/Linux/Build.sh" ]]; then
     echo "Set UE_ENGINE_ROOT to an Unreal Engine 5.8 installation." >&2
     exit 1

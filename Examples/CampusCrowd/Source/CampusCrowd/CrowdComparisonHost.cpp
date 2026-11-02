@@ -75,6 +75,9 @@ int64 Dropped(const FNPCBackgroundStats& Now, const FNPCBackgroundStats& Before)
         (Now.FailedRows - Before.FailedRows);
 }
 
+/** Delivered fraction below which a window or capture counts as missing the target rate. */
+constexpr double TargetTolerance = .95;
+
 FMassEntityManager& EntityManager(UWorld* World)
 {
     return World->GetSubsystem<UMassEntitySubsystem>()->GetMutableEntityManager();
@@ -156,6 +159,21 @@ void ACrowdComparisonHost::BeginPlay()
     FParse::Value(Command, TEXT("Report="), ReportPath);
     AgentCount = FMath::Clamp(AgentCount, 1, 100000);
     PeriodSeconds = 1.0 / FMath::Clamp(DecisionHz, .1f, 60.f);
+    // Bound the scheduler queue to about 50 ms of target work: a longer queue makes
+    // results older than the action age limit, so they would all be discarded.
+    // One frame's submission is a single request and must fit in the queue, so admit
+    // at most half of it per frame. A larger share leaves too little room for the
+    // next frame, and a submission that does not fit is rejected whole. Overload then
+    // shows up as reported deferrals rather than a silent collapse.
+    MaxPendingRows = FMath::Clamp(FMath::CeilToInt32(AgentCount / PeriodSeconds * .05), FMath::Min(4096, AgentCount), AgentCount);
+    FParse::Value(Command, TEXT("MaxPendingRows="), MaxPendingRows);
+    MaxPendingRows = FMath::Max(1, MaxPendingRows);
+    MaxRowsPerFrame = FMath::Max(1, MaxPendingRows / 2);
+    FParse::Value(Command, TEXT("MaxRowsPerFrame="), MaxRowsPerFrame);
+    if (MaxRowsPerFrame > MaxPendingRows)
+        UE_LOG(LogTemp, Warning, TEXT("Crowd: -MaxRowsPerFrame=%d exceeds -MaxPendingRows=%d; clamping, since larger submissions are always rejected"),
+            MaxRowsPerFrame, MaxPendingRows);
+    MaxRowsPerFrame = FMath::Clamp(MaxRowsPerFrame, 1, MaxPendingRows);
     HalfSize = FMath::Sqrt(float(AgentCount)) * 75.f;
 
     if (MaxFPS > 0) IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"))->Set(MaxFPS);
@@ -177,8 +195,13 @@ void ACrowdComparisonHost::BeginPlay()
     FNPCBackgroundSchedulerSettings Settings;
     Settings.WorkerCount = FMath::Clamp(Workers, 1, 64);
     Settings.MaxBatchSize = FMath::Max(1, MaxBatch);
+    Settings.MaxPendingRows = MaxPendingRows;
+    Settings.MaxPendingBytes = FMath::Max(Settings.MaxPendingBytes,
+        int64(MaxPendingRows) * (CrowdSim::ObservationSize + CrowdSim::ActionSize) * int64(sizeof(float)) * 2);
+    WorkerCount = Settings.WorkerCount;
+    MaxBatchSize = Settings.MaxBatchSize;
     FString BucketError;
-    auto* Service = GetWorld()->GetSubsystem<UScholaMassInferenceSubsystem>();
+    Service = GetWorld()->GetSubsystem<UScholaMassInferenceSubsystem>();
     const int32 Bucket = Service ? Service->AcquireBucket(*Provider, Definition, Settings, BucketError) : INDEX_NONE;
     if (Bucket == INDEX_NONE) { Fail(TEXT("Background bucket: ") + BucketError); return; }
     {
@@ -228,6 +251,7 @@ void ACrowdComparisonHost::BeginPlay()
     Sync = NewObject<UCrowdSyncInferenceProcessor>(this);
     Move = NewObject<UCrowdMoveProcessor>(this);
     Gather->HalfSize = Sync->HalfSize = Move->HalfSize = HalfSize;
+    Gather->MaxRowsPerFrame = MaxRowsPerFrame;
     Apply->Counters = Sync->Counters = &Counters;
     Sync->PeriodSeconds = PeriodSeconds;
     Move->Transforms = &Transforms;
@@ -246,6 +270,55 @@ void ACrowdComparisonHost::BeginPlay()
     SetMode(ModeName.Equals(TEXT("Sync"), ESearchCase::IgnoreCase) || ModeName.Equals(TEXT("Synchronous"), ESearchCase::IgnoreCase)
         ? ECrowdInferenceMode::Synchronous : ECrowdInferenceMode::Background);
     PreviousTick = WindowStart = FPlatformTime::Seconds();
+    UE_LOG(LogTemp, Display, TEXT("Crowd: %d agents at %.1f Hz (target %.0f decisions/s); %d workers, batch %d, %d rows/frame, %d pending rows"),
+        AgentCount, 1.0 / PeriodSeconds, GetTargetDecisionsPerSecond(), WorkerCount, MaxBatchSize, MaxRowsPerFrame, MaxPendingRows);
+}
+
+FCrowdLosses ACrowdComparisonHost::ReadLosses() const
+{
+    FCrowdLosses Losses;
+    if (Scheduler)
+    {
+        const FNPCBackgroundStats Stats = Scheduler->GetStats();
+        Losses.Rejected = Stats.BusyRejections;
+        Losses.Invalid = Stats.InvalidSubmissions;
+        Losses.Expired = Stats.ExpiredRows;
+        Losses.Failed = Stats.FailedRows;
+    }
+    if (Service)
+    {
+        FScopeLock Lock(&Service->Mutex);
+        Losses.Deferred = Service->Bridge.DeferredRows;
+        Losses.Stale = Service->Bridge.DroppedRows;
+    }
+    return Losses;
+}
+
+FString ACrowdComparisonHost::DiagnoseShortfall(const FCrowdLosses& Window, double FrameMs) const
+{
+    if (Mode == ECrowdInferenceMode::Synchronous)
+        return FString::Printf(TEXT("per-agent synchronous inference cannot keep up (%.1f ms/frame on the game thread)"), Display.InferenceMs);
+    const auto Count = [](int64 Value) { return FText::AsNumber(Value).ToString(); };
+    const double FramesPerSecond = 1000 / FMath::Max(FrameMs, 1.);
+    // Several causes can overlap; list every one that occurred, most direct first.
+    TArray<FString> Causes;
+    if (Window.Invalid > 0)
+        Causes.Add(FString::Printf(TEXT("%s submissions invalid (-MaxRowsPerFrame=%d must not exceed -MaxPendingRows=%d)"),
+            *Count(Window.Invalid), MaxRowsPerFrame, MaxPendingRows));
+    if (Window.Failed + Window.Expired > 0)
+        Causes.Add(FString::Printf(TEXT("%s rows failed or expired"), *Count(Window.Failed + Window.Expired)));
+    if (Window.Rejected > 0)
+        Causes.Add(FString::Printf(TEXT("queue full: %s submissions rejected (limit %d rows)"), *Count(Window.Rejected), MaxPendingRows));
+    if (Window.Deferred > Window.Rejected * MaxRowsPerFrame)
+        Causes.Add(FString::Printf(TEXT("per-frame cap: %d rows x %.0f FPS = %s decisions/s max"),
+            MaxRowsPerFrame, FramesPerSecond, *Count(FMath::RoundToInt64(MaxRowsPerFrame * FramesPerSecond))));
+    if (Window.Stale > 0)
+        Causes.Add(FString::Printf(TEXT("%s results older than %.0f ms discarded"), *Count(Window.Stale), Gather ? Gather->MaxActionAgeMs : 0.f));
+    if (Display.ModelMsPerSecond > .8 * 1000 * WorkerCount)
+        Causes.Add(FString::Printf(TEXT("workers %.0f%% busy"), Display.ModelMsPerSecond / (10. * WorkerCount)));
+    if (Causes.IsEmpty())
+        Causes.Add(FString::Printf(TEXT("frame time %.1f ms too long for %.0f Hz decisions"), FrameMs, 1.0 / PeriodSeconds));
+    return FString::Join(Causes, TEXT("; "));
 }
 
 bool ACrowdComparisonHost::LoadPolicy()
@@ -294,6 +367,11 @@ void ACrowdComparisonHost::SetMode(ECrowdInferenceMode NewMode)
     Mode = NewMode;
     Counters = WindowCounters = CaptureCounters = {};
     if (Scheduler) WindowSchedulerStart = ModeSchedulerStart = CaptureSchedulerStart = Scheduler->GetStats();
+    WindowLossStart = ModeLossStart = CaptureLossStart = ReadLosses();
+    WindowsInMode = 0;
+    bShortfallLogged = false;
+    Display.Shortfall.Reset();
+    Display.TargetFraction = 1;
     if (Mode == ECrowdInferenceMode::Synchronous && !Entities.IsEmpty())
     {
         // Agents keep their phase offsets; restart the synchronous schedule from now.
@@ -340,11 +418,13 @@ void ACrowdComparisonHost::Tick(float DeltaSeconds)
     RunInference(DeltaSeconds);
     const double InferenceMs = (FPlatformTime::Seconds() - Now) * 1000;
 
+    const double MoveStart = FPlatformTime::Seconds();
     UE::Mass::FProcessingContext MoveContext(EntityManager(GetWorld()), DeltaSeconds);
     if (!bPaused) UE::Mass::Executor::Run(*Move, MoveContext);
+    const double MoveMs = (FPlatformTime::Seconds() - MoveStart) * 1000;
     KeepCrowdVisible();
     Crowd->BatchUpdateInstancesTransforms(0, Transforms, true, true, true);
-    UpdateDisplay(Now, FrameMs, InferenceMs);
+    UpdateDisplay(Now, FrameMs, InferenceMs, MoveMs);
     if (!bScreenshotTaken && Now-Started >= FMath::Min(WarmupSeconds * .5, 5.0))
     {
         FString Screenshot;
@@ -359,22 +439,25 @@ void ACrowdComparisonHost::Tick(float DeltaSeconds)
         CaptureStart = Now;
         CaptureCounters = {};
         if (Scheduler) CaptureSchedulerStart = Scheduler->GetStats();
+        CaptureLossStart = ReadLosses();
     }
     else if (bCapturing)
     {
         CaptureFrameMs.Add(FrameMs);
         CaptureInferenceMs.Add(InferenceMs);
+        CaptureMoveMs.Add(MoveMs);
         CaptureCounters.Decisions += Counters.Decisions - Before.Decisions;
         CaptureCounters.LatencySumMs += Counters.LatencySumMs - Before.LatencySumMs;
         if (Now - CaptureStart >= CaptureSeconds) WriteReport();
     }
 }
 
-void ACrowdComparisonHost::UpdateDisplay(double Now, double FrameMs, double InferenceMs)
+void ACrowdComparisonHost::UpdateDisplay(double Now, double FrameMs, double InferenceMs, double MoveMs)
 {
     ++WindowFrames;
     WindowFrameMs += FrameMs;
     WindowInferenceMs += InferenceMs;
+    WindowMoveMs += MoveMs;
     RecentFrameMs.Add(FrameMs);
     if (RecentFrameMs.Num() > 600) RecentFrameMs.RemoveAt(0, RecentFrameMs.Num() - 600, EAllowShrinking::No);
     const double Elapsed = Now - WindowStart;
@@ -384,6 +467,7 @@ void ACrowdComparisonHost::UpdateDisplay(double Now, double FrameMs, double Infe
     Display.FrameMs = WindowFrameMs / WindowFrames;
     Display.FrameP99Ms = Quantile(RecentFrameMs, .99);
     Display.InferenceMs = WindowInferenceMs / WindowFrames;
+    Display.MoveMs = WindowMoveMs / WindowFrames;
     Display.DecisionsPerSecond = Decisions / Elapsed;
     Display.LatencyMs = Decisions > 0 ? (Counters.LatencySumMs - WindowCounters.LatencySumMs) / Decisions : 0;
     if (Scheduler && Mode == ECrowdInferenceMode::Background)
@@ -391,19 +475,40 @@ void ACrowdComparisonHost::UpdateDisplay(double Now, double FrameMs, double Infe
         const FNPCBackgroundStats Stats = Scheduler->GetStats();
         Display.RowsPerModelCall = RowsPerCall(Stats, WindowSchedulerStart);
         Display.ModelMsPerSecond = ServiceMs(Stats, WindowSchedulerStart) / Elapsed;
-        Display.DroppedRows = Dropped(Stats, ModeSchedulerStart);
         WindowSchedulerStart = Stats;
     }
     else
     {
         Display.RowsPerModelCall = 1;
         Display.ModelMsPerSecond = WindowInferenceMs / Elapsed;
-        Display.DroppedRows = 0;
+    }
+    const FCrowdLosses Losses = ReadLosses();
+    const FCrowdLosses Window = Losses - WindowLossStart;
+    WindowLossStart = Losses;
+    const FCrowdLosses SinceMode = Losses - ModeLossStart;
+    Display.DroppedRows = Mode == ECrowdInferenceMode::Background ? SinceMode.Lost() + SinceMode.Rejected + SinceMode.Invalid : 0;
+    Display.LossesPerSecond = {int64(Window.Deferred / Elapsed), int64(Window.Rejected / Elapsed), int64(Window.Invalid / Elapsed),
+        int64(Window.Expired / Elapsed), int64(Window.Failed / Elapsed), int64(Window.Stale / Elapsed)};
+    Display.TargetFraction = Decisions / (GetTargetDecisionsPerSecond() * Elapsed);
+    // The first windows after start or a mode switch include pipeline fill.
+    if (++WindowsInMode > 2 && Display.TargetFraction < TargetTolerance)
+    {
+        Display.Shortfall = DiagnoseShortfall(Window, Display.FrameMs);
+        if (!bShortfallLogged)
+            UE_LOG(LogTemp, Warning, TEXT("Crowd: delivering %.0f%% of the target %.0f decisions/s; limited by %s"),
+                Display.TargetFraction * 100, GetTargetDecisionsPerSecond(), *Display.Shortfall);
+        bShortfallLogged = true;
+    }
+    else if (WindowsInMode > 2)
+    {
+        if (bShortfallLogged) UE_LOG(LogTemp, Display, TEXT("Crowd: target decision rate met again"));
+        Display.Shortfall.Reset();
+        bShortfallLogged = false;
     }
     WindowCounters = Counters;
     WindowStart = Now;
     WindowFrames = 0;
-    WindowFrameMs = WindowInferenceMs = 0;
+    WindowFrameMs = WindowInferenceMs = WindowMoveMs = 0;
 }
 
 double ACrowdComparisonHost::GetCaptureProgress(FString& OutPhase) const
@@ -439,6 +544,26 @@ void ACrowdComparisonHost::WriteReport()
     Root->SetNumberField(TEXT("inference_game_thread_ms_mean"), Mean(CaptureInferenceMs));
     Root->SetNumberField(TEXT("inference_game_thread_ms_p99"), Quantile(CaptureInferenceMs, .99));
     Root->SetNumberField(TEXT("decisions_per_second"), Decisions / Elapsed);
+    const double TargetFraction = Decisions / (GetTargetDecisionsPerSecond() * Elapsed);
+    const bool bTargetMet = TargetFraction >= TargetTolerance;
+    Root->SetNumberField(TEXT("target_fraction"), TargetFraction);
+    Root->SetBoolField(TEXT("target_met"), bTargetMet);
+    Root->SetNumberField(TEXT("movement_ms_mean"), Mean(CaptureMoveMs));
+    Root->SetNumberField(TEXT("workers"), WorkerCount);
+    Root->SetNumberField(TEXT("max_batch"), MaxBatchSize);
+    Root->SetNumberField(TEXT("max_rows_per_frame"), MaxRowsPerFrame);
+    Root->SetNumberField(TEXT("max_pending_rows"), MaxPendingRows);
+    const FCrowdLosses Losses = ReadLosses() - CaptureLossStart;
+    if (Mode == ECrowdInferenceMode::Background)
+    {
+        Root->SetNumberField(TEXT("deferred_rows"), double(Losses.Deferred));
+        Root->SetNumberField(TEXT("rejected_submissions"), double(Losses.Rejected + Losses.Invalid));
+        Root->SetNumberField(TEXT("expired_rows"), double(Losses.Expired));
+        Root->SetNumberField(TEXT("failed_rows"), double(Losses.Failed));
+        Root->SetNumberField(TEXT("stale_results_discarded"), double(Losses.Stale));
+    }
+    const FString Shortfall = bTargetMet ? FString() : DiagnoseShortfall(Losses, Mean(CaptureFrameMs));
+    if (!bTargetMet) Root->SetStringField(TEXT("shortfall"), Shortfall);
     Root->SetNumberField(TEXT("action_latency_ms_mean"), Decisions > 0 ? CaptureCounters.LatencySumMs / Decisions : 0);
     if (Scheduler && Mode == ECrowdInferenceMode::Background)
     {
@@ -446,7 +571,7 @@ void ACrowdComparisonHost::WriteReport()
         Root->SetNumberField(TEXT("rows_per_model_call"), RowsPerCall(Stats, CaptureSchedulerStart));
         Root->SetNumberField(TEXT("model_calls"), double(Stats.BackendCalls - CaptureSchedulerStart.BackendCalls));
         Root->SetNumberField(TEXT("model_ms_per_second"), ServiceMs(Stats, CaptureSchedulerStart) / Elapsed);
-        Root->SetNumberField(TEXT("dropped_rows"), double(Dropped(Stats, CaptureSchedulerStart)));
+        Root->SetNumberField(TEXT("dropped_rows"), double(Dropped(Stats, CaptureSchedulerStart) + Losses.Stale));
         Root->SetNumberField(TEXT("submitted_requests"), double(Stats.SubmittedRequests - CaptureSchedulerStart.SubmittedRequests));
         Root->SetNumberField(TEXT("busy_rejections"), double(Stats.BusyRejections - CaptureSchedulerStart.BusyRejections));
         Root->SetNumberField(TEXT("invalid_submissions"), double(Stats.InvalidSubmissions - CaptureSchedulerStart.InvalidSubmissions));
@@ -468,7 +593,11 @@ void ACrowdComparisonHost::WriteReport()
     IFileManager::Get().MakeDirectory(*FPaths::GetPath(ReportPath), true);
     const bool bSaved = FFileHelper::SaveStringToFile(Json, *ReportPath);
     UE_LOG(LogTemp, Display, TEXT("Crowd comparison report %s: %s"), bSaved ? TEXT("written") : TEXT("FAILED"), *ReportPath);
-    FPlatformMisc::RequestExitWithStatus(false, bSaved ? 0 : 1);
+    if (!bTargetMet)
+        UE_LOG(LogTemp, Error, TEXT("Crowd: target decision rate missed: %.0f of %.0f decisions/s (%.0f%%); limited by %s"),
+            Decisions / Elapsed, GetTargetDecisionsPerSecond(), TargetFraction * 100, *Shortfall);
+    // Exit 3: report written, but the crowd did not receive the decisions it asked for.
+    FPlatformMisc::RequestExitWithStatus(false, !bSaved ? 1 : bTargetMet ? 0 : 3);
 }
 
 void ACrowdComparisonHost::Fail(const FString& Message)

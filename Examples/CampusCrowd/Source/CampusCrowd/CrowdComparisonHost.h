@@ -20,6 +20,29 @@ class UCrowdApplyProcessor;
 class UCrowdSyncInferenceProcessor;
 class UCrowdMoveProcessor;
 class FNPCBackgroundScheduler;
+class UScholaMassInferenceSubsystem;
+
+/**
+ * Rows the background path did not turn into decisions, by cause. Cumulative;
+ * subtract two snapshots for a window.
+ */
+struct FCrowdLosses
+{
+    /** Due rows held back by the per-frame cap or a rejected (queue full) submission; retried next frame. */
+    int64 Deferred = 0;
+    /** Submissions the scheduler rejected because its pending-row or byte limit was full. */
+    int64 Rejected = 0;
+    /** Submissions the scheduler can never accept (e.g. more rows than its pending-row limit). */
+    int64 Invalid = 0;
+    /** Rows that expired or failed inside the scheduler. */
+    int64 Expired = 0, Failed = 0;
+    /** Results discarded on apply as stale (older than the action age limit) or superseded. */
+    int64 Stale = 0;
+
+    FCrowdLosses operator-(const FCrowdLosses& O) const
+    { return {Deferred - O.Deferred, Rejected - O.Rejected, Invalid - O.Invalid, Expired - O.Expired, Failed - O.Failed, Stale - O.Stale}; }
+    int64 Lost() const { return Expired + Failed + Stale; }
+};
 
 /** Values shown on the HUD, refreshed once per second. */
 struct FCrowdDisplayStats
@@ -34,6 +57,14 @@ struct FCrowdDisplayStats
     /** Total model time per second: on the game thread (sync) or summed across workers (background). */
     double ModelMsPerSecond = 0;
     int64 DroppedRows = 0;
+    /** Delivered decisions as a fraction of the target rate. */
+    double TargetFraction = 1;
+    /** Movement/separation update on the game thread (parallel across chunks). */
+    double MoveMs = 0;
+    /** Unserved rows per second in the last window. */
+    FCrowdLosses LossesPerSecond;
+    /** Empty when the target rate is met; otherwise the most likely limiting factor. */
+    FString Shortfall;
 };
 
 /**
@@ -82,7 +113,7 @@ private:
     void BuildScene();
     bool SpawnCrowd();
     void RunInference(float DeltaSeconds);
-    void UpdateDisplay(double Now, double FrameMs, double InferenceMs);
+    void UpdateDisplay(double Now, double FrameMs, double InferenceMs, double MoveMs);
     void WriteReport();
     void Fail(const FString& Message);
 
@@ -92,6 +123,14 @@ private:
     UPROPERTY() TObjectPtr<UCrowdApplyProcessor> Apply;
     UPROPERTY() TObjectPtr<UCrowdSyncInferenceProcessor> Sync;
     UPROPERTY() TObjectPtr<UCrowdMoveProcessor> Move;
+    UPROPERTY() TObjectPtr<UScholaMassInferenceSubsystem> Service;
+
+    FCrowdLosses ReadLosses() const;
+    FString DiagnoseShortfall(const FCrowdLosses& Window, double FrameMs) const;
+    int32 MaxRowsPerFrame = 0, MaxPendingRows = 0, WorkerCount = 0, MaxBatchSize = 0;
+    /** Shortfall is judged only after this many full windows in a mode (pipeline fill). */
+    int32 WindowsInMode = 0;
+    bool bShortfallLogged = false;
 
     TSharedPtr<FNPCBackgroundScheduler, ESPMode::ThreadSafe> Scheduler;
     TArray<FMassEntityHandle> Entities;
@@ -106,7 +145,8 @@ private:
     // Rolling one-second display window.
     double WindowStart = 0, PreviousTick = 0;
     int32 WindowFrames = 0;
-    double WindowFrameMs = 0, WindowInferenceMs = 0;
+    double WindowFrameMs = 0, WindowInferenceMs = 0, WindowMoveMs = 0;
+    FCrowdLosses WindowLossStart, ModeLossStart;
     FCrowdFrameCounters WindowCounters;
     TArray<double> RecentFrameMs;
     FNPCBackgroundStats WindowSchedulerStart, ModeSchedulerStart;
@@ -115,7 +155,8 @@ private:
     FString ReportPath;
     double WarmupSeconds = 10, CaptureSeconds = 0, Started = 0, CaptureStart = 0;
     bool bCapturing = false, bReported = false;
-    TArray<double> CaptureFrameMs, CaptureInferenceMs;
+    TArray<double> CaptureFrameMs, CaptureInferenceMs, CaptureMoveMs;
+    FCrowdLosses CaptureLossStart;
     FCrowdFrameCounters CaptureCounters;
     FNPCBackgroundStats CaptureSchedulerStart;
 };

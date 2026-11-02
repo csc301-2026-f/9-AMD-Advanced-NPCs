@@ -37,33 +37,53 @@ void ACrowdHUD::DrawHUD()
     const FLinearColor Accent = bBackground ? FLinearColor(.25f, 1.f, .45f) : FLinearColor(1.f, .55f, .2f);
     const auto& Stats = Host->GetDisplayStats();
 
-    TArray<TPair<FString, FString>> Rows;
-    Rows.Emplace(TEXT("Mass agents"), FText::AsNumber(Host->GetAgentCount()).ToString());
-    Rows.Emplace(TEXT("Frame rate"), FString::Printf(TEXT("%.1f FPS"), Stats.FramesPerSecond));
-    Rows.Emplace(TEXT("Frame time"), FString::Printf(TEXT("%.1f ms  (p99 %.1f ms)"), Stats.FrameMs, Stats.FrameP99Ms));
-    Rows.Emplace(TEXT("Inference on game thread"), FString::Printf(TEXT("%.2f ms / frame"), Stats.InferenceMs));
-    Rows.Emplace(TEXT("Decisions"), FString::Printf(TEXT("%s / s  (target %s)"),
-        *FText::AsNumber(FMath::RoundToInt(Stats.DecisionsPerSecond)).ToString(),
-        *FText::AsNumber(FMath::RoundToInt(Host->GetTargetDecisionsPerSecond())).ToString()));
-    Rows.Emplace(TEXT("Agents per model call"), FString::Printf(TEXT("%.1f"), Stats.RowsPerModelCall));
+    const FLinearColor Normal = FLinearColor::White, Alert(1.f, .3f, .25f);
+    const bool bShort = !Stats.Shortfall.IsEmpty();
+    TArray<TTuple<FString, FString, FLinearColor>> Rows;
+    Rows.Emplace(TEXT("Mass agents"), FText::AsNumber(Host->GetAgentCount()).ToString(), Normal);
+    Rows.Emplace(TEXT("Frame rate"), FString::Printf(TEXT("%.1f FPS"), Stats.FramesPerSecond), Normal);
+    Rows.Emplace(TEXT("Frame time"), FString::Printf(TEXT("%.1f ms  (p99 %.1f ms)"), Stats.FrameMs, Stats.FrameP99Ms), Normal);
+    Rows.Emplace(TEXT("Inference on game thread"), FString::Printf(TEXT("%.2f ms / frame"), Stats.InferenceMs), Normal);
+    Rows.Emplace(TEXT("Crowd movement"), FString::Printf(TEXT("%.2f ms / frame"), Stats.MoveMs), Normal);
+    Rows.Emplace(TEXT("Decisions"), FString::Printf(TEXT("%s / s  (%.0f%% of %s)"),
+        *FText::AsNumber(FMath::RoundToInt(Stats.DecisionsPerSecond)).ToString(), Stats.TargetFraction * 100,
+        *FText::AsNumber(FMath::RoundToInt(Host->GetTargetDecisionsPerSecond())).ToString()), bShort ? Alert : Normal);
+    Rows.Emplace(TEXT("Agents per model call"), FString::Printf(TEXT("%.1f"), Stats.RowsPerModelCall), Normal);
     Rows.Emplace(bBackground ? TEXT("Model time on workers") : TEXT("Model time on game thread"),
-        FString::Printf(TEXT("%.0f ms / s"), Stats.ModelMsPerSecond));
-    Rows.Emplace(TEXT("Observation to action"), FString::Printf(TEXT("%.1f ms"), Stats.LatencyMs));
-    if (bBackground) Rows.Emplace(TEXT("Dropped requests"), FText::AsNumber(Stats.DroppedRows).ToString());
+        FString::Printf(TEXT("%.0f ms / s"), Stats.ModelMsPerSecond), Normal);
+    Rows.Emplace(TEXT("Observation to action"), FString::Printf(TEXT("%.1f ms"), Stats.LatencyMs), Normal);
+    if (bBackground)
+    {
+        const auto& L = Stats.LossesPerSecond;
+        const bool bLosing = L.Deferred + L.Rejected + L.Invalid + L.Lost() > 0;
+        Rows.Emplace(TEXT("Dropped requests"), FText::AsNumber(Stats.DroppedRows).ToString(), Stats.DroppedRows > 0 ? Alert : Normal);
+        if (bLosing)
+            Rows.Emplace(TEXT("Unserved rows / s"), FString::Printf(TEXT("%s deferred, %s stale, %s failed"),
+                *FText::AsNumber(L.Deferred).ToString(), *FText::AsNumber(L.Stale).ToString(),
+                *FText::AsNumber(L.Expired + L.Failed).ToString()), Alert);
+    }
+    if (bShort) Rows.Emplace(TEXT("Below target"), Stats.Shortfall, Alert);
 
     FString Phase;
     const double Progress = Host->GetCaptureProgress(Phase);
     const FString Footer = !Host->GetError().IsEmpty() ? TEXT("Error: ") + Host->GetError()
         : Progress >= 0 ? FString::Printf(TEXT("%s %.0f%%"), *Phase, Progress * 100) : FString();
-    const float Width = 590 * Scale, Height = Line * (Rows.Num() + (Footer.IsEmpty() ? 2 : 3)) + 16 * Scale;
+    float Width = 590 * Scale;
+    for (const auto& Row : Rows)
+    {
+        float TextWidth = 0, TextHeight = 0;
+        GetTextSize(Row.Get<1>(), TextWidth, TextHeight, Font, Scale * 1.25f);
+        Width = FMath::Max(Width, (260 + 32) * Scale + TextWidth);
+    }
+    const float Height = Line * (Rows.Num() + (Footer.IsEmpty() ? 2 : 3)) + 16 * Scale;
     DrawRect(FLinearColor(0, 0, 0, .65f), X - 12 * Scale, Y - 8 * Scale, Width, Height);
     DrawText(bBackground ? TEXT("CAMPUS / background inference") : TEXT("CAMPUS / synchronous inference"),
         Accent, X, Y, Font, Scale * 1.6f);
     Y += Line * 1.5f;
     for (const auto& Row : Rows)
     {
-        DrawText(Row.Key, FLinearColor(.75f, .75f, .75f), X, Y, Font, Scale * 1.25f);
-        DrawText(Row.Value, FLinearColor::White, X + 260 * Scale, Y, Font, Scale * 1.25f);
+        DrawText(Row.Get<0>(), FLinearColor(.75f, .75f, .75f), X, Y, Font, Scale * 1.25f);
+        DrawText(Row.Get<1>(), Row.Get<2>(), X + 260 * Scale, Y, Font, Scale * 1.25f);
         Y += Line;
     }
     if (!Footer.IsEmpty())

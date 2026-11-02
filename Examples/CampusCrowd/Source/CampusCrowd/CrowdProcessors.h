@@ -71,4 +71,7 @@ protected:
     virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& Manager) override;
     virtual void Execute(FMassEntityManager& Manager, FMassExecutionContext& Context) override;
     FMassEntityQuery Query;
+    // Separation grid, rebuilt each frame by counting sort and reused to avoid per-frame allocation.
+    TArray<FVector2f> Positions;
+    TArray<int32> CellOf, CellStart, CellFill, Sorted;
 };

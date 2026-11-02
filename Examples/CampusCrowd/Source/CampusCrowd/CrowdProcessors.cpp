@@ -131,26 +131,50 @@ void UCrowdMoveProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>&
 void UCrowdMoveProcessor::Execute(FMassEntityManager&, FMassExecutionContext& Context)
 {
     TRACE_CPUPROFILER_EVENT_SCOPE_STR("Crowd.Move");
+    if (!Campus || Campus->Nodes.IsEmpty() || !Transforms) return;
     const float DeltaTime = FMath::Min(Context.GetDeltaTimeSeconds(), .1f);
     const float Blend = 1.f - FMath::Exp(-3.f * DeltaTime);
-    struct FNeighbour { FVector2f Position; int32 Instance; };
-    TArray<FNeighbour> Neighbours;
-    TMap<FIntPoint, TArray<int32>> Grid;
-    constexpr float CellSize = 150.f;
-    const auto Cell = [](FVector2f P) { return FIntPoint(FMath::FloorToInt(P.X / CellSize), FMath::FloorToInt(P.Y / CellSize)); };
-    Query.ForEachEntityChunk(Context, [&](FMassExecutionContext& Chunk)
+    constexpr float CellSize = 150.f, SeparationRadius = 100.f;
+    static_assert(SeparationRadius <= CellSize, "Separation only searches neighbouring cells");
+
+    // Snapshot positions by instance so every agent reads last frame's neighbours.
+    const int32 Count = Transforms->Num();
+    Positions.SetNumUninitialized(Count, EAllowShrinking::No);
+    Query.ParallelForEachEntityChunk(Context, [this](FMassExecutionContext& Chunk)
     {
-        for (const auto& Agent : Chunk.GetMutableFragmentView<FCrowdAgentFragment>())
+        for (const auto& Agent : Chunk.GetFragmentView<FCrowdAgentFragment>()) Positions[Agent.Instance] = Agent.Position;
+    }, FMassEntityQuery::EParallelExecutionFlags::Force);
+
+    // Dense grid over the campus, filled by counting sort; positions outside it clamp to the border cells.
+    const float Half = FMath::Max(HalfSize, CellSize);
+    const int32 Side = FMath::CeilToInt32(2 * Half / CellSize) + 1;
+    const auto CellXY = [Half, Side](FVector2f P)
+    {
+        return FIntPoint(FMath::Clamp(FMath::FloorToInt32((P.X + Half) / CellSize), 0, Side - 1),
+            FMath::Clamp(FMath::FloorToInt32((P.Y + Half) / CellSize), 0, Side - 1));
+    };
+    {
+        TRACE_CPUPROFILER_EVENT_SCOPE_STR("Crowd.Move.Grid");
+        CellOf.SetNumUninitialized(Count, EAllowShrinking::No);
+        CellStart.SetNumUninitialized(Side * Side + 1, EAllowShrinking::No);
+        FMemory::Memzero(CellStart.GetData(), CellStart.Num() * sizeof(int32));
+        Sorted.SetNumUninitialized(Count, EAllowShrinking::No);
+        for (int32 I = 0; I < Count; ++I)
         {
-            Grid.FindOrAdd(Cell(Agent.Position)).Add(Neighbours.Num());
-            Neighbours.Add({Agent.Position, Agent.Instance});
+            const FIntPoint C = CellXY(Positions[I]);
+            CellOf[I] = C.Y * Side + C.X;
+            ++CellStart[CellOf[I] + 1];
         }
-    });
-    Query.ForEachEntityChunk(Context, [&](FMassExecutionContext& Chunk)
+        for (int32 C = 1; C < CellStart.Num(); ++C) CellStart[C] += CellStart[C - 1];
+        CellFill = CellStart;
+        for (int32 I = 0; I < Count; ++I) Sorted[CellFill[CellOf[I]]++] = I;
+    }
+
+    Query.ParallelForEachEntityChunk(Context, [&](FMassExecutionContext& Chunk)
     {
+        // Each agent writes only its own fragment and transform; neighbours come from the snapshot.
         for (auto& Agent : Chunk.GetMutableFragmentView<FCrowdAgentFragment>())
         {
-            if (!Campus || Campus->Nodes.IsEmpty()) continue;
             if (Agent.WaitSeconds > 0)
             {
                 Agent.WaitSeconds -= DeltaTime;
@@ -172,35 +196,36 @@ void UCrowdMoveProcessor::Execute(FMassEntityManager&, FMassExecutionContext& Co
                 const FVector2f Start = Campus->Nodes[Agent.CurrentNode].Position;
                 const FVector2f End = Campus->Nodes[Agent.NextNode].Position;
                 const FVector2f Along = (End - Start).GetSafeNormal();
-                const FVector2f Side(-Along.Y, Along.X);
-                const FVector2f LaneTarget = End + Side * Agent.Lane;
+                const FVector2f Side2(-Along.Y, Along.X);
+                const FVector2f LaneTarget = End + Side2 * Agent.Lane;
                 const FVector2f Desired = (LaneTarget - Agent.Position).GetSafeNormal();
                 // ONNX steering is bounded by the route corridor, which keeps students outside CAD footprints.
                 FVector2f Separation = FVector2f::ZeroVector;
-                const FIntPoint Here = Cell(Agent.Position);
-                for (int32 DX=-1; DX<=1; ++DX) for (int32 DY=-1; DY<=1; ++DY)
+                const FIntPoint Here = CellXY(Agent.Position);
+                for (int32 CY = FMath::Max(Here.Y - 1, 0); CY <= FMath::Min(Here.Y + 1, Side - 1); ++CY)
+                for (int32 CX = FMath::Max(Here.X - 1, 0); CX <= FMath::Min(Here.X + 1, Side - 1); ++CX)
                 {
-                    const auto* Nearby = Grid.Find(Here + FIntPoint(DX,DY));
-                    if (!Nearby) continue;
-                    for (int32 Index : *Nearby)
+                    const int32 C = CY * Side + CX;
+                    for (int32 S = CellStart[C]; S < CellStart[C + 1]; ++S)
                     {
-                        const auto& Other = Neighbours[Index];
-                        if (Other.Instance == Agent.Instance) continue;
-                        const FVector2f Away = Agent.Position - Other.Position;
+                        const int32 Other = Sorted[S];
+                        if (Other == Agent.Instance) continue;
+                        const FVector2f Away = Agent.Position - Positions[Other];
                         const float Distance = Away.Size();
-                        if (Distance > .1f && Distance < 100.f) Separation += Away / Distance * (1.f - Distance/100.f);
+                        if (Distance > .1f && Distance < SeparationRadius)
+                            Separation += Away / Distance * (1.f - Distance / SeparationRadius);
                     }
                 }
                 Separation = Separation.GetClampedToMaxSize(1.f);
                 const FVector2f Direction = (Desired * .85f + Agent.Steering * .15f + Separation * .9f).GetSafeNormal();
                 Agent.Velocity += (Direction * Agent.WalkSpeed - Agent.Velocity) * Blend;
                 Agent.Position += Agent.Velocity * DeltaTime;
-                const float CrossTrack = FVector2f::DotProduct(Agent.Position - Start, Side);
-                Agent.Position -= Side * (CrossTrack - FMath::Clamp(CrossTrack, -160.f, 160.f));
+                const float CrossTrack = FVector2f::DotProduct(Agent.Position - Start, Side2);
+                Agent.Position -= Side2 * (CrossTrack - FMath::Clamp(CrossTrack, -160.f, 160.f));
             }
             const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Agent.Velocity.Y, Agent.Velocity.X));
             (*Transforms)[Agent.Instance] = FTransform(FRotator(0, Yaw, 0),
                 FVector(Agent.Position.X, Agent.Position.Y, 94), FVector(.6f, .6f, 1.8f));
         }
-    });
+    }, FMassEntityQuery::EParallelExecutionFlags::Force);
 }
