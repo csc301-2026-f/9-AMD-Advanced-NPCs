@@ -22,7 +22,17 @@ AMD Ryzen 5 7600X and Radeon RX 7800 XT, 1600×900, 60 FPS cap. Each student mak
 | 50,000 | 60 | 499,000 (100%) | 4.4 ms | 2.8 ms | 761 ms/s | 15 ms |
 | 100,000 | 36 | 895,000 (90%) | 15.8 ms | 5.1 ms | 1,328 ms/s | 45 ms |
 
-Game-thread times are per frame. Worker model time is summed across both workers, out of 2,000 ms/s available. At 100,000 students, the game thread rather than the model limits the frame rate. ScholaMass's per-frame bookkeeping takes 15.8 ms of each frame, and the per-frame row cap then limits how many decisions get submitted.
+Game-thread times are per frame. Game-thread inference covers ScholaMass's apply and gather steps, including the demo's own code that writes observations and applies actions (about 2 ms of the 15.8 ms at 100,000). Worker model time is summed across both workers, out of 2,000 ms/s available, and comes to 1.5–1.8 µs per decision at every crowd size. Observation → action is about one frame.
+
+Without the 60 FPS cap, 20,000 students run at about 216 FPS and 50,000 at about 93.
+
+At 100,000 students the game thread limits the frame rate, while the workers are only about two-thirds busy. The 90% shortfall comes from the per-frame row cap:
+
+- At 36 FPS the crowd needs about 27,800 decisions per frame, but the default cap admits 25,000 (half of the 50,000-row queue).
+- Students over the cap stay due, so every frame scans and sorts a backlog of about 77,000 students. That slows the frame further.
+- With `-MaxPendingRows=100000 -MaxRowsPerFrame=50000`, the run delivers 100% of the target (about 997,000/s) at 39 FPS.
+
+Even without the game-thread cost, 100,000 students would not reach 60 FPS, because the GPU takes about 18 ms per frame. Latency rises to 45 ms because one frame's batches take the workers about 20 ms, so some finish after the next apply step and wait another frame.
 
 The HUD shows the same measurements. Below 95% of target, the decision rate turns red and the HUD names the cause.
 
