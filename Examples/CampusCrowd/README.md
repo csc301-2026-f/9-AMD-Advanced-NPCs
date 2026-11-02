@@ -2,10 +2,13 @@
 
 Up to 100,000 Mass students walk a 1.3 × 1.4 km campus. Each student asks a neural network for a steering decision 10 times per second. Schola batches those requests and runs them on background worker threads.
 
+The campus geometry is based on the City of Toronto's [3D massing data](https://opendata.toronto.ca/city.planning/3d-massing/2025/AutoCAD/50H_NORTH.dwg). It is stored with Git LFS, so run `git lfs pull` after cloning.
+
 ```bash
-export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8   # required
-Examples/CampusCrowd/Scripts/build.sh
-Examples/CampusCrowd/Scripts/run.sh -Agents=50000
+cd Examples/CampusCrowd
+export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8
+Scripts/build.sh
+Scripts/run.sh -Agents=50000
 ```
 
 ## Performance
