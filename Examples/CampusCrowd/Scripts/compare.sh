@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Measure both modes one after another with identical settings, then summarize.
+# Usage: Scripts/compare.sh [output-dir] [extra game arguments...]
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+OUT="$(realpath -m "${1:-$PROJECT_DIR/Saved/Comparison}")"; shift || true
+mkdir -p "$OUT"
+for MODE in Sync Background; do
+    echo "Measuring $MODE..."
+    "$PROJECT_DIR/Scripts/run.sh" -ResX=1600 -ResY=900 -Mode="$MODE" -WarmupSeconds=10 -CaptureSeconds=30 \
+        -Report="$OUT/${MODE,,}.json" -abslog="$OUT/${MODE,,}.log" "$@" > /dev/null
+done
+python3 "$PROJECT_DIR/Tools/summarize.py" "$OUT/sync.json" "$OUT/background.json" | tee "$OUT/summary.md"

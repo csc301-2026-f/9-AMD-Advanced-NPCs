@@ -1,0 +1,34 @@
+{
+  "engine": "5.8.3",
+  "platform": "Linux",
+  "attempts": [
+    {
+      "constructed": true,
+      "translated": true,
+      "mesh_actor_count": 0,
+      "sample": [],
+      "seconds": 0.5040706170038902,
+      "input": "original_dwg",
+      "succeeded": false
+    },
+    {
+      "constructed": true,
+      "translated": true,
+      "mesh_actor_count": 0,
+      "sample": [],
+      "seconds": 19.128823892999208,
+      "input": "converted_dxf",
+      "succeeded": false
+    },
+    {
+      "constructed": true,
+      "translated": true,
+      "mesh_actor_count": 0,
+      "sample": [],
+      "seconds": 0.49004513100226177,
+      "input": "audited_acad2010_dwg",
+      "succeeded": false
+    }
+  ],
+  "error": "CADKernel and TechSoft processing failed; no mesh actors were produced."
+}

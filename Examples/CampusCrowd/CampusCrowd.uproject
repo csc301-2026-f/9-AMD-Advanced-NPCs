@@ -1,0 +1,35 @@
+{
+    "FileVersion": 3,
+    "EngineAssociation": "5.8",
+    "Category": "Development",
+    "Description": "DWG-derived university campus with Schola background crowd inference.",
+    "Modules": [
+        {
+            "Name": "CampusCrowd",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [
+        {
+            "Name": "Schola",
+            "Enabled": true
+        },
+        {
+            "Name": "NNERuntimeORT",
+            "Enabled": true
+        },
+        {
+            "Name": "NNERuntimeBasicCpu",
+            "Enabled": true
+        },
+        {
+            "Name": "ProceduralMeshComponent",
+            "Enabled": true
+        },
+        {
+            "Name": "PythonScriptPlugin",
+            "Enabled": true
+        }
+    ]
+}

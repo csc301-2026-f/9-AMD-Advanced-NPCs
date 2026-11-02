@@ -1,0 +1,45 @@
+{
+  "succeeded": 9,
+  "failed": 0,
+  "notRun": 0,
+  "inProcess": 0,
+  "totalDuration": 0.07240545004606247,
+  "tests": [
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.ActionCountMismatch",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.CollectsObservations",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.DuplicateAgent",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.EmptyBindings",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.InvalidHead",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.NullPolicy",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.SharedHead",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.ThinkFailure",
+      "state": "Success"
+    },
+    {
+      "path": "Schola.Inference.SharedPolicy.Stepper.TwoNpcRouting",
+      "state": "Success"
+    }
+  ]
+}
