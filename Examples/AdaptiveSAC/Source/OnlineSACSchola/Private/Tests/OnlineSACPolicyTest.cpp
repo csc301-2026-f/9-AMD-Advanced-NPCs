@@ -152,7 +152,11 @@ bool FOnlineSACPolicyExperienceTest::RunTest(const FString& Parameters)
     {
         const FPolicyStep Step = StepThroughPolicy(*Policy, Task);
         Accepted += Step.Submitted == EOnlineSACSubmitResult::Accepted;
-        Policy->WaitForLearner(25, 30000);
+        // Complete each test batch before submitting more; a partial batch below UpdateEvery cannot train.
+        if ((Index + 1) % Policy->UpdateEvery == 0)
+        {
+            TestTrue(TEXT("Complete test batch processed"), Policy->WaitForLearner(0, 60000));
+        }
     }
     TestTrue(TEXT("Learner caught up"), Policy->WaitForLearner(0, 60000));
     const online_sac::OnlineSACStats Stats = Policy->GetLearnerStats();
