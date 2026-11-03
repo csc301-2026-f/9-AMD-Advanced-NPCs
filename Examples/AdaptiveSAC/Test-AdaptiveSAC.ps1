@@ -3,7 +3,13 @@
 param([string]$Filter='ScholaOnlineLearning.SAC.Policy', [string]$EnginePath)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../AdaptiveTag/Tools/Unreal.ps1')
-$engine = Resolve-UnrealEngine -EnginePath $EnginePath
+$engine = Resolve-UnrealEngine -EnginePath $EnginePath -EngineVersion '5.8'
+$versionFile = Join-Path $engine 'Engine/Build/Build.version'
+if (!(Test-Path -LiteralPath $versionFile)) { throw "Unreal Engine version file not found: $versionFile" }
+$version = Get-Content -LiteralPath $versionFile -Raw | ConvertFrom-Json
+if ($version.MajorVersion -ne 5 -or $version.MinorVersion -ne 8) {
+    throw "AdaptiveSAC currently requires Unreal Engine 5.8; selected $($version.MajorVersion).$($version.MinorVersion) at $engine. Cross-version compatibility is deferred."
+}
 $project = Join-Path $PSScriptRoot 'AdaptiveSAC.uproject'
 & (Join-Path $PSScriptRoot 'Prepare-AdaptiveSAC.ps1')
 & "$engine\Engine\Build\BatchFiles\Build.bat" AdaptiveSACEditor Win64 Development $project -WaitMutex -NoHotReloadFromIDE

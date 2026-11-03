@@ -127,8 +127,8 @@ These are current boundaries, not features implemented by this cleanup:
 * Base ``Shutdown`` invalidates the session. The current SAC subclass requires
   ``ShutdownLearner`` or destruction to stop its learner immediately; making
   base shutdown stop a subclass learner is a separate lifecycle change.
-* The AdaptiveSAC host excludes ``ScholaMass`` on UE 5.7. Resolving engine
-  compatibility with the background NPC implementation remains separate work.
+* The AdaptiveSAC host targets UE 5.8 with the full Schola plugin, including
+  ``ScholaMass``. UE 5.7 and cross-version compatibility are deferred.
 * Policy tests are provided in the host; recorded learner/simulator results
   alone do not establish that the Schola policy integration tests pass.
 
