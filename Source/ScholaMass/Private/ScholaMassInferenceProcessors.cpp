@@ -153,8 +153,8 @@ void UScholaMassScheduleObserver::Execute(FMassEntityManager&, FMassExecutionCon
     auto* Service = Context.GetWorld() ? Context.GetWorld()->GetSubsystem<UScholaMassInferenceSubsystem>() : nullptr;
     if (!Service) return; // Standalone managers initialize through Bridge explicitly.
     FScopeLock Lock(&Service->Mutex);
-    const auto Operation=Context.GetAuxData().Get<FMassObserverExecutionContext>().GetOperationType();
-    const bool bRemove=Operation==EMassObservedOperation::RemoveElement || Operation==EMassObservedOperation::DestroyEntity;
+    const auto ObservedOperation=Context.GetAuxData().Get<FMassObserverExecutionContext>().GetOperationType();
+    const bool bRemove=ObservedOperation==EMassObservedOperation::RemoveElement || ObservedOperation==EMassObservedOperation::DestroyEntity;
     Query.ForEachEntityChunk(Context, [&](FMassExecutionContext& Chunk)
     {
         auto States = Chunk.GetMutableFragmentView<FScholaInferenceStateFragment>();
