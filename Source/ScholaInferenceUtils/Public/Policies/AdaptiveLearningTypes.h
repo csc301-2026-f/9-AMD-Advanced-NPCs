@@ -6,14 +6,14 @@
 #include "StructUtils/InstancedStruct.h"
 #include "AdaptiveLearningTypes.generated.h"
 
-/** Local setup and remote session readiness are separate states. */
+/** Local definition validation and native learner readiness are separate states. */
 UENUM(BlueprintType)
 enum class EAdaptiveSessionState : uint8
 {
     Uninitialized,
     Initialized UMETA(DisplayName = "Locally Initialized"),
-    Connecting,
-    Ready,
+    // Preserve existing reflected values after removing the unused connection state (2).
+    Ready = 3,
     Failed,
     Stopped
 };
@@ -30,7 +30,7 @@ enum class EAdaptiveRequestStatus : uint8
     Expired
 };
 
-/** Copied input for one decision. The bridge assigns its identity; this is not a wire format. */
+/** Copied input for one decision. The policy assigns its session and ticket identity. */
 USTRUCT(BlueprintType)
 struct SCHOLAINFERENCEUTILS_API FAdaptiveDecisionRequest
 {
@@ -62,7 +62,7 @@ struct SCHOLAINFERENCEUTILS_API FAdaptiveDecision
 {
     GENERATED_BODY()
 
-    /** Identifies one learner session; assigned by the future session handshake. */
+    /** Identifies one local learner session; assigned by the native policy subclass. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Schola|Adaptive")
     FGuid SessionId;
 
@@ -88,7 +88,7 @@ struct SCHOLAINFERENCEUTILS_API FAdaptiveDecision
 
 /**
  * A completed gameplay outcome for learning, attributed to its original decision.
- * Records are passive containers; submission and validation belong to later integration.
+ * Records are passive containers; the consuming native policy validates and submits their contents.
  */
 USTRUCT(BlueprintType)
 struct SCHOLAINFERENCEUTILS_API FAdaptiveExperience

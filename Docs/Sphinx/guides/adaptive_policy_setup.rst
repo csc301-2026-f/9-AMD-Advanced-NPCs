@@ -3,13 +3,14 @@ Adaptive Policy Records and Local Setup
 
 This guide describes the implemented foundation for adaptive NPCs: shared
 Unreal data records and validation of the NPC's input/output definitions. The
-complete gameplay-to-learning loop remains the proposed design in
+native gameplay-to-learning components and their current limits are described in
 :doc:`adaptive_online_learning_contract`.
 
 The policy's nonblocking ticket lifecycle is described in
-:doc:`adaptive_decision_lifecycle`. It can be exercised with controlled native
-test responses; no Python connection or model training is implemented yet.
-The existing ``UNPCInferencePolicy`` mock and its five paradigms are unchanged.
+:doc:`adaptive_decision_lifecycle`. The base has no learner; tests use controlled
+native responses. ``UOnlineSACPolicy`` in the AdaptiveSAC example subclasses it
+with an in-process RLtools learner. The mock Adaptive selection on
+``UNPCInferencePolicy`` remains separate from this native integration.
 
 What each type represents
 --------------------------------------------------
@@ -31,7 +32,7 @@ What each type represents
        command actually executed, reward, next observation, and separate
        termination/truncation flags.
    * - ``EAdaptiveSessionState``
-     - Labels for local initialization and eventual remote connection state.
+     - Local lifecycle: Uninitialized, Initialized, Ready, Failed and Stopped.
    * - ``EAdaptiveRequestStatus``
      - Request results: Unknown, Pending, Ready, Failed, Cancelled, and Expired.
    * - ``UAdaptiveNPCPolicy``
@@ -44,7 +45,7 @@ or ``Policies/AdaptiveNPCPolicy.h`` for the policy. Add ``ScholaInferenceUtils``
 to the consuming module's dependencies. All types are available to Blueprint.
 
 Records are passive containers. Assigning a reward or action does not validate,
-submit, acknowledge, or learn from an experience. A finite negative reward is
+submit or learn from an experience. A finite negative reward is
 legitimate learning data. Do not put a preferred action or an unrelated fallback
 into ``ExecutedAction``.
 
@@ -52,9 +53,10 @@ The initial Unreal representation uses ``FGuid`` for ``SessionId`` and signed
 64-bit integers for ``AgentId``, ``EpisodeId``, ``DecisionId``, and
 ``PolicyVersion``. A default record has an invalid GUID and numeric IDs set to
 ``INDEX_NONE`` (-1), meaning unassigned; zero is a valid numeric identity/version.
-Initialization does not generate session or decision IDs. D's wire format and
-session-handshake assignment remain subject to team review; these records do
-not define a protocol or silently settle the contract's other open decisions.
+Base initialization does not generate session or decision IDs. A native learner
+subclass starts a local session with a fresh GUID and valid agent/episode IDs;
+the base assigns decision IDs when requests are dispatched. These are local
+Unreal records.
 
 Supported local definitions
 ---------------------------
@@ -83,15 +85,15 @@ are supplied by the game rather than fixed to the pursuit example.
 
 Dictionary, discrete, text, base ``FSpace``, and custom space types are rejected
 by this initial policy. Unsupported types need an explicit extension and
-learner agreement before use. This is local structural validation; a future
-handshake must still check the loaded model's dimensions, preprocessing, units,
-and action scaling with B and D.
+learner agreement before use. This is structural validation; a native subclass
+must also check its compiled learner's dimensions and preserve the agreed
+preprocessing, units and action scaling.
 
 Schola's existing ``FSpace::Validate`` / ``Contains`` methods check actual point
 values against a space. They do not validate the space definition itself. This
 policy checks definitions; decision requests and results also reuse existing
 point validation, with additional checks for finite values and explicit shapes.
-Experience submission remains a later step.
+Experience submission is currently provided by the SAC subclass, not this base.
 
 Initialize and inspect the policy
 --------------------------------------------------
@@ -129,7 +131,7 @@ Then initialize it from that object's code:
        UE_LOG(LogTemp, Warning, TEXT("%s"), *AdaptivePolicy->GetLastError());
        return;
    }
-   // Local validation succeeded. A Python connection has not been started.
+   // Base validation succeeded. This base object has no learner or Ready session.
 
 A new policy starts ``Uninitialized``. A first invalid initialization reports
 ``Failed`` and remains uninitialized. A valid initialization reports
@@ -142,10 +144,10 @@ previous valid definition and initialized state. A later valid initialization
 can replace it. Always check ``Init``'s return value when changing definitions;
 ``IsInitialized`` reports whether an accepted definition still exists.
 
-Local initialization never reports ``Ready``. A native integration hook can
-confirm a session after a handshake; the base policy has no Python client.
-``Connecting`` remains reserved for that integration. ``Shutdown`` reports
-``Stopped``. ``IsInferenceBusy`` reports pending, unexpired inference only.
+Base initialization never reports ``Ready``. A native learner subclass calls
+protected ``StartSession`` once its learner is ready; ``UOnlineSACPolicy`` does
+this during its overridden ``Init``. ``Shutdown`` reports ``Stopped``.
+``IsInferenceBusy`` reports pending, unexpired inference only.
 ``Think`` and ``BatchedThink`` return false promptly, direct callers to the
 request/result API, and preserve the action or whole action array supplied by
 the caller. See :doc:`adaptive_decision_lifecycle` for the implemented rules.
@@ -157,5 +159,5 @@ The Unreal automation tests under ``Schola.Inference.Adaptive`` cover supported
 definitions, malformed Blueprint payloads, bounds and shapes, recovery after
 invalid initialization, owned copies, output preservation, and Blueprint
 exposure. Run these alongside ``Schola.Inference.Paradigms`` to check the
-existing mock API. These tests establish the local foundation, not a live
-communication round trip or neural learning.
+existing mock API. These tests establish the base foundation. Native SAC
+integration tests live in the AdaptiveSAC host and must be run separately.

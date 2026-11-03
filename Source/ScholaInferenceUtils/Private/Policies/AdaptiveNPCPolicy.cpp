@@ -192,7 +192,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
     ExpireDecision();
     if (SessionState != EAdaptiveSessionState::Ready)
     {
-        LastError = TEXT("Decision requests require a Ready session; local initialization alone does not connect to Python.");
+        LastError = TEXT("Decision requests require a Ready session started by a native learner policy; base initialization only validates spaces.");
         return false;
     }
     if (RequestStatus == EAdaptiveRequestStatus::Pending)
@@ -234,7 +234,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
     const FAdaptiveDecisionRequest DispatchedRequest = Request;
     if (!DispatchDecision(DispatchedRequest))
     {
-        FailDecision(DispatchedRequest, TEXT("Decision dispatch unavailable or rejected. No Python client is connected by the base policy."));
+        FailDecision(DispatchedRequest, TEXT("Decision dispatch unavailable or rejected. The base policy has no learner implementation."));
         return false;
     }
     OutDecisionId = DispatchedRequest.DecisionId;
@@ -367,7 +367,7 @@ void UAdaptiveNPCPolicy::BeginDestroy()
 
 void UAdaptiveNPCPolicy::ResetRuntimeState()
 {
-    // Loaded/duplicated policy configuration never inherits a live learner connection or its work.
+    // Loaded/duplicated policy configuration never inherits an active learner session or its work.
     SessionId.Invalidate();
     AgentId = EpisodeId = INDEX_NONE;
     Request = FAdaptiveDecisionRequest();
