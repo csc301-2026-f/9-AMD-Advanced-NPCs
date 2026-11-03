@@ -1,7 +1,6 @@
 # Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 function Resolve-UnrealEngine {
-    param([string]$EnginePath)
-    $engineVersion = '5.7'
+    param([string]$EnginePath, [string]$EngineVersion = '5.7')
     if ($EnginePath) {
         $candidates = @($EnginePath)
     } elseif ($env:UE_ENGINE_ROOT) {

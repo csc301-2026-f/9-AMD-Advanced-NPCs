@@ -1,13 +1,12 @@
 # Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 # Generates Plugins/Schola (git-ignored) so this host builds the repository's Schola sources unchanged:
-#  - Schola.uplugin: copy of the root descriptor without the modules in $Excluded,
-#  - junctions to the root Config/Resources folders and to each Source/<module> except the excluded ones.
+#  - Schola.uplugin: unchanged copy of the full root descriptor, including ScholaMass,
+#  - junctions to the root Config/Resources folders and to every Source/<module> folder.
 # Why not "AdditionalPluginDirectories": ["../.."]: UBT only finds .uplugin files in child directories of a
 # plugin folder (EpicGames.Build EnumeratePlugins), so Schola.uplugin at the root itself is never found.
-# Why ScholaMass is excluded: it depends on "MassCore", which does not exist in UE 5.7 (MassGameplay has
-# MassCommon), so it cannot compile here. Nothing in this host uses it. Fixing ScholaMass.Build.cs is a shared
-# plugin change for the team; once fixed, set $Excluded = @().
-param([string[]]$Excluded = @('ScholaMass'))
+# This host targets UE 5.8; compatibility with earlier engine versions is deferred.
+[CmdletBinding()]
+param()
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $descriptor = Join-Path $root 'Schola.uplugin'
@@ -33,10 +32,8 @@ foreach ($folder in @('Config', 'Content', 'Resources', 'Shaders')) {
     if (Test-Path -LiteralPath $source) { Link (Join-Path $plugin $folder) $source }
 }
 foreach ($module in Get-ChildItem -LiteralPath (Join-Path $root 'Source') -Directory) {
-    if ($Excluded -notcontains $module.Name) { Link (Join-Path $plugin "Source/$($module.Name)") $module.FullName }
+    Link (Join-Path $plugin "Source/$($module.Name)") $module.FullName
 }
 
-$json = Get-Content -LiteralPath $descriptor -Raw | ConvertFrom-Json
-$json.Modules = @($json.Modules | Where-Object { $Excluded -notcontains $_.Name })
-$json | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $plugin 'Schola.uplugin') -Encoding utf8
-Write-Output "Schola host plugin ready: $plugin (excluded: $($Excluded -join ', '))"
+Copy-Item -LiteralPath $descriptor -Destination (Join-Path $plugin 'Schola.uplugin') -Force
+Write-Output "Schola host plugin ready: $plugin (all modules included)"

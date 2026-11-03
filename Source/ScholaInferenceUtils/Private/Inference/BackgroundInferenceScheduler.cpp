@@ -1094,6 +1094,8 @@ TSharedPtr<FNPCBackgroundScheduler, ESPMode::ThreadSafe> FNPCBackgroundScheduler
 	return Scheduler;
 }
 
+// Define construction here too: MSVC needs the complete implementation for member cleanup.
+FNPCBackgroundScheduler::FNPCBackgroundScheduler() = default;
 FNPCBackgroundScheduler::~FNPCBackgroundScheduler() = default;
 
 ENPCBackgroundStatus FNPCBackgroundScheduler::Submit(TConstArrayView<float> Observations,
