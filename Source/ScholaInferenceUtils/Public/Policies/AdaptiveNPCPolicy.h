@@ -9,7 +9,7 @@
 /**
  * Nonblocking adaptive decision lifecycle. Call all methods on the game thread.
  * Currently accepts Box observations and finite, bounded Box actions of configurable size.
- * Init validates and copies definitions only; it does not connect to Python or mark a session Ready.
+ * Base Init validates and copies definitions only; a native learner subclass starts the Ready session.
  */
 UCLASS(BlueprintType, Blueprintable, EditInlineNew, DefaultToInstanced)
 class SCHOLAINFERENCEUTILS_API UAdaptiveNPCPolicy : public UObject, public IPolicy
@@ -42,7 +42,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     EAdaptiveRequestStatus TryGetDecision(int64 DecisionId, FAdaptiveDecision& OutDecision);
 
-    /** Invalidate a pending or ready action; cancellation does not promise remote computation stops. */
+    /** Invalidate a pending or ready action without stopping the learner or resetting its weights. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     bool CancelDecision(int64 DecisionId);
 
@@ -73,16 +73,16 @@ public:
     bool GetInteractionDefinition(FInteractionDefinition& OutDefinition) const;
 
 protected:
-    /** Native integration hooks, not Blueprint readiness switches. No network implementation yet.
-     * The future client calls StartSession only after a successful handshake. Completions must be
-     * marshalled to the game thread, capturing a weak policy pointer and the original request identity.
+    /** Native learner integration hooks, not Blueprint readiness switches.
+     * A subclass calls StartSession after its learner is ready. Decision completions belong on the
+     * game thread; deferred completions retain a weak policy pointer and the original request identity.
      */
     bool StartSession(const FGuid& InSessionId, int64 InAgentId, int64 InEpisodeId);
     bool CompleteDecision(const FAdaptiveDecision& InDecision);
     bool FailDecision(const FAdaptiveDecisionRequest& InRequest, const FString& Error);
 
     /** Must return promptly and copy input before retaining it. False means dispatch was rejected.
-     * May complete synchronously. The base implementation rejects dispatch; tests override this hook.
+     * May complete synchronously from a learner snapshot. The base implementation rejects dispatch.
      */
     virtual bool DispatchDecision(const FAdaptiveDecisionRequest& InRequest) { return false; }
 

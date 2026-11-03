@@ -88,7 +88,7 @@ bool FAdaptiveDecisionRoundTripTest::RunTest(const FString& Parameters)
     Policy->ImmediateResult = ResultFor(Policy->Sent);
     TestTrue(TEXT("Immediate completion during dispatch supported"), Policy->RequestDecision(Observation, Ticket));
     TestTrue(TEXT("Immediate answer is retrievable"), Policy->TryGetDecision(Ticket, Output) == EAdaptiveRequestStatus::Ready);
-    // The IPolicy contract never turns into a blocking network call, even for a ready session.
+    // The IPolicy entry points stay unavailable even when snapshot-based decisions can complete immediately.
     auto Action = LifecyclePoint({0.9f});
     TArray<TInstancedStruct<FPoint>> Actions = {Action};
     TestFalse(TEXT("Think remains unavailable"), Policy->Think(Observation, Action));
@@ -105,9 +105,9 @@ bool FAdaptiveDecisionValidationTest::RunTest(const FString& Parameters)
     int64 Ticket = -99;
     const auto Observation = LifecyclePoint({0, 0});
     TestFalse(TEXT("Uninitialized requests rejected"), Policy->RequestDecision(Observation, Ticket));
-    TestFalse(TEXT("Uninitialized handshake rejected"), Policy->Start(FGuid::NewGuid()));
+    TestFalse(TEXT("Session start before initialization rejected"), Policy->Start(FGuid::NewGuid()));
     Policy->Init(LifecycleDefinition());
-    TestFalse(TEXT("Local initialization is not remote readiness"), Policy->RequestDecision(Observation, Ticket));
+    TestFalse(TEXT("Base initialization does not start a learner session"), Policy->RequestDecision(Observation, Ticket));
     TestFalse(TEXT("Invalid session rejected"), Policy->Start(FGuid()));
     TestFalse(TEXT("Negative agent rejected"), Policy->Start(FGuid::NewGuid(), -1));
     TestFalse(TEXT("Negative episode rejected"), Policy->Start(FGuid::NewGuid(), 0, -1));
@@ -214,9 +214,9 @@ bool FAdaptiveDecisionExpiryTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Ready actions also expire if gameplay waits too long"), Policy->TryGetDecision(Ticket, Output) == EAdaptiveRequestStatus::Expired);
 
     Policy->RequestDecision(Observation, Ticket);
-    TestTrue(TEXT("Service failure matches the request"), Policy->Reject(Policy->Sent, TEXT("Service unavailable")));
+    TestTrue(TEXT("Learner failure matches the request"), Policy->Reject(Policy->Sent, TEXT("Learner unavailable")));
     TestTrue(TEXT("Failure observable"), Policy->TryGetDecision(Ticket, Output) == EAdaptiveRequestStatus::Failed);
-    TestEqual(TEXT("Useful service error retained"), Policy->GetDecisionError(Ticket), FString(TEXT("Service unavailable")));
+    TestEqual(TEXT("Useful learner error retained"), Policy->GetDecisionError(Ticket), FString(TEXT("Learner unavailable")));
     TestTrue(TEXT("Unknown error is empty"), Policy->GetDecisionError(-1).IsEmpty());
     TestFalse(TEXT("Failure leaves no work busy"), Policy->IsInferenceBusy());
     Policy->bAcceptDispatch = false;
@@ -242,7 +242,7 @@ bool FAdaptiveDecisionLifecycleTest::RunTest(const FString& Parameters)
     Policy->RequestDecision(Observation, Ticket);
     auto OldRequest = Policy->Sent;
     auto* Duplicate = DuplicateObject<UAdaptiveDecisionTestPolicy>(Policy, GetTransientPackage());
-    TestTrue(TEXT("Duplicated configuration requires a new handshake"), Duplicate->GetSessionState() == EAdaptiveSessionState::Initialized);
+    TestTrue(TEXT("Duplicated configuration requires a new learner session"), Duplicate->GetSessionState() == EAdaptiveSessionState::Initialized);
     TestFalse(TEXT("Duplicate cannot inherit pending work"), Duplicate->IsInferenceBusy());
     TestTrue(TEXT("Duplicate has no inherited ticket"), Duplicate->TryGetDecision(Ticket, Output) == EAdaptiveRequestStatus::Unknown);
     TestFalse(TEXT("Wrong cancellation cannot stop work"), Policy->CancelDecision(Ticket + 1));
@@ -271,7 +271,7 @@ bool FAdaptiveDecisionLifecycleTest::RunTest(const FString& Parameters)
     Policy->RequestDecision(Observation, Ticket);
     OldRequest = Policy->Sent;
     Policy->Init(LifecycleDefinition());
-    TestTrue(TEXT("Successful reinit requires new handshake"), Policy->GetSessionState() == EAdaptiveSessionState::Initialized);
+    TestTrue(TEXT("Successful reinit requires a new learner session"), Policy->GetSessionState() == EAdaptiveSessionState::Initialized);
     TestFalse(TEXT("Pre-reinit callback rejected"), Policy->Deliver(ResultFor(OldRequest)));
     Policy->Start(FGuid::NewGuid());
     Policy->RequestDecision(Observation, Ticket);
@@ -298,7 +298,7 @@ bool FAdaptiveDecisionLifecycleTest::RunTest(const FString& Parameters)
     const auto DelayedResult = ResultFor(DestroyedPolicy->Sent);
     TWeakObjectPtr<UAdaptiveDecisionTestPolicy> WeakPolicy(DestroyedPolicy);
     bool bCallbackTouchedObject = false;
-    // Same weak-reference pattern required of the future client's game-thread completion.
+    // Deferred native completions must use weak ownership before accessing the policy on the game thread.
     auto DelayedCallback = [WeakPolicy, DelayedResult, &bCallbackTouchedObject]()
     {
         if (auto* LivePolicy = WeakPolicy.Get())

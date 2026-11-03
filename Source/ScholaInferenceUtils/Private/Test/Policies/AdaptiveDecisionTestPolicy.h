@@ -4,7 +4,7 @@
 #include "Policies/AdaptiveNPCPolicy.h"
 #include "AdaptiveDecisionTestPolicy.generated.h"
 
-/** Test-only controlled responses and clock. No background tasks, Python, sleeps or network. */
+/** Test-only controlled responses and clock, without background tasks or sleeps. */
 UCLASS()
 class UAdaptiveDecisionTestPolicy : public UAdaptiveNPCPolicy
 {
