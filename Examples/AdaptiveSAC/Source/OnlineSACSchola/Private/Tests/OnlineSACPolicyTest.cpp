@@ -46,7 +46,7 @@ UOnlineSACPolicy* NewPolicy(int32 UpdateEvery, int32 Warmup, int32 Seed = 1)
 struct FPolicyStep
 {
     bool bDecided = false;
-    EOnlineSACSubmitResult Submitted = EOnlineSACSubmitResult::NotReady;
+    EAdaptiveSubmitResult Submitted = EAdaptiveSubmitResult::NotReady;
     online_sac::ChaseStep Outcome;
     FAdaptiveDecision Decision;
 };
@@ -79,7 +79,8 @@ FPolicyStep StepThroughPolicy(UOnlineSACPolicy& Policy, online_sac::ChaseTask& T
         Experience.NextObservation = Box(Next, online_sac::ObservationDim);
         Experience.bTerminated = Step.Outcome.terminated;
         Experience.bTruncated = Step.Outcome.truncated && !Step.Outcome.terminated;
-        Step.Submitted = Policy.SubmitExperience(Experience);
+        UAdaptiveNPCPolicy& AdaptivePolicy = Policy;
+        Step.Submitted = AdaptivePolicy.SubmitExperience(Experience);
     }
     if (Step.Outcome.truncated)
     {
@@ -151,7 +152,7 @@ bool FOnlineSACPolicyExperienceTest::RunTest(const FString& Parameters)
     for (int32 Index = 0; Index < 200; ++Index)
     {
         const FPolicyStep Step = StepThroughPolicy(*Policy, Task);
-        Accepted += Step.Submitted == EOnlineSACSubmitResult::Accepted;
+        Accepted += Step.Submitted == EAdaptiveSubmitResult::Accepted;
         // Complete each test batch before submitting more; a partial batch below UpdateEvery cannot train.
         if ((Index + 1) % Policy->UpdateEvery == 0)
         {
@@ -175,19 +176,24 @@ bool FOnlineSACPolicyExperienceTest::RunTest(const FString& Parameters)
     Bad.NextObservation = Box(Observation, 6);
     const float OutOfRange[2] = {1.5f, 0.0f};
     Bad.ExecutedAction = Box(OutOfRange, 2);
-    TestEqual(TEXT("Action outside the action space rejected"), Policy->SubmitExperience(Bad), EOnlineSACSubmitResult::Rejected);
+    TestEqual(TEXT("Action outside the action space rejected"), Policy->SubmitExperience(Bad), EAdaptiveSubmitResult::Rejected);
     const float Fine[2] = {0.5f, 0.0f};
     Bad.ExecutedAction = Box(Fine, 2);
     Observation[1] = std::numeric_limits<float>::quiet_NaN();
     Bad.Observation = Box(Observation, 6);
-    TestEqual(TEXT("NaN observation rejected"), Policy->SubmitExperience(Bad), EOnlineSACSubmitResult::Rejected);
+    TestEqual(TEXT("NaN observation rejected"), Policy->SubmitExperience(Bad), EAdaptiveSubmitResult::Rejected);
     Bad.Observation = Box(Fine, 2);
-    TestEqual(TEXT("Wrong-size observation rejected"), Policy->SubmitExperience(Bad), EOnlineSACSubmitResult::Rejected);
+    TestEqual(TEXT("Wrong-size observation rejected"), Policy->SubmitExperience(Bad), EAdaptiveSubmitResult::Rejected);
     Bad.Observation = Bad.NextObservation;
     Bad.SessionId = FGuid::NewGuid();
-    TestEqual(TEXT("Experience from another session rejected"), Policy->SubmitExperience(Bad), EOnlineSACSubmitResult::Rejected);
+    TestEqual(TEXT("Experience from another session rejected"), Policy->SubmitExperience(Bad), EAdaptiveSubmitResult::Rejected);
     const online_sac::OnlineSACStats After = Policy->GetLearnerStats();
     TestEqual(TEXT("Rejections did not reach the learner queue"), After.accepted, Stats.accepted);
+    Policy->SetFrozen(true);
+    const FPolicyStep Frozen = StepThroughPolicy(*Policy, Task);
+    TestEqual(TEXT("Shared submission preserves the learner's frozen result"), Frozen.Submitted, EAdaptiveSubmitResult::Frozen);
+    TestTrue(TEXT("Frozen submission clears old diagnostics"), Policy->GetLastError().IsEmpty() && Policy->GetLearnerError().IsEmpty());
+    TestEqual(TEXT("Frozen data did not enter the queue"), Policy->GetLearnerStats().accepted, Stats.accepted);
     Policy->ShutdownLearner();
     return true;
 }
@@ -232,7 +238,7 @@ bool FOnlineSACPolicyShutdownTest::RunTest(const FString& Parameters)
             int64 Ticket = INDEX_NONE;
             float Observation[6] = {};
             TestFalse(TEXT("No decisions after ShutdownLearner"), Policy->RequestDecision(Box(Observation, 6), Ticket));
-            TestEqual(TEXT("No experiences after ShutdownLearner"), Policy->SubmitExperience(FAdaptiveExperience()), EOnlineSACSubmitResult::NotReady);
+            TestEqual(TEXT("No experiences after ShutdownLearner"), Policy->SubmitExperience(FAdaptiveExperience()), EAdaptiveSubmitResult::NotReady);
         }
     }
     return true;
@@ -277,7 +283,7 @@ bool FOnlineSACPolicyChaseTest::RunTest(const FString& Parameters)
     for (int32 Step = 1; Step <= TrainSteps; ++Step)
     {
         const FPolicyStep Outcome = StepThroughPolicy(*Policy, Task);
-        Rejected += Outcome.Submitted != EOnlineSACSubmitResult::Accepted;
+        Rejected += Outcome.Submitted != EAdaptiveSubmitResult::Accepted;
         Policy->WaitForLearner(Policy->UpdateEvery, 60000);
         if (Step % EvalEvery == 0)
         {

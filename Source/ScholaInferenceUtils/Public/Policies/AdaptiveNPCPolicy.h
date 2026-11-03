@@ -42,6 +42,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     EAdaptiveRequestStatus TryGetDecision(int64 DecisionId, FAdaptiveDecision& OutDecision);
 
+    /** Validate the active session and numerical data, then submit without waiting for training.
+     * Accepted means the native learner admitted the record. Read GetLastError for a failure reason.
+     */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual EAdaptiveSubmitResult SubmitExperience(const FAdaptiveExperience& Experience);
+
     /** Invalidate a pending or ready action without stopping the learner or resetting its weights. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     bool CancelDecision(int64 DecisionId);
@@ -85,6 +91,11 @@ protected:
      * May complete synchronously from a learner snapshot. The base implementation rejects dispatch.
      */
     virtual bool DispatchDecision(const FAdaptiveDecisionRequest& InRequest) { return false; }
+
+    /** Admit a validated record to the native learner without waiting for training.
+     * Copy any retained data. The base has no learner and returns NotReady.
+     */
+    virtual EAdaptiveSubmitResult DispatchExperience(const FAdaptiveExperience& Experience) { return EAdaptiveSubmitResult::NotReady; }
 
     /** Monotonic local elapsed time. Overridden only by deterministic tests. */
     virtual double GetTimeSeconds() const;

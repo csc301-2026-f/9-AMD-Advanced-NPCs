@@ -37,8 +37,8 @@ must be verified in that environment separately.
 
 ### Recorded validation
 
-On Windows with UE **5.8.4**, the complete `AdaptiveSACEditor` host built successfully and all **73**
-tests in the integration command above passed: 36 background, 7 Mass, 10 adaptive lifecycle,
+On Windows with UE **5.8.4**, the complete `AdaptiveSACEditor` host built successfully and all **76**
+tests in the integration command above passed: 36 background, 7 Mass, 13 adaptive lifecycle/experience,
 5 native SAC policy, 6 paradigm and 9 shared-policy stepper tests.
 UE 5.7 compatibility, Linux validation and packaged gameplay are not established by this run.
 
@@ -58,8 +58,12 @@ that excluded `ScholaMass` by adding its source junction and restoring the full 
   calls the base `Init`, creates the learner and starts a local session (`StartSession`, no handshake).
 - `DispatchDecision`: `learner.Act`, maps [-1, 1] to the action bounds, and calls `CompleteDecision`
   synchronously with the snapshot version (allowed by the base contract).
-- `SubmitExperience(FAdaptiveExperience)`: our own entry point (no team-wide one is agreed yet);
-  maps `ExecutedAction` back to [-1, 1] and calls `AddExperience`.
+- `SubmitExperience(FAdaptiveExperience)`: the common `UAdaptiveNPCPolicy` entry point validates
+  session readiness, the session GUID, policy version, finite reward and declared Box spaces.
+  The SAC `DispatchExperience` hook maps `ExecutedAction` back to [-1, 1] and calls `AddExperience`.
+  The return type is the shared `EAdaptiveSubmitResult` in `Policies/AdaptiveLearningTypes.h`;
+  C++ callers previously using `EOnlineSACSubmitResult` should use this common type.
+  `GetLastError` reports shared submission errors; `GetLearnerError` continues to mirror them for SAC callers.
 - `ShutdownLearner()` and `BeginDestroy` stop the learner thread. The base `Shutdown()` is not virtual,
   so calling it directly stops the session but leaves the (idle) learner thread until the next
   `SubmitExperience`, `ShutdownLearner` or destruction.

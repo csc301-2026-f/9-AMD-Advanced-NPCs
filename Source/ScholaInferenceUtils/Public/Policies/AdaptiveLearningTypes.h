@@ -30,6 +30,17 @@ enum class EAdaptiveRequestStatus : uint8
     Expired
 };
 
+/** Outcome of submitting experience. Accepted means learner admission, not a completed training update. */
+UENUM(BlueprintType)
+enum class EAdaptiveSubmitResult : uint8
+{
+    Accepted,
+    Rejected,
+    Dropped,
+    Frozen,
+    NotReady
+};
+
 /** Copied input for one decision. The policy assigns its session and ticket identity. */
 USTRUCT(BlueprintType)
 struct SCHOLAINFERENCEUTILS_API FAdaptiveDecisionRequest

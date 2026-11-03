@@ -20,13 +20,13 @@ The repository contains two native learning examples and a shared policy API:
    * - Component
      - Responsibility and current scope
    * - ``UAdaptiveNPCPolicy``
-     - Shared Box-space validation, decision tickets, identity checks, expiry,
+     - Shared decision/experience validation, decision tickets, identity checks, expiry,
        cancellation and episode/session lifecycle in ``ScholaInferenceUtils``.
        The base class owns no learner and rejects decision dispatch.
    * - ``UOnlineSACPolicy``
      - Native adapter in ``Examples/AdaptiveSAC/Source/OnlineSACSchola``.
        Creates a local RLtools SAC learner, completes decisions from its actor
-       snapshot, and exposes its own ``SubmitExperience`` entry point.
+       snapshot, and supplies learner admission for the shared ``SubmitExperience`` call.
    * - ``OnlineSACRuntime``
      - Engine-neutral learner and chase simulation in
        ``Examples/AdaptiveTag/Source/OnlineSACRuntime``. The AdaptiveSAC host
@@ -67,7 +67,8 @@ Local gameplay and learning loop
    polls return copies; gameplay tracks whether the action has been applied.
 4. **Submit the completed outcome.** Gameplay supplies the originating
    observation, executed command, reward, next observation, episode-ending
-   flags and original identity in ``FAdaptiveExperience``. The SAC adapter maps
+   flags and original identity in ``FAdaptiveExperience``. The common policy
+   validates the active session and numerical data. The SAC adapter maps
    the command back to the learner's normalized action range and calls
    ``AddExperience``. The learner uses a bounded input queue.
 5. **Train and publish later.** The worker stores experiences and performs SAC
@@ -108,22 +109,33 @@ or an unrelated fallback. The SAC adapter maps actions between Schola's declared
 Box bounds and the learner's ``[-1, 1]`` range in both directions. Observations,
 rewards and episode flags must retain the simulation's meanings.
 
-The current subclass reports ``Accepted``, ``Rejected``, ``Dropped``, ``Frozen``
-or ``NotReady`` from submission. ``Accepted`` means local queue admission;
+The shared ``UAdaptiveNPCPolicy::SubmitExperience`` call returns
+``EAdaptiveSubmitResult``: ``Accepted``, ``Rejected``, ``Dropped``, ``Frozen``
+or ``NotReady``. ``Accepted`` means local queue admission;
 ``Dropped`` reports a full queue. Gameplay must submit each outcome once: the
 current adapter does not implement experience deduplication or automatic retry.
 The base records are passive containers and do not submit or validate outcomes.
 
+The call requires a Ready session, its current session GUID, a nonnegative policy
+version, a finite reward, and finite Box observations/actions matching the declared
+dimensions, shapes and bounds. Common validation runs before the protected
+``DispatchExperience`` learner hook. The base hook returns ``NotReady`` because
+it owns no learner; a native subclass overrides it to admit a validated record.
+Subclasses copy any data retained after the call. ``GetLastError`` explains
+rejection, queue-full and unavailable-learner results; Accepted and Frozen clear
+old errors. Decision/agent/episode fields remain attribution data; this call does
+not add per-decision history or duplicate detection.
+Learner statistics count records that reach the learner; common validation
+failures are reported by the return value and ``GetLastError``.
+
 Existing limits and next integration work
 -----------------------------------------
 
-These are current boundaries, not features implemented by this cleanup:
+Current integration limits:
 
 * The Schola SAC adapter still uses ``OnlineSACLearner`` (six observations, two
   actions). ``chase_sim`` uses ``ChaseLearner`` (eight observations, two actions).
   Moving the adapter and its tests to the eight-value learner is separate work.
-* ``SubmitExperience`` currently belongs to ``UOnlineSACPolicy``. A shared base
-  entry point and its validation/result contract still need to be agreed.
 * Base ``Shutdown`` invalidates the session. The current SAC subclass requires
   ``ShutdownLearner`` or destruction to stop its learner immediately; making
   base shutdown stop a subclass learner is a separate lifecycle change.

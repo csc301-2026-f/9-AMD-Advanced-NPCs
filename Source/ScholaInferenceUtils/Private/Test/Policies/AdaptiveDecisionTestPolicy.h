@@ -21,8 +21,20 @@ public:
     int32 DispatchCount = 0;
     bool bAcceptDispatch = true;
     bool bCompleteImmediately = false;
+    bool bHandleExperience = false;
+    EAdaptiveSubmitResult ExperienceResult = EAdaptiveSubmitResult::Accepted;
+    int32 ExperienceDispatchCount = 0;
+    FAdaptiveExperience SubmittedExperience;
 
 protected:
+    EAdaptiveSubmitResult DispatchExperience(const FAdaptiveExperience& Experience) override
+    {
+        ++ExperienceDispatchCount;
+        if (!bHandleExperience) return Super::DispatchExperience(Experience);
+        SubmittedExperience = Experience;
+        return ExperienceResult;
+    }
+
     double GetTimeSeconds() const override { return Now; }
     bool DispatchDecision(const FAdaptiveDecisionRequest& Input) override
     {
