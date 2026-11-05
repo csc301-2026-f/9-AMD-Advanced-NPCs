@@ -205,6 +205,18 @@ p { font-size: 25px; line-height: 1.45; margin-bottom: 20px; }
 .sp-architecture-detail .takeaway p { font-size: 22px; }
 .sp-result-takeaway > span { flex-basis: 245px; }
 .sp-next-line { display: block; margin-top: 8px; font-size: 20px; color: var(--ink); }
+.sp-roadmap-lead { max-width: 1280px; margin-bottom: 28px; font-size: 26px; line-height: 1.35; }
+.sp-roadmap { gap: 28px; }
+.sp-roadmap .sp-card { min-height: 0; padding: 24px 28px 26px; }
+.sp-plan-number { display: block; font-size: 40px; font-weight: 300; line-height: 1; letter-spacing: -.05em; color: #936025; margin-bottom: 16px; }
+.sp-roadmap h3 { min-height: 2.36em; }
+.sp-roadmap p { margin: 0; font-size: 22px; line-height: 1.4; color: var(--muted); }
+.sp-roadmap code { font-family: Menlo, Consolas, monospace; font-size: .86em; padding: 1px 7px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; }
+.sp-parallel { margin-top: auto; padding-top: 18px; }
+.sp-parallel .sp-column-label { margin-bottom: 14px; }
+.sp-parallel ul { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; list-style: none; margin: 0; padding: 0; }
+.sp-parallel li { position: relative; padding-left: 22px; font-size: 22px; line-height: 1.35; }
+.sp-parallel li::before { content: ""; position: absolute; left: 0; top: 11px; width: 8px; height: 8px; background: var(--accent); }
 @keyframes sp-rise { from { opacity: 0; transform: translateY(14px); } }
 .js .sp-slide.is-active :is(.sp-stage, .sp-reveal) { animation: sp-rise .55s cubic-bezier(.2, .7, .3, 1) both; }
 .js .sp-slide.is-active :is(.sp-stage:nth-child(2), .sp-reveal:nth-child(2)) { animation-delay: .12s; }

@@ -153,9 +153,9 @@
             <h1 id="shared-policy-team-heading">Shared Policy<br>team<span class="accent">.</span></h1>
             <p class="lead">Shared Policy NPCs &middot; Deliverable 3</p>
           </div>
-          <div class="cover-mark sp-team sp-reveal"><span>TEAM MEMBERS</span><ul><li>Clementine Yang</li><li>Jaela</li></ul></div>
+          <div class="cover-mark sp-team sp-reveal"><span>TEAM MEMBERS</span><ul><li>Clementine Yang</li><li>Hiu Yan (Jaela) Kwok</li></ul></div>
         </div>
-        <aside class="speaker-notes" data-time="[Section intro time]">Introduce the Shared Policy team, Clementine Yang and Jaela, before walking through our D2 to D3 progress, the macOS ARM64 build support, and the Unreal NNE compatibility testing.</aside>
+        <aside class="speaker-notes" data-time="[Section intro time]">Introduce the Shared Policy team, Clementine Yang and Hiu Yan (Jaela) Kwok, before walking through our D2 to D3 progress, the macOS ARM64 build support, and the Unreal NNE compatibility testing.</aside>
       </section>
 
       <section class="slide sp-slide" id="shared-policy-progress" aria-labelledby="shared-policy-progress-heading" data-title="Shared Policy NPCs: our progress" data-section="Shared Policy NPCs">
@@ -215,12 +215,13 @@
         <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Validation</span></header>
         <div class="sp-title-row">
           <div><p class="eyebrow">Engine validation</p><h2 id="shared-policy-nne-heading">Unreal NNE compatibility testing</h2></div>
-          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #33</span><span class="sp-status">Open / Not merged</span></a>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #33</span><span class="sp-status">Merged</span></a>
         </div>
         <div class="three-columns sp-cards">
           <article class="sp-card sp-reveal">
             <span class="sp-card-letter">A</span>
             <h3>All Heads</h3>
+            <ul class="sp-cases"><li>Both expert outputs</li><li>Batch sizes 1 and 2</li></ul>
             <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
           </article>
           <article class="sp-card sp-reveal">
@@ -242,7 +243,39 @@
           <div><dt>Engine &amp; platform</dt><dd>Unreal Engine 5.8 &middot; macOS ARM64</dd></div>
           <div><dt>Reference</dt><dd>Python ONNX Runtime</dd></div>
         </dl>
-        <aside class="speaker-notes" data-time="[NNE testing time]">PR #33 adds Unreal NNE compatibility tests for three of the five architectures. A runs all heads; C uses separate models, tested at batch sizes 1 and 2; D uses conditional execution, tested on both Boolean branches at batch sizes 1 and 2. All three Unreal Automation Tests passed using NNERuntimeORTCpu in Unreal Engine 5.8 on macOS ARM64, validated against Python ONNX Runtime reference outputs. PR #33 is open and not merged yet.</aside>
+        <aside class="speaker-notes" data-time="[NNE testing time]">PR #33 adds Unreal NNE compatibility tests for three of the five architectures. A runs all heads, tested for both expert outputs at batch sizes 1 and 2; C uses separate models, tested at batch sizes 1 and 2; D uses conditional execution, tested on both Boolean branches at batch sizes 1 and 2. All three Unreal Automation Tests passed using NNERuntimeORTCpu in Unreal Engine 5.8 on macOS ARM64, validated against Python ONNX Runtime reference outputs. PR #33 is merged.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-my-next" aria-labelledby="shared-policy-my-next-heading" data-title="Shared Policy NPCs: my next step" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / My next step</span></header>
+        <p class="eyebrow">D4 roadmap &middot; Clementine Yang</p>
+        <h2 id="shared-policy-my-next-heading">My next step</h2>
+        <p class="sp-roadmap-lead">From NNE validation to full Unreal integration. We have validated the inference architectures. Next, we will integrate them into the actual Shared Policy workflow.</p>
+        <div class="three-columns sp-roadmap">
+          <article class="sp-card sp-reveal">
+            <span class="sp-plan-number">01</span>
+            <h3>NNE Policy Integration</h3>
+            <p>Implement an NNE-backed <code>ISharedPolicy</code> to load ONNX models and support head-based inference.</p>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-plan-number">02</span>
+            <h3>Stepper Integration</h3>
+            <p>Connect NNE inference with <code>USharedPolicyStepper</code> to route observations and actions between NPCs and their assigned heads.</p>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-plan-number">03</span>
+            <h3>End-to-End Validation</h3>
+            <p>Test mixed-role NPCs in Unreal and build an interactive demonstration using real policy inference.</p>
+          </article>
+        </div>
+        <div class="sp-parallel sp-reveal">
+          <p class="sp-column-label">Parallel work</p>
+          <ul>
+            <li>C/D memory and storage evaluation</li>
+            <li>Integration with trained policies and gameplay role assignments</li>
+          </ul>
+        </div>
+        <aside class="speaker-notes" data-time="[My next step time]">This is planned D4 work, not completed results. The inference architectures are validated. Next we integrate them into the Shared Policy workflow: an NNE-backed ISharedPolicy that loads ONNX models and supports head-based inference, then USharedPolicyStepper to route observations and actions between NPCs and their assigned heads, then end-to-end validation of mixed-role NPCs in Unreal with an interactive demo using real policy inference. In parallel: C and D memory and storage evaluation, and integration with trained policies and gameplay role assignments.</aside>
       </section>
 
       <section class="slide sp-slide" id="shared-policy-benchmark" aria-labelledby="shared-policy-benchmark-heading" data-title="Shared Policy NPCs: architecture benchmark" data-section="Shared Policy NPCs">
