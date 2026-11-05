@@ -116,15 +116,15 @@ or ``NotReady``. ``Accepted`` means local queue admission;
 current adapter does not implement experience deduplication or automatic retry.
 The base records are passive containers and do not submit or validate outcomes.
 
-The call requires a Ready session, its current session GUID, a nonnegative policy
-version, a finite reward, and finite Box observations/actions matching the declared
+The call requires a Ready session, its current session GUID, agent and episode,
+nonnegative decision/version IDs, a finite reward, and finite Box observations/actions matching the declared
 dimensions, shapes and bounds. Common validation runs before the protected
 ``DispatchExperience`` learner hook. The base hook returns ``NotReady`` because
 it owns no learner; a native subclass overrides it to admit a validated record.
 Subclasses copy any data retained after the call. ``GetLastError`` explains
 rejection, queue-full and unavailable-learner results; Accepted and Frozen clear
-old errors. Decision/agent/episode fields remain attribution data; this call does
-not add per-decision history or duplicate detection.
+old errors. An old episode's outcome is rejected after ``ResetEpisode``. This
+call does not add per-decision history or duplicate detection.
 Learner statistics count records that reach the learner; common validation
 failures are reported by the return value and ``GetLastError``.
 
@@ -136,9 +136,10 @@ Current integration limits:
 * The Schola SAC adapter still uses ``OnlineSACLearner`` (six observations, two
   actions). ``chase_sim`` uses ``ChaseLearner`` (eight observations, two actions).
   Moving the adapter and its tests to the eight-value learner is separate work.
-* Base ``Shutdown`` invalidates the session. The current SAC subclass requires
-  ``ShutdownLearner`` or destruction to stop its learner immediately; making
-  base shutdown stop a subclass learner is a separate lifecycle change.
+* Base ``Shutdown`` invalidates the session and releases the Ready learner
+  binding through ``ReleaseLearnerBinding``. The SAC example implements that
+  hook; ``ShutdownLearner`` remains a compatibility alias. The new common
+  controls and snapshot handle are described in :doc:`native_online_learning_foundation`.
 * The AdaptiveSAC host targets UE 5.8 with the full Schola plugin, including
   ``ScholaMass``. UE 5.7 and cross-version compatibility are deferred.
 * Policy tests are provided in the host; recorded learner/simulator results

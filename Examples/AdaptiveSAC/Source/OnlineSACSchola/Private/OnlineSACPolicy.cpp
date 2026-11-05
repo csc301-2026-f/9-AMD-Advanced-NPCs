@@ -105,10 +105,6 @@ bool UOnlineSACPolicy::ToLearnerAction(const TInstancedStruct<FPoint>& Action, f
 EAdaptiveSubmitResult UOnlineSACPolicy::SubmitExperience(const FAdaptiveExperience& Experience)
 {
     check(IsInGameThread());
-    if (GetSessionState() == EAdaptiveSessionState::Stopped)
-    {
-        StopLearner();
-    }
     const EAdaptiveSubmitResult Result = Super::SubmitExperience(Experience);
     LearnerError = GetLastError();
     return Result;
@@ -176,11 +172,9 @@ void UOnlineSACPolicy::ShutdownLearner()
 {
     check(IsInGameThread());
     Shutdown();
-    StopLearner();
 }
 
-void UOnlineSACPolicy::BeginDestroy()
+void UOnlineSACPolicy::ReleaseLearnerBinding(const FAdaptiveSessionInfo& PreviousSession)
 {
     StopLearner();
-    Super::BeginDestroy();
 }

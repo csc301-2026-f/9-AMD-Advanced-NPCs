@@ -12,7 +12,7 @@ set OUT=%~1
 if "%OUT%"=="" set OUT=%HERE%..\..\Saved\ChaseSim
 if not exist "%OUT%" mkdir "%OUT%"
 cl /nologo /std:c++20 /O2 /GR- /EHs-c- /D_HAS_EXCEPTIONS=0 /bigobj /wd4530 /fp:precise /permissive- /MP /DNOMINMAX /DRL_TOOLS_DEBUG ^
-  /I "%SRC%\Public" /I "%SRC%\Private" /external:W0 /external:I "%HERE%..\..\ThirdParty\RLtools\include" ^
+  /I "%SRC%\Public" /I "%SRC%\Private" /external:W0 /external:I "%HERE%..\..\..\..\Source\ThirdParty\RLTools\include" ^
   "%HERE%Main.cpp" "%SRC%\Private\OnlineSACRuntime.cpp" "%SRC%\Private\ChaseConfig.cpp" "%SRC%\Private\RunnerPatterns.cpp" ^
   "%SRC%\Private\ChaseWorld.cpp" "%SRC%\Private\ChaseSession.cpp" ^
   /Fo"%OUT%\\" /Fe"%OUT%\chase_sim.exe" || exit /b 1

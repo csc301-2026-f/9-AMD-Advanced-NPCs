@@ -201,9 +201,9 @@ bool FOnlineSACPolicyExperienceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FOnlineSACPolicyShutdownTest, "ScholaOnlineLearning.SAC.Policy.ShutdownWhileLearning", TestFlags)
 bool FOnlineSACPolicyShutdownTest::RunTest(const FString& Parameters)
 {
-    for (int32 Variant = 0; Variant < 2; ++Variant)
+    for (int32 Variant = 0; Variant < 3; ++Variant)
     {
-        const TCHAR* Name = Variant == 0 ? TEXT("ShutdownLearner") : TEXT("BeginDestroy");
+        const TCHAR* Name = Variant == 0 ? TEXT("BaseShutdown") : Variant == 1 ? TEXT("ShutdownLearner") : TEXT("BeginDestroy");
         UOnlineSACPolicy* Policy = NewPolicy(2000, 100);
         TestTrue(TEXT("Init"), Policy->Init(SACDefinition()));
         online_sac::ChaseTask Task(11);
@@ -221,6 +221,11 @@ bool FOnlineSACPolicyShutdownTest::RunTest(const FString& Parameters)
         const double Start = FPlatformTime::Seconds();
         if (Variant == 0)
         {
+            UAdaptiveNPCPolicy* Base = Policy;
+            Base->Shutdown();
+        }
+        else if (Variant == 1)
+        {
             Policy->ShutdownLearner();
         }
         else
@@ -233,7 +238,7 @@ bool FOnlineSACPolicyShutdownTest::RunTest(const FString& Parameters)
         TestTrue(FString::Printf(TEXT("%s returns within 1 s"), Name), Seconds < 1.0);
         TestFalse(FString::Printf(TEXT("%s stopped the learner thread"), Name), Stats.running);
         TestEqual(FString::Printf(TEXT("%s leaves the session Stopped"), Name), Policy->GetSessionState(), EAdaptiveSessionState::Stopped);
-        if (Variant == 0)
+        if (Variant < 2)
         {
             int64 Ticket = INDEX_NONE;
             float Observation[6] = {};

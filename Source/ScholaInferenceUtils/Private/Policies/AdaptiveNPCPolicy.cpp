@@ -111,9 +111,7 @@ bool UAdaptiveNPCPolicy::Init(const FInteractionDefinition& InDefinition)
         return false;
     }
 
-    InvalidateDecision(TEXT("Policy reinitialized."));
-    SessionId.Invalidate();
-    AgentId = EpisodeId = INDEX_NONE;
+    EndSession(TEXT("Policy reinitialized."));
     InteractionDefinition = InDefinition;
     bInitialized = true;
     SessionState = EAdaptiveSessionState::Initialized;
@@ -129,6 +127,51 @@ bool UAdaptiveNPCPolicy::GetInteractionDefinition(FInteractionDefinition& OutDef
     }
     OutDefinition = InteractionDefinition;
     return true;
+}
+
+FAdaptiveSessionInfo UAdaptiveNPCPolicy::GetSessionInfo() const
+{
+    check(IsInGameThread());
+    FAdaptiveSessionInfo Result;
+    Result.State = SessionState;
+    Result.SessionId = SessionId;
+    Result.AgentId = AgentId;
+    Result.EpisodeId = EpisodeId;
+    return Result;
+}
+
+namespace
+{
+FAdaptiveOperationResult UnsupportedOperation(const TCHAR* Operation)
+{
+    FAdaptiveOperationResult Result;
+    Result.Diagnostic = FString::Printf(TEXT("%s is not supported by this adaptive policy."), Operation);
+    return Result;
+}
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::SetLearningEnabled(bool bEnabled)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Learning control"));
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::SetInferenceMode(EAdaptiveInferenceMode Mode)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Inference mode selection"));
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::ResetLearning(int32 Seed)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Learning reset"));
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::CaptureSnapshot(UAdaptivePolicySnapshot*& OutSnapshot)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Policy snapshots"));
 }
 
 bool UAdaptiveNPCPolicy::Think(const TInstancedStruct<FPoint>& Observation, TInstancedStruct<FPoint>& Action)
@@ -270,14 +313,14 @@ EAdaptiveSubmitResult UAdaptiveNPCPolicy::SubmitExperience(const FAdaptiveExperi
         LastError = TEXT("Experiences require a Ready learner session.");
         return EAdaptiveSubmitResult::NotReady;
     }
-    if (Experience.SessionId != SessionId)
+    if (Experience.SessionId != SessionId || Experience.AgentId != AgentId || Experience.EpisodeId != EpisodeId)
     {
-        LastError = TEXT("Experience session does not match the active learner session.");
+        LastError = TEXT("Experience session, agent and episode must match the active policy binding.");
         return EAdaptiveSubmitResult::Rejected;
     }
-    if (Experience.PolicyVersion < 0 || !FMath::IsFinite(Experience.Reward))
+    if (Experience.DecisionId < 0 || Experience.PolicyVersion < 0 || !FMath::IsFinite(Experience.Reward))
     {
-        LastError = TEXT("Experience requires a nonnegative policy version and a finite reward.");
+        LastError = TEXT("Experience requires nonnegative decision/version IDs and a finite reward.");
         return EAdaptiveSubmitResult::Rejected;
     }
     FString Error;
@@ -395,27 +438,37 @@ bool UAdaptiveNPCPolicy::ResetEpisode()
         LastError = TEXT("Encounter reset requires a Ready session and an available episode ID.");
         return false;
     }
+    const FAdaptiveSessionInfo PreviousSession = GetSessionInfo();
     InvalidateDecision(TEXT("Encounter reset cancelled the previous action."));
     ++EpisodeId;
+    OnEpisodeReset(PreviousSession);
     LastError.Reset();
     return true;
+}
+
+void UAdaptiveNPCPolicy::EndSession(const FString& Reason)
+{
+    const FAdaptiveSessionInfo PreviousSession = GetSessionInfo();
+    InvalidateDecision(Reason);
+    SessionId.Invalidate();
+    AgentId = EpisodeId = INDEX_NONE;
+    SessionState = EAdaptiveSessionState::Stopped;
+    if (PreviousSession.State == EAdaptiveSessionState::Ready)
+    {
+        ReleaseLearnerBinding(PreviousSession);
+    }
 }
 
 void UAdaptiveNPCPolicy::Shutdown()
 {
     check(IsInGameThread());
-    InvalidateDecision(TEXT("Policy shut down."));
-    SessionId.Invalidate();
-    AgentId = EpisodeId = INDEX_NONE;
-    SessionState = EAdaptiveSessionState::Stopped;
+    EndSession(TEXT("Policy shut down."));
     LastError.Reset();
 }
 
 void UAdaptiveNPCPolicy::BeginDestroy()
 {
-    InvalidateDecision(TEXT("Policy destroyed."));
-    SessionId.Invalidate();
-    SessionState = EAdaptiveSessionState::Stopped;
+    EndSession(TEXT("Policy destroyed."));
     Super::BeginDestroy();
 }
 

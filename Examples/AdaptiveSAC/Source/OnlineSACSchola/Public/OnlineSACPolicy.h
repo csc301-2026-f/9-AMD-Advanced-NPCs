@@ -26,7 +26,7 @@ public:
     /** Use the shared validation and retain SAC diagnostics and stopped-session cleanup. */
     EAdaptiveSubmitResult SubmitExperience(const FAdaptiveExperience& Experience) override;
 
-    /** Base Shutdown is not virtual, so use this to stop both the session and the learner thread. */
+    /** Compatibility alias for the common Shutdown, which also releases the learner binding. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive|SAC")
     void ShutdownLearner();
 
@@ -61,7 +61,7 @@ public:
 protected:
     bool DispatchDecision(const FAdaptiveDecisionRequest& InRequest) override;
     EAdaptiveSubmitResult DispatchExperience(const FAdaptiveExperience& Experience) override;
-    void BeginDestroy() override;
+    void ReleaseLearnerBinding(const FAdaptiveSessionInfo& PreviousSession) override;
 
 private:
     void StopLearner();

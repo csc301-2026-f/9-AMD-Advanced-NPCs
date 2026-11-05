@@ -123,6 +123,9 @@ bool FAdaptiveExperienceValidationTest::RunTest(const FString& Parameters)
     Bad.SessionId = FGuid::NewGuid(); Reject(Bad);
     Bad.SessionId.Invalidate(); Reject(Bad);
     Bad = Valid; Bad.PolicyVersion = INDEX_NONE; Reject(Bad);
+    Bad = Valid; Bad.AgentId = 1; Reject(Bad);
+    Bad = Valid; Bad.EpisodeId = 1; Reject(Bad);
+    Bad = Valid; Bad.DecisionId = INDEX_NONE; Reject(Bad);
     const float NaN = std::numeric_limits<float>::quiet_NaN();
     const float Infinity = std::numeric_limits<float>::infinity();
     for (float Value : {NaN, Infinity})
@@ -151,6 +154,10 @@ bool FAdaptiveExperienceValidationTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Valid data recovers after rejections"), Policy->SubmitExperience(Valid), EAdaptiveSubmitResult::Accepted);
     FAdaptiveDecision Decision;
     TestEqual(TEXT("Experience submission does not modify pending decisions"), Policy->TryGetDecision(Ticket, Decision), EAdaptiveRequestStatus::Pending);
+    Policy->ResetEpisode();
+    const int32 AfterReset = Fixture.Policy->ExperienceDispatchCount;
+    TestEqual(TEXT("Previous episode's late outcome rejected"), Policy->SubmitExperience(Valid), EAdaptiveSubmitResult::Rejected);
+    TestEqual(TEXT("Late outcome does not reach the learner"), Fixture.Policy->ExperienceDispatchCount, AfterReset);
     return true;
 }
 

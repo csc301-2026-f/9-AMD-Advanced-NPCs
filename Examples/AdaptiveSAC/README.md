@@ -17,6 +17,7 @@ Run the following from `Examples/AdaptiveSAC`:
 ```powershell
 ./Test-AdaptiveSAC.ps1                       # builds, then runs ScholaOnlineLearning.SAC.Policy.*
 ./Test-AdaptiveSAC.ps1 -Filter Schola.Inference.Adaptive   # the plugin's own adaptive tests in this host
+./Test-AdaptiveSAC.ps1 -Filter Schola.RLTools.NativeBuild  # the plugin's game-independent CPU SAC build probe
 ```
 
 The script discovers UE 5.8 through the registry or Epic Launcher. For a custom installation, pass
@@ -28,7 +29,7 @@ For the D3 integration check, include the native policy, adaptive base, backgrou
 Mass bridge, existing paradigm and shared-policy stepper tests:
 
 ```powershell
-./Test-AdaptiveSAC.ps1 -Filter 'ScholaOnlineLearning.SAC.Policy+Schola.Inference.Adaptive+Schola.Inference.Background+Schola.Mass+Schola.Inference.Paradigms+Schola.Inference.SharedPolicy.Stepper'
+./Test-AdaptiveSAC.ps1 -Filter 'Schola.RLTools+ScholaOnlineLearning.SAC.Policy+Schola.Inference.Adaptive+Schola.Inference.Background+Schola.Mass+Schola.Inference.Paradigms+Schola.Inference.SharedPolicy.Stepper'
 ```
 
 The full automation log is written to `Saved/OnlineSAC/UnrealAutomation.log`.
@@ -64,6 +65,20 @@ that excluded `ScholaMass` by adding its source junction and restoring the full 
   The return type is the shared `EAdaptiveSubmitResult` in `Policies/AdaptiveLearningTypes.h`;
   C++ callers previously using `EOnlineSACSubmitResult` should use this common type.
   `GetLastError` reports shared submission errors; `GetLearnerError` continues to mirror them for SAC callers.
-- `ShutdownLearner()` and `BeginDestroy` stop the learner thread. The base `Shutdown()` is not virtual,
-  so calling it directly stops the session but leaves the (idle) learner thread until the next
-  `SubmitExperience`, `ShutdownLearner` or destruction.
+- The common `Shutdown()` now invalidates admission and calls `ReleaseLearnerBinding`, so a
+  base-policy reference also stops this example's learner. Successful reinitialization and
+  destruction use the same release hook. `ShutdownLearner()` remains a compatibility alias.
+- Experience identity must match the active session, agent and episode, with a nonnegative
+  decision ID. Submit the final outcome before `ResetEpisode()`; an old episode's outcome is rejected.
+
+## Native library build foundation
+
+The full plugin now includes `ScholaRLTools`, backed by the canonical pinned dependency at
+`Source/ThirdParty/RLTools`. The example runtime uses that same dependency through the `RLTools`
+external module. The new module's smoke test allocates, initializes and evaluates CPU SAC for
+two numerical shapes without importing any example source. It does not yet supply a public
+native policy, learner service, profile generator, or online-learning coordinator.
+
+The common API exposes session information, optional capabilities/control operations, and
+`UAdaptivePolicySnapshot`. Unsupported operations report `Unsupported`; this example's old
+`SetFrozen` behavior remains separate until its controls are migrated to the supplied native policy.
