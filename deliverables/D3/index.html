@@ -252,6 +252,58 @@
         </dl>
         <aside class="speaker-notes" data-time="[NNE testing time]">PR #33 adds Unreal NNE compatibility tests for three of the five architectures. A runs all heads; C uses separate models, tested at batch sizes 1 and 2; D uses conditional execution, tested on both Boolean branches at batch sizes 1 and 2. All three Unreal Automation Tests passed using NNERuntimeORTCpu in Unreal Engine 5.8 on macOS ARM64, validated against Python ONNX Runtime reference outputs. PR #33 is open and not merged yet.</aside>
       </section>
+
+      <section class="slide sp-slide" id="shared-policy-benchmark" aria-labelledby="shared-policy-benchmark-heading" data-title="Shared Policy NPCs: architecture benchmark" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Individual contribution</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">My contribution &mdash; Hiu Yan (Jaela) Kwok</p><h2 id="shared-policy-benchmark-heading">Architecture benchmark</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #24</span><span class="sp-status">Open / D3 benchmark</span></a>
+        </div>
+        <div class="split sp-contribution">
+          <div class="sp-reveal">
+            <p class="sp-column-label">What I built</p>
+            <div class="statement-list">
+              <div><span class="item-number">01</span><div><h3>Controlled evaluation of five architectures (A&ndash;E)</h3></div></div>
+              <div><span class="item-number">02</span><div><h3>Correctness-gated routing and complete-request timing</h3></div></div>
+              <div><span class="item-number">03</span><div><h3>Isolated portable and Unreal workload matrices</h3></div></div>
+            </div>
+          </div>
+          <div class="sp-verify sp-reveal">
+            <p class="sp-column-label">What the evidence showed</p>
+            <ul class="sp-checks sp-benchmark-checks">
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p><strong>144 / 144</strong> portable trials completed with zero correctness failures</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p><strong>48 / 48</strong> isolated Unreal reports passed the correctness gate</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p><strong>C led 45 / 48</strong> paired p50 trials and all 16 workload medians</p></li>
+            </ul>
+          </div>
+        </div>
+        <p class="source-line">Pull request: <a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24" target="_blank" rel="noopener noreferrer">github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24</a> &middot; UE 5.8.4 &middot; macOS ARM64 &middot; NNERuntimeORTCpu</p>
+        <aside class="speaker-notes" data-time="[Contribution time]">My contribution was building the evaluation framework for selecting a Shared Policy inference architecture. I generated architectures A through E from identical seeded weights and required every candidate to reproduce Architecture A's selected actions before accepting performance evidence. The portable matrix completed 144 isolated trials with zero correctness failures. I then built a common Unreal gather, group, inference, and scatter path for C and D and ran 48 fresh-process reports across 16 workloads. Every report passed correctness. C had the lower p50 in 45 of 48 paired trials and the lower median p50 in all 16 workloads.</aside>
+      </section>
+
+      <section class="slide sp-slide sp-architecture-detail" id="shared-policy-architectures-abc" aria-labelledby="shared-policy-architectures-abc-heading" data-title="Shared Policy NPCs: architectures A to C" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Architecture comparison</span></header>
+        <p class="eyebrow">The design space</p>
+        <h2 id="shared-policy-architectures-abc-heading">From all-head execution to routed models</h2>
+        <figure class="sp-diagram-figure">
+          <div class="sp-diagram-window sp-diagram-top"><img src="assets/shared-policy-architectures.svg" alt="Architecture A runs every head after one shared backbone, B masks outputs but still runs every head, and C groups NPC rows and runs one complete model per active expert."></div>
+          <figcaption>All candidates use equivalent seeded backbone and head mathematics; only execution and routing differ.</figcaption>
+        </figure>
+        <div class="takeaway sp-reveal"><span>Role in the experiment</span><p><strong>A</strong> was the correctness oracle, <strong>B</strong> the masking control, and <strong>C</strong> the current selective baseline.</p></div>
+        <aside class="speaker-notes" data-time="[Architecture A-C time]">Architecture A runs one shared backbone and every head, then selects the required output. It is simple and makes a strong independent correctness oracle, but it computes unused heads. Architecture B adds a runtime role mask, but profiling confirmed that masking an output does not skip either head, so B is a negative control rather than an optimization. Architecture C groups NPCs by role and runs one complete backbone-plus-head model for every active expert. It avoids unused heads, but duplicates the backbone weights and can require up to K model calls.</aside>
+      </section>
+
+      <section class="slide sp-slide sp-architecture-detail" id="shared-policy-architectures-de" aria-labelledby="shared-policy-architectures-de-heading" data-title="Shared Policy NPCs: architectures D and E" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Architecture comparison</span></header>
+        <p class="eyebrow">Selective alternatives</p>
+        <h2 id="shared-policy-architectures-de-heading">Conditional execution vs. split models</h2>
+        <figure class="sp-diagram-figure">
+          <div class="sp-diagram-window sp-diagram-bottom"><img src="assets/shared-policy-architectures.svg" alt="Architecture D groups NPC rows and selects one expert branch inside a conditional ONNX model, while E runs one backbone before routing intermediate features to separate expert-head models."></div>
+          <figcaption>D keeps one conditional graph; E shares the backbone but introduces intermediate feature handoff and additional calls.</figcaption>
+        </figure>
+        <div class="takeaway sp-result-takeaway sp-reveal"><span>Measured conclusion</span><p><strong>C remains the latency baseline.</strong> D works in Unreal, but its conditional graph produced no latency win in this environment.<span class="sp-next-line"><strong>Next:</strong> Compare C/D memory and storage, then integrate the selected architecture with trained policies and role-assigned NPCs.</span></p></div>
+        <aside class="speaker-notes" data-time="[Architecture D-E time]">Architecture D groups rows like C, but uses one conditional ONNX graph and executes only the selected branch on each homogeneous call. Architecture E runs the shared backbone once, groups intermediate features, and calls only the active head models. AMD narrowed the repeated Unreal comparison to C versus D. Across 48 isolated reports, C had the lower p50 in 45 trials and all 16 workload medians. The median gaps were only 0.626 to 2.895 microseconds, so this is a scoped latency result, not a universal winner. D remains feasible and may still reduce model storage or runtime memory. The next step is to measure that separately; if it has no meaningful memory advantage, retain C and integrate it with a real trained policy and gameplay role assignments.</aside>
+      </section>
     </div>
   </main>
 
