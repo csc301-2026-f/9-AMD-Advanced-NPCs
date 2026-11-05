@@ -1,10 +1,31 @@
 # Advanced NPCs for AMD Schola - Individual Contributions (D3)
 
-> Scaffolding only. Add or remove entries to match the team. For each member,
-> replace the name, role, and contribution placeholders with specific D3 work.
+Each entry records that member's D3 work. Subteams maintain their own entries.
 
-**[Name]**, [Role]
-> [Specific contributions: features built, PRs reviewed, infrastructure set up, etc.]
+### Jace — Adaptive NPCs: native Schola/RLtools integration
+
+- Built the reusable lifecycle/build foundations and native SAC, TD3 and PPO
+  learning implementation in Schola's plugin modules, including replay/rollout
+  admission, incremental updates, actor publication and immutable snapshots
+  ([#30](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/30),
+  [#31](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/31)).
+- Implemented the Blueprint/C++ adaptive policy and world learner service:
+  action conversion and decision provenance, background construction/training,
+  independent and explicit shared ownership, lifecycle controls and asynchronous
+  operation status ([#35](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/35)).
+- Added configuration assets and UnrealBuildTool generation so developers can
+  define supported observation/action shapes and network settings, then recompile
+  without editing RLtools templates
+  ([#36](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/36)).
+- Built the independent NativeLearning test host and ran UE 5.8.4 validation:
+  40 selected automation tests across nine profiles, plus 43 generator checks.
+  Documented supported behavior, reproducible commands and limitations.
+- Prepared the adaptive D3 report, onboarding instructions, evidence, demo
+  handoff and presentation slides. Integrated the reviewed feature branches into
+  the release path while preserving the other subteams' changes. PRs #31, #35
+  and #36 received teammate approval from Max Xu.
+
+**Evidence:** [Adaptive workflow and verification](adaptive-npc-evidence.md).
 
 **[Name]**, [Role]
 > [Specific contributions]

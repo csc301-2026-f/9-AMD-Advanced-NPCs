@@ -119,6 +119,28 @@ p { font-size: 25px; line-height: 1.45; margin-bottom: 20px; }
 .reference-list li { padding-left: 7px; margin-bottom: 18px; }
 .references .split { gap: 85px; }
 .references h2 { font-size: 58px; }
+/* Adaptive NPCs: scoped additions preserve the other subteams' layouts. */
+.an-cover-summary { font-size: 26px; line-height: 1.45; max-width: 850px; color: var(--muted); }
+.an-statement { font-size: 45px; line-height: 1.22; max-width: 1180px; margin-bottom: 34px; }
+.an-slide .ruled-columns { margin-top: 16px; }
+.an-slide .takeaway p { color: var(--ink); }
+.an-ownership { margin: 8px 0 25px; }
+.an-ownership > div { display: grid; grid-template-columns: 240px 1fr; gap: 40px; border-top: 1px solid var(--line); padding: 23px 0; }
+.an-ownership dt { font-size: 34px; font-weight: 600; }
+.an-ownership dd { margin: 0; font-size: 28px; line-height: 1.4; }
+.an-comparison { margin-top: 20px; }
+.an-comparison th:first-child { width: 18%; }
+.an-comparison th:last-child { width: 21%; }
+.an-comparison td, .an-nfr td { color: var(--muted); }
+.an-metrics { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 50px; margin: 15px 0 30px; }
+.an-metrics strong { display: block; font-size: 96px; font-weight: 400; letter-spacing: -.055em; color: #936025; }
+.an-metrics span { display: block; font-size: 23px; line-height: 1.35; }
+.an-nfr { margin-top: 8px; }
+.an-nfr th:first-child { width: 25%; }
+.an-nfr th:last-child { width: 29%; }
+.an-demo h2 { font-size: 85px; }
+.an-demo .demo-steps { margin-top: 5px; }
+.an-questions .an-statement { font-size: 67px; margin-top: 35px; }
 /* Shared Policy NPCs section */
 .sp-team-cover .cover-content { grid-template-columns: 1fr 470px; }
 .sp-team ul { list-style: none; margin: 30px 0 0; padding: 0; }

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Schola Deliverable 3 presentation skeleton for the Advanced NPCs team.">
-  <title>Schola · Deliverable 3</title>
+  <meta name="description" content="Deliverable 3: native adaptive learning in Schola and the Advanced NPCs team's progress.">
+  <title>Schola Â· Deliverable 3</title>
   <link rel="stylesheet" href="styles.css">
   <script src="slideshow.js" defer></script>
 </head>
@@ -13,144 +13,136 @@
     <div id="stage">
       <!-- Edit slide content here. Duplicate a section to add a slide.
            Give each section a unique id and update its title and speaker notes. -->
-      <section class="slide cover dark" id="title" aria-labelledby="title-heading" data-title="Schola" data-section="Introduction">
+      <section class="slide cover dark an-slide" id="title" aria-labelledby="title-heading" data-title="Adaptive NPCs: native learning" data-section="Adaptive NPCs">
         <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
         <div class="cover-content">
-          <div>
-            <p class="eyebrow">Advanced NPCs for AMD Schola</p>
-            <h1 id="title-heading">Native online<br>learning<span class="accent">.</span></h1>
-            <p class="lead">Deliverable 3 demo day</p>
-            <p class="placeholder">[One sentence describing your D3 improvement]</p>
-          </div>
+          <div><p class="eyebrow">Adaptive NPCs for AMD Schola</p><h1 id="title-heading">Native online<br>learning<span class="accent">.</span></h1><p class="lead">SAC, TD3 and PPO inside Unreal</p><p class="an-cover-summary">Developers configure their NPC task through Schola.<br>RLtools learns from gameplay outcomes in C++.</p></div>
           <div class="cover-mark" aria-hidden="true"><span>DELIVERABLE</span><strong>03</strong><span>PRODUCT EVOLUTION</span></div>
         </div>
-        <div class="cover-meta"><span>[Presenters / team members]</span><span>[Presentation date]</span><span class="draft-label">Presentation skeleton</span></div>
-        <aside class="speaker-notes" data-time="[Opening time]">Introduce the team and the specific improvement demonstrated today. Replace the bracketed fields before presenting. Set the total time budget using the course's allotted slot, including the live demo and questions. No presentation duration was supplied in the context.</aside>
+        <div class="cover-meta"><span>Adaptive NPCs subteam</span><span>November 2026</span></div>
+        <aside class="speaker-notes" data-time="15 seconds">We are presenting the adaptive NPC strand. D2 established that learning could run inside Unreal. D3 makes that capability reusable through Schola, across three RLtools algorithms and developer-defined compiled configurations. The following Shared Policy slides belong to that subteam. Suggested timings in this section total about five minutes including the game handoff; shorten to the team's actual slot.</aside>
       </section>
 
-      <section class="slide" id="baseline" aria-labelledby="baseline-heading" data-title="Where we left off at D2" data-section="Context">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Context</span></header>
-        <p class="eyebrow">D2 baseline</p>
-        <h2 id="baseline-heading">Where we left off</h2>
-        <p class="intro">The online-learning strand demonstrated a native Unreal Engine + RLtools prototype.</p>
-        <div class="split baseline-layout">
-          <div class="statement-list">
-            <div><span class="item-number">01</span><div><h3>Learning during gameplay</h3><p>The AdaptiveTag tagger learned a route preference from game outcomes.</p></div></div>
-            <div><span class="item-number">02</span><div><h3>A standalone prototype</h3><p>The D2 write-up left Schola API integration as future work.</p></div></div>
-            <p class="placeholder">[Add other subteams' relevant D2 context]</p>
-          </div>
-          <figure class="media-slot"><span class="slot-label">D2 screenshot</span><p>[Insert the starting workflow or prototype]</p><figcaption>Show the baseline your improvement builds on.</figcaption></figure>
-        </div>
-        <p class="source-line">Baseline: repository D2 README and iteration review. Update if presenting a different strand.</p>
-        <aside class="speaker-notes" data-time="[Context time]">Keep the recap short. These two statements summarize the local D2 documentation, not the current D3 implementation. Add the relevant baseline for other subteams if this is a whole-team presentation. Source: ../D2/README.md and ../D2/iteration-02-review.md.</aside>
+      <section class="slide an-slide " id="baseline" aria-labelledby="baseline-heading" data-title="The D2 starting point" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Before D3</p>
+        <h2 id="baseline-heading">The D2 starting point</h2>
+        <p class="intro">We demonstrated native learning in small, task-specific prototypes.</p>
+        <div class="split ruled-columns"><div><h3>Learning worked in examples</h3><p>AdaptiveTag learned a route preference.<br>The SAC chase prototype learned interception.</p><p class="prompt">These remain useful gameplay demonstrations.</p></div><div><h3>Reuse still required learner code</h3><p>A new NPC task needed a general Schola integration, configurable algorithms and ownership beyond one example.</p><p class="prompt">D2 prototype behavior is the baseline, not D3 integration evidence.</p></div></div>
+        <p class="source-line">Baseline: <a href="../D2/iteration-02-review.md">D2 iteration review</a> and <a href="../../Examples/AdaptiveTag/Evidence/SAC/README.md">SAC prototype evidence</a></p>
+        <aside class="speaker-notes" data-time="20 seconds">The categorical tag learner and continuous SAC chase learner are different implementations. The SAC work already included a policy prototype; the missing capability was a reusable plugin backend across SAC, TD3 and PPO. We identified this gap by reviewing the D2 workflow against Schola's existing Python integrations. Do not claim D2 had no Schola-related code.</aside>
       </section>
 
-      <section class="slide" id="gap" aria-labelledby="gap-heading" data-title="The gap and why it matters" data-section="Motivation">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Gap identification &amp; motivation</span></header>
-        <p class="eyebrow">The reason for this iteration</p>
-        <h2 id="gap-heading">The gap that mattered most</h2>
-        <p class="hero-placeholder">[Name the most important limitation after D2]</p>
-        <div class="split ruled-columns">
-          <div><h3>How we identified it</h3><p class="placeholder">[Feedback, testing, partner input, or team reflection]</p><p class="prompt">Add one specific observation and its source.</p></div>
-          <div><h3>Why it mattered</h3><p class="placeholder">[Who was affected, and what could they not do?]</p><p class="prompt">Connect the gap to a developer or player workflow.</p></div>
-        </div>
-        <div class="takeaway"><span>Success criterion</span><p>[What observable change would show this gap is addressed?]</p></div>
-        <aside class="speaker-notes" data-time="[Motivation time]">Choose one central gap and explain how the team found it. The specification suggests reusable plugin integration as a possible motivation, but it does not establish which improvement shipped in D3. Use real feedback or evidence and name the affected user. Do not invent a partner quote.</aside>
+      <section class="slide an-slide " id="gap" aria-labelledby="gap-heading" data-title="Reusable learning for a new NPC" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Gap and motivation</p>
+        <h2 id="gap-heading">Reusable learning for a new NPC</h2>
+        <p class="an-statement">A developer should define the task and choose the learner through Schola.</p>
+        <div class="split ruled-columns"><div><h3>The gap</h3><p>Example-specific implementations coupled a learning task to its learner and compiled dimensions.</p></div><div><h3>The developer need</h3><p>Choose observations, actions, rewards and episode conditions, then select SAC, TD3 or PPO without rewriting integration code.</p></div></div>
+        <div class="takeaway"><span>Acceptance</span><p>Complete the policy workflow and observe a newer published version.</p></div>
+        <aside class="speaker-notes" data-time="20 seconds">The intended developer is an Unreal developer using Schola. With the existing Python integration, Schola connects the task to SB3 or RLlib. We preserve that role while RLtools constructs and trains the algorithm inside Unreal. This is the central gap and our acceptance criterion, rather than a claim to expose every RLtools capability.</aside>
       </section>
 
-      <section class="slide" id="improvement" aria-labelledby="improvement-heading" data-title="What we implemented" data-section="Improvement">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Product improvement</span></header>
-        <p class="eyebrow">D3 scope</p>
-        <h2 id="improvement-heading">What we implemented</h2>
-        <p class="intro placeholder">[Describe the completed improvement in one sentence]</p>
-        <div class="three-columns workflow">
-          <div><span class="step-number">01</span><h3>[User starts here]</h3><p>[Initial setup or action]</p></div>
-          <div><span class="step-number">02</span><h3>[System change]</h3><p>[New behavior that addresses the gap]</p></div>
-          <div><span class="step-number">03</span><h3>[User sees the result]</h3><p>[Observable benefit in the workflow]</p></div>
-        </div>
-        <div class="takeaway"><span>Delivered scope</span><p>[Name the merged feature or integration and its PR / release]</p></div>
-        <aside class="speaker-notes" data-time="[Improvement time]">Explain what is actually implemented and how it improves the system. Separate completed changes from planned work. Link the relevant merged PR or release. The full specification is a target design, not a list of D3 accomplishments.</aside>
+      <section class="slide an-slide " id="improvement" aria-labelledby="improvement-heading" data-title="The Schola developer workflow" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Implemented in D3</p>
+        <h2 id="improvement-heading">The Schola developer workflow</h2>
+        <p class="intro">One Blueprint/C++ policy API operates all three native algorithms.</p>
+        <div class="three-columns workflow"><div><span class="step-number">01</span><h3>Configure the task</h3><p>Define Schola spaces, select SAC, TD3 or PPO, and choose supported settings.</p></div><div><span class="step-number">02</span><h3>Connect gameplay</h3><p>Initialize and wait for Ready. Request an action and submit its gameplay outcome.</p></div><div><span class="step-number">03</span><h3>Observe learning</h3><p>Inspect admission, completed updates and policy versions. Pause, reset or capture a snapshot.</p></div></div>
+        <div class="takeaway"><span>Custom shapes</span><p>Export a configuration asset and rebuild; no RLtools template editing.</p></div>
+        <aside class="speaker-notes" data-time="30 seconds">The configuration asset exports Config/ScholaRLTools.json. UnrealBuildTool generates project-local types on the next C++ build; packaged games do not compile types at runtime. Runtime settings and compiled parameters remain distinct. Initialization is locally validated before expensive construction finishes on a worker. Source: https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/35 and https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/36. Automatic observation/action/reward collection remains coordinator work; the caller drives this API today.</aside>
       </section>
 
-      <section class="slide" id="architecture" aria-labelledby="architecture-heading" data-title="Design and integration decisions" data-section="Improvement">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Design &amp; integration</span></header>
-        <p class="eyebrow">Under the hood</p>
-        <h2 id="architecture-heading">Design and integration decisions</h2>
-        <div class="split architecture-layout">
-          <figure class="media-slot architecture-slot"><span class="slot-label">Architecture diagram</span><p>[Show only the components involved in your D3 change]</p><figcaption>Label the changed boundary and the data moving across it.</figcaption></figure>
-          <div class="decision-list"><div><h3>Key decision</h3><p class="placeholder">[Choice and why it fits this use case]</p></div><div><h3>Integration challenge</h3><p class="placeholder">[Boundary, constraint, and resolution]</p></div><div><h3>Trade-off</h3><p class="placeholder">[Alternative considered and its cost]</p></div></div>
-        </div>
-        <p class="source-line">Planning reference: native online learning specification. Replace with the implemented D3 design.</p>
-        <aside class="speaker-notes" data-time="[Design time]">The specification proposes game-owned task callbacks, Schola-owned integration/runtime management, and RLtools numerical operations. Use these boundaries only if they describe your actual implementation. For continuous SAC, do not present the categorical AdaptiveTag learner as the same backend. Prepare to explain lifecycle, worker ownership, and compatibility choices where relevant.</aside>
+      <section class="slide an-slide " id="architecture" aria-labelledby="architecture-heading" data-title="Task, integration and learner ownership" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Architecture and integration</p>
+        <h2 id="architecture-heading">Task, integration and learner ownership</h2>
+        <dl class="an-ownership"><div><dt>Game</dt><dd>Defines observations, action meaning, rewards and episode conditions.</dd></div><div><dt>Schola</dt><dd>Validates decisions, converts actions and manages the policy lifecycle.<br>A world service schedules background work and explicit learner sharing.</dd></div><div><dt>RLtools</dt><dd>Owns numerical updates, optimizers, replay/rollouts and published actors.</dd></div></dl>
+        <div class="takeaway"><span>Design trade-off</span><p>Compile supported configurations for native execution; new shapes require a rebuild.</p></div>
+        <aside class="speaker-notes" data-time="30 seconds">The adapter reuses the native learner rather than duplicating training. Independent learners are the default. Sharing requires an explicit compatible group in the same world. Learning pause and reset affect the shared learner; episode and inference controls remain per binding. Background workers own native data rather than accessing live UObjects. A difficult boundary was PPO action attribution: retain the original native decision and reuse its normalized action when the game executes the command unchanged, avoiding float round-trip rejection. Source: native_adaptive_policy.rst and PR #35.</aside>
       </section>
 
-      <section class="slide" id="comparison" aria-labelledby="comparison-heading" data-title="Before vs. after" data-section="Impact">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Before vs. after</span></header>
-        <p class="eyebrow">Product impact</p>
-        <h2 id="comparison-heading">What changed for the user</h2>
-        <p class="intro placeholder">[One sentence connecting the change to the original gap]</p>
-        <table class="comparison-table"><caption class="sr-only">D2 baseline compared with D3 and its evidence</caption><thead><tr><th scope="col">Workflow / quality</th><th scope="col">Before · D2</th><th scope="col">After · D3</th><th scope="col">Evidence</th></tr></thead><tbody>
-          <tr><th scope="row">[Core user task]</th><td>[Previous steps or limitation]</td><td>[New steps or capability]</td><td>[Demo moment / artifact]</td></tr>
-          <tr><th scope="row">[Reliability / usability]</th><td>[Observed baseline]</td><td>[Observed improvement]</td><td>[Test / feedback source]</td></tr>
-          <tr><th scope="row">[Relevant measure]</th><td>[Value + conditions]</td><td>[Value + same conditions]</td><td>[Report / measurement]</td></tr>
+      <section class="slide an-slide " id="comparison" aria-labelledby="comparison-heading" data-title="What changed for developers" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Before and after</p>
+        <h2 id="comparison-heading">What changed for developers</h2>
+        <table class="comparison-table an-comparison"><caption class="sr-only">Adaptive NPC workflow before and after D3</caption><thead><tr><th scope="col">Capability</th><th scope="col">D2</th><th scope="col">D3</th><th scope="col">Evidence</th></tr></thead><tbody>
+          <tr><th scope="row">Reuse</th><td>Task-specific learners;<br>SAC policy prototype</td><td>Plugin policy API for<br>SAC, TD3 and PPO</td><td>PRs #31, #35<br>Policy tests</td></tr>
+          <tr><th scope="row">Configuration</th><td>Shapes embedded<br>in learner code</td><td>Asset export and build<br>for custom shapes</td><td>PR #36<br>9 tested profiles</td></tr>
+          <tr><th scope="row">Ownership</th><td>Example-specific<br>runtime management</td><td>World service, explicit<br>sharing and safe reset</td><td>Sharing and<br>teardown tests</td></tr>
         </tbody></table>
-        <p class="prompt">Use measured values where available. Remove rows that do not apply.</p>
-        <aside class="speaker-notes" data-time="[Comparison time]">Make the before and after comparison concrete. Use comparable conditions for timings or rates and explain the baseline. Qualitative workflow evidence is fine when you have no defensible metric. Do not turn a proposed acceptance criterion into a measured result.</aside>
+        <p class="source-line">A capability comparison. No gameplay speedup or catch-rate improvement is inferred from these checks.</p>
+        <aside class="speaker-notes" data-time="20 seconds">The improvement is reducing integration work for the next NPC task. Six shipped profiles cover two shapes per algorithm; three generated profiles prove the custom-shape path. These are tested examples, not a limit of nine configurations. We do not compare D2 catch rates with D3 API tests because those measure different things. Supporting PRs and exact commands are in adaptive-npc-evidence.md.</aside>
       </section>
 
-      <section class="slide dark" id="demo" aria-labelledby="demo-heading" data-title="Live demo" data-section="Demo">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Live walkthrough</span></header>
-        <div class="demo-title"><div><p class="eyebrow">The improvement in action</p><h2 id="demo-heading">Live demo<span class="accent">.</span></h2></div><span class="demo-label">[Presenter]</span></div>
-        <p class="intro placeholder">[Name the core workflow the audience is about to see]</p>
-        <ol class="demo-steps"><li><span>Set up</span><p>[Starting state and required inputs]</p></li><li><span>Show the change</span><p>[Actions that exercise the D3 improvement]</p></li><li><span>Verify the result</span><p>[Visible outcome and before / after impact]</p></li></ol>
-        <div class="takeaway"><span>Watch for</span><p>[The specific behavior that proves the improvement]</p></div>
-        <aside class="speaker-notes" data-time="[Live demo time]">Switch to the real system. Rehearse from a known starting state and narrate each action. Fill in the exact build, launch steps, controls, and expected output in the README rehearsal checklist. Keep an actual recording or screenshot sequence ready as backup. No demo URL or backup recording is wired into this skeleton.</aside>
+      <section class="slide an-slide dark an-demo" id="demo" aria-labelledby="demo-heading" data-title="Live game demo" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Presentation handoff</p>
+        <h2 id="demo-heading">Live game demo</h2>
+        <p class="intro">Learning from gameplay outcomes</p>
+        <ol class="demo-steps"><li><span>The task</span><p>Show the NPC's observation, available action and reward.</p></li><li><span>The feedback</span><p>Run the game and show decisions producing scored outcomes.</p></li><li><span>The result</span><p>Inspect learning progress and explain any observed behavior change.</p></li></ol>
+        <div class="takeaway"><span>Watch for</span><p>The connection between an executed action, its outcome and later decisions.</p></div>
+        <aside class="speaker-notes" data-time="60 seconds">Switch to the team's prepared demo game. State its starting state and which implementation it uses before describing the result. If it is an older task-specific prototype, label it as such and use the next slide's new policy tests as the integration evidence. A version increment proves actor publication; it does not alone prove better NPC behavior. The team owns the game launch and rehearsal. If the game fails, show the already-built NativeLearning policy tests and saved results; describe that fallback as an API demonstration. Do not invent game controls or a recording link. Handoff budget: about one minute; adjust to the actual presentation slot.</aside>
       </section>
 
-      <section class="slide" id="validation" aria-labelledby="validation-heading" data-title="How we verified the improvement" data-section="Evidence">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Validation</span></header>
-        <p class="eyebrow">Evidence behind the demo</p>
-        <h2 id="validation-heading">How we verified the improvement</h2>
-        <div class="split evidence-layout"><div class="statement-list">
-          <div><span class="item-number">01</span><div><h3>[Behavior / integration check]</h3><p>[Method, observed result, and artifact]</p></div></div>
-          <div><span class="item-number">02</span><div><h3>[Regression / reliability check]</h3><p>[Environment, scope, and result]</p></div></div>
-          <div><span class="item-number">03</span><div><h3>Known limitation</h3><p>[What this evidence does not yet establish]</p></div></div>
-        </div><figure class="media-slot"><span class="slot-label">Evidence</span><p>[Insert a readable test result, trace, or comparison]</p><figcaption>[Build / revision, environment, and test date]</figcaption></figure></div>
-        <aside class="speaker-notes" data-time="[Validation time]">Use D3 evidence. A D2 report is baseline evidence only. State the tested engine/platform/build and whether the check ran in-editor or packaged. For learning claims, distinguish correct experience admission and model updates from useful task adaptation. Include only checks relevant to the improvement.</aside>
+      <section class="slide an-slide " id="validation" aria-labelledby="validation-heading" data-title="Verified in Unreal Engine 5.8.4" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Engineering evidence</p>
+        <h2 id="validation-heading">Verified in Unreal Engine 5.8.4</h2>
+        <div class="an-metrics"><div><strong>40/40</strong><span>Unreal automation tests passed</span></div><div><strong>43</strong><span>Generator checks passed</span></div><div><strong>9</strong><span>Compiled profiles exercised</span></div></div>
+        <div class="split ruled-columns"><div><h3>Actual integration</h3><p>SAC, TD3 and PPO perform inference, train and publish through the policy and world service.</p></div><div><h3>Failure and lifecycle coverage</h3><p>Non-default bounds, unchanged PPO commands, retry, sharing, reset, snapshots and teardown with work in flight.</p></div></div>
+        <p class="source-line">Win64 Development Editor, headless. <a href="adaptive-npc-evidence.md">Reproduction and results</a>. Rendering, useful adaptation and packaged performance need separate evidence.</p>
+        <aside class="speaker-notes" data-time="25 seconds">The 40 tests comprise four generation, 16 policy/world, two native learner and 18 common adaptive API tests. All expected source registrations must appear in the script's checked results. Profiles are six shipped combinations plus generated SAC 6 observations/3 actions, TD3 7/4 and PPO 8/2. The generator checks use the exact C# code used by UnrealBuildTool. These are local runs, not CI. Existing C4305 conversion warnings in unchanged SB3/RLlib headers remain. The source revision and machine-readable results are linked from the evidence document.</aside>
       </section>
 
-      <section class="slide" id="process" aria-labelledby="process-heading" data-title="Engineering and process reflection" data-section="Reflection">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Engineering &amp; process awareness</span></header>
-        <p class="eyebrow">Since D2</p>
-        <h2 id="process-heading">How our process improved</h2>
-        <div class="split ruled-columns process-columns"><div><h3>Practice we changed</h3><p class="placeholder">[Testing, CI, PR review, deployment, or coordination]</p><p class="prompt">What changed in the way the team works?</p><div class="inline-evidence">[Concrete example: PR, check, release, or review]</div></div><div><h3>What we learned</h3><p class="placeholder">[What worked well or was harder than expected]</p><p class="prompt">How did that affect integration or delivery?</p><div class="inline-evidence">[Adjustment the team will carry into D4]</div></div></div>
-        <aside class="speaker-notes" data-time="[Reflection time]">Explain one meaningful process improvement since D2 and support it with an example. Name the engineering practice and its effect. Also acknowledge a real challenge and what the team changed in response. Do not list tools without explaining how they helped.</aside>
+      <section class="slide an-slide " id="nfr" aria-labelledby="nfr-heading" data-title="Reliability and resource use" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Non-functional requirements</p>
+        <h2 id="nfr-heading">Reliability and resource use</h2>
+        <table class="comparison-table an-nfr"><caption class="sr-only">Non-functional requirements and supporting tests</caption><thead><tr><th scope="col">Concern</th><th scope="col">Implemented response</th><th scope="col">Evidence</th></tr></thead><tbody>
+          <tr><th scope="row">Gameplay responsiveness</th><td>Bounded background scheduling;<br>construction and reset on workers</td><td>Fair scheduling and<br>delayed-completion tests</td></tr>
+          <tr><th scope="row">Data integrity and isolation</th><td>Validated native decisions;<br>explicit compatible sharing</td><td>Attribution, retry and<br>shared-ownership tests</td></tr>
+          <tr><th scope="row">Reliable lifecycle</th><td>Generation checks, bounded retention<br>and independent snapshots</td><td>Reset, shutdown and<br>world-teardown tests</td></tr>
+        </tbody></table>
+        <div class="takeaway"><span>Execution limit</span><p>Budgets are cooperative. A numerical update cannot be preempted.</p></div>
+        <aside class="speaker-notes" data-time="25 seconds">These are the non-functional concerns appropriate to a native developer toolkit. Validation and bounded storage address malformed data and resource growth; shared compatibility and world separation protect state isolation. Blueprint settings, readable errors and documented commands support developer access. We do not claim an accessibility audit, an authentication system or a hard frame-time guarantee. Last-burst timing and occupancy are observable, but realistic NPC-count latency and memory evaluation remain D4 work. Exact test names appear in adaptive-npc-evidence.md.</aside>
       </section>
 
-      <section class="slide" id="d4" aria-labelledby="d4-heading" data-title="Remaining work toward D4" data-section="Next steps">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Path to D4</span></header>
-        <p class="eyebrow">Remaining work</p>
-        <h2 id="d4-heading">What remains for D4</h2>
-        <div class="three-columns next-steps"><div><span class="step-number">01</span><h3>[Remaining product work]</h3><p>[Expected outcome and acceptance evidence]</p></div><div><span class="step-number">02</span><h3>[Integration / verification]</h3><p>[Dependency, owner, and how to verify it]</p></div><div><span class="step-number">03</span><h3>[Open risk or decision]</h3><p>[Impact and next action]</p></div></div>
-        <div class="takeaway"><span>Immediate next step</span><p>[The next concrete action after D3]</p></div>
-        <aside class="speaker-notes" data-time="[D4 time]">State the remaining work honestly. Use the specification as planning context, not a promise that every proposed capability is in D3. Confirm priorities and ownership with the team. Explain any unresolved trade-off or risk likely to come up in questions.</aside>
+      <section class="slide an-slide " id="process" aria-labelledby="process-heading" data-title="Review, verification and partner CI/CD" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Engineering process</p>
+        <h2 id="process-heading">Review, verification and partner CI/CD</h2>
+        <div class="split ruled-columns"><div><h3>Repeatable local checks</h3><p>Peer-reviewed PRs separate the learner, policy/world service and configuration generation.</p><p>Documented scripts build the plugin, verify every selected test result and check the build generator.</p><p class="prompt">PRs #31, #35 and #36 have teammate approvals.</p></div><div><h3>Partner integration in progress</h3><p><strong>AMD has its own CI/CD checks.</strong></p><p>Those checks are not integrated into this codebase yet. We are working with the partner to get that setup.</p><p class="prompt">Current results are local. Automated repository checks remain pending.</p></div></div>
+        <div class="takeaway"><span>Lesson</span><p>Verify the integrated branch; a merged feature PR may still be absent from main.</p></div>
+        <aside class="speaker-notes" data-time="25 seconds">This is the dedicated process slide. The partner CI/CD status comes from the team's current coordination with AMD. We are not claiming that unconnected partner checks validate this repository, nor that documenting the gap alone satisfies every infrastructure mark. Our current alternative is reproducible local build/test scripts and retained results. We also found that the stacked policy/configuration PRs merged into their feature bases rather than main, so release integration must follow the actual commit ancestry. The immediate process priority is partner-approved checks and build/release automation for this codebase.</aside>
       </section>
 
-      <section class="slide dark closing" id="questions" aria-labelledby="questions-heading" data-title="Questions" data-section="Discussion">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Discussion</span></header>
-        <p class="eyebrow">Advanced NPCs for AMD Schola</p>
-        <h2 id="questions-heading">Questions<span class="accent">?</span></h2>
-        <p class="closing-takeaway">[One sentence summarizing the demonstrated improvement]</p>
-        <div class="closing-links"><p>[Repository / D3 release link]</p><p>[Team contact or presenters]</p></div>
-        <aside class="speaker-notes" data-time="[Q&amp;A time]">Prepare answers about the selected gap, implementation decisions, alternatives, validation limits, and remaining work toward D4. Use the overview to jump to supporting slides. The reference slide follows this one and can remain outside the main talk.</aside>
+      <section class="slide an-slide " id="d4" aria-labelledby="d4-heading" data-title="Remaining work toward D4" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Scope and acceptance</p>
+        <h2 id="d4-heading">Remaining work toward D4</h2>
+        <div class="three-columns next-steps"><div><span class="step-number">01</span><h3>Automatic gameplay collection</h3><p>Connect agents and existing environments to observations, actions, rewards and episode boundaries.</p></div><div><span class="step-number">02</span><h3>Adaptation and performance</h3><p>Compare learning with a frozen policy across seeds. Measure latency and memory at realistic NPC counts.</p></div><div><span class="step-number">03</span><h3>Persistence and delivery</h3><p>Add resumable checkpoints and validate a separate packaged project. Complete partner CI/CD integration.</p></div></div>
+        <div class="takeaway"><span>Current boundary</span><p>CPU feedforward policies, Box observations and bounded continuous actions.</p></div>
+        <aside class="speaker-notes" data-time="25 seconds">The adaptive subteam owns these follow-ups; CI/CD depends on coordination with AMD. Prioritize the automatic coordinator next, then task-level learning evidence and deployment validation. Acceptance should include a real loop with no manual experience wiring, controlled learning-versus-frozen runs, and restoration of training state in a fresh process. In-memory immutable inference snapshots already work; they are not resumable training checkpoints. Recurrent networks, running normalization, accelerated devices and other spaces are separate capabilities and must not appear as supported before implementation.</aside>
       </section>
 
-      <section class="slide references" id="references" aria-labelledby="references-heading" data-title="References and backup material" data-section="Appendix">
-        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Appendix / not part of the main talk</span></header>
-        <p class="eyebrow">Preparation &amp; Q&amp;A</p>
-        <h2 id="references-heading">References and backup material</h2>
-        <div class="split ruled-columns"><div><h3>Presentation context</h3><ul class="reference-list"><li><a href="https://github.com/csc301-2026-f/deliverable-documents/tree/main/deliverables/D3" target="_blank" rel="noopener noreferrer">Course D3 templates</a></li><li><a href="../D2/README.md">Repository D2 evidence index</a></li><li><a href="../D2/iteration-02-review.md">D2 iteration review</a></li><li>Schola native online learning specification<br><span class="prompt">3 November 2026. Proposed final-product design.</span></li><li>Demo day rubric supplied by the instructor<br><span class="prompt">Screenshot provided with this task.</span></li></ul></div><div><h3>Your supporting artifacts</h3><p class="placeholder">[D3 PR / release / test report]</p><p class="placeholder">[Demo backup recording or screenshot sequence]</p><p class="placeholder">[Additional technical detail for likely questions]</p></div></div>
-        <aside class="speaker-notes" data-time="Backup">Add supporting material as extra sections after this slide. Do not invent links. The specification distinguishes an existing prototype, proposed integration, and final-product requirements. It is not evidence of D3 completion. The linked course product-evolution template is a written deliverable, separate from this slideshow.</aside>
+      <section class="slide an-slide dark an-questions" id="questions" aria-labelledby="questions-heading" data-title="Adaptive NPCs: questions" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+
+        <h2 id="questions-heading">Adaptive NPCs: questions</h2>
+        <p class="an-statement">Schola defines the task.<br>RLtools learns inside Unreal.</p>
+        <p class="intro">The reusable policy API and custom configuration builds are implemented.<br>Automatic collection and production validation are the next steps.</p>
+        <div class="closing-links"><p><a href="product-evolution.md">Product evolution</a></p><p><a href="adaptive-npc-evidence.md">Workflow and evidence</a></p><p>Adaptive NPCs subteam</p></div>
+        <aside class="speaker-notes" data-time="Discussion">Use the overview to revisit architecture, evidence, NFRs or D4 scope. For algorithm questions: SAC and TD3 use replay; PPO uses on-policy rollouts and rejects modified commands or stale policy outcomes. For ownership questions: independent by default, explicit compatible sharing within a world. For configuration questions: developer-defined supported shapes compile during a C++ project build. Continue to the Shared Policy subteam after this section; their slides are preserved.</aside>
+      </section>
+
+      <section class="slide an-slide " id="references" aria-labelledby="references-heading" data-title="Adaptive NPCs: supporting material" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+
+        <h2 id="references-heading">Adaptive NPCs: supporting material</h2>
+        <div class="split ruled-columns"><div><h3>Implementation and review</h3><ul class="reference-list"><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/30">#30 â€” Lifecycle and build foundations</a></li><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/31">#31 â€” Native SAC, TD3 and PPO</a></li><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/35">#35 â€” Policy and world service</a></li><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/36">#36 â€” Project configuration generation</a></li></ul></div><div><h3>Evaluation and onboarding</h3><ul class="reference-list"><li><a href="adaptive-npc-evidence.md">Reproduce checks and inspect NFR evidence</a></li><li><a href="evidence/adaptive-unreal-summary.json">Machine-readable Unreal results</a></li><li><a href="../../Examples/NativeLearning/README.md">Minimal test host and workflow</a></li><li><a href="../../Docs/Sphinx/guides/native_adaptive_policy.rst">Policy settings, ownership and limits</a></li></ul></div></div>
+        <p class="source-line">Appendix. The live game has its own gameplay evidence; headless policy tests establish the reusable integration.</p>
+        <aside class="speaker-notes" data-time="Appendix">All linked artifacts are repository files or implementation PRs. The D3 report includes the before/after analysis and reflection. The evidence record distinguishes local tests, gameplay claims and the pending partner CI/CD integration. No private plan or conversation is required to understand the work.</aside>
       </section>
 
       <section class="slide cover dark sp-slide sp-team-cover" id="shared-policy-team" aria-labelledby="shared-policy-team-heading" data-title="Shared Policy NPCs: team" data-section="Shared Policy NPCs">
