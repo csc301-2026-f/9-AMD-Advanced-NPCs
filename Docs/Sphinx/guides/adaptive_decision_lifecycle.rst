@@ -102,8 +102,8 @@ stop the native learner, reset its weights or remove accepted experience.
 ``ResetEpisode`` cancels Pending/Ready actions and increments the episode ID.
 It retains the session and its readiness, rather than restarting learning.
 Gameplay captures the final observation and submits terminal experience before
-resetting. The SAC subclass supplies experience submission and its learner queue;
-the base ticket API does not submit experience.
+resetting through the shared ``SubmitExperience`` call. The native subclass
+admits validated records to its learner queue through ``DispatchExperience``.
 
 A successful base ``Init`` invalidates old actions and requires a new local
 session. An invalid replacement preserves the previously accepted setup and

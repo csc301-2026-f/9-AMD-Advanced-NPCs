@@ -35,6 +35,8 @@ What each type represents
      - Local lifecycle: Uninitialized, Initialized, Ready, Failed and Stopped.
    * - ``EAdaptiveRequestStatus``
      - Request results: Unknown, Pending, Ready, Failed, Cancelled, and Expired.
+   * - ``EAdaptiveSubmitResult``
+     - Experience admission: Accepted, Rejected, Dropped, Frozen and NotReady.
    * - ``UAdaptiveNPCPolicy``
      - An Unreal policy object that validates and copies the declared
        observation/action spaces. It implements ``IPolicy`` while immediate
@@ -93,7 +95,11 @@ Schola's existing ``FSpace::Validate`` / ``Contains`` methods check actual point
 values against a space. They do not validate the space definition itself. This
 policy checks definitions; decision requests and results also reuse existing
 point validation, with additional checks for finite values and explicit shapes.
-Experience submission is currently provided by the SAC subclass, not this base.
+The shared ``SubmitExperience`` call validates the Ready session, session GUID,
+policy version, finite reward, and both observations and the executed action
+against these same definitions. Valid records are passed to the subclass's
+``DispatchExperience`` hook. The base hook returns NotReady; it cannot claim
+acceptance without a learner. Read ``GetLastError`` for a submission failure.
 
 Initialize and inspect the policy
 --------------------------------------------------

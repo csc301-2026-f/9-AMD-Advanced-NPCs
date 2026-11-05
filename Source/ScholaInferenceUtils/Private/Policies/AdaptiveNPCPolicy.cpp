@@ -262,6 +262,60 @@ FString UAdaptiveNPCPolicy::GetDecisionError(int64 DecisionId) const
     return DecisionId >= 0 && Request.DecisionId == DecisionId ? RequestError : FString();
 }
 
+EAdaptiveSubmitResult UAdaptiveNPCPolicy::SubmitExperience(const FAdaptiveExperience& Experience)
+{
+    check(IsInGameThread());
+    if (SessionState != EAdaptiveSessionState::Ready)
+    {
+        LastError = TEXT("Experiences require a Ready learner session.");
+        return EAdaptiveSubmitResult::NotReady;
+    }
+    if (Experience.SessionId != SessionId)
+    {
+        LastError = TEXT("Experience session does not match the active learner session.");
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    if (Experience.PolicyVersion < 0 || !FMath::IsFinite(Experience.Reward))
+    {
+        LastError = TEXT("Experience requires a nonnegative policy version and a finite reward.");
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    FString Error;
+    if (!ValidateBoxPoint(Experience.Observation, InteractionDefinition.ObsSpaceDefn, Error))
+    {
+        LastError = TEXT("Experience observation rejected: ") + Error;
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    if (!ValidateBoxPoint(Experience.NextObservation, InteractionDefinition.ObsSpaceDefn, Error))
+    {
+        LastError = TEXT("Experience next observation rejected: ") + Error;
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    if (!ValidateBoxPoint(Experience.ExecutedAction, InteractionDefinition.ActionSpaceDefn, Error))
+    {
+        LastError = TEXT("Experience executed action rejected: ") + Error;
+        return EAdaptiveSubmitResult::Rejected;
+    }
+
+    const EAdaptiveSubmitResult Result = DispatchExperience(Experience);
+    switch (Result)
+    {
+    case EAdaptiveSubmitResult::Accepted:
+    case EAdaptiveSubmitResult::Frozen:
+        LastError.Reset();
+        return Result;
+    case EAdaptiveSubmitResult::Dropped:
+        LastError = TEXT("Experience dropped: the learner queue is full.");
+        return Result;
+    case EAdaptiveSubmitResult::NotReady:
+        LastError = TEXT("The native learner is not ready to accept experiences.");
+        return Result;
+    default:
+        LastError = TEXT("Experience rejected by the native learner.");
+        return EAdaptiveSubmitResult::Rejected;
+    }
+}
+
 bool UAdaptiveNPCPolicy::MatchesPendingRequest(const FGuid& InSessionId, int64 InAgentId, int64 InEpisodeId, int64 InDecisionId) const
 {
     return SessionState == EAdaptiveSessionState::Ready && RequestStatus == EAdaptiveRequestStatus::Pending
