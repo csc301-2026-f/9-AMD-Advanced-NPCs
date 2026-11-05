@@ -66,9 +66,10 @@ SAC entropy choices, TD3 smoothing, PPO clipping/advantage/distribution choices,
 device and dependency revision. These values are fixed by compilation. Selecting
 an algorithm alone does not change a mismatched configuration identifier.
 
-There are no editable controls claiming to alter those structural parameters.
-An uncompiled identifier or dimension mismatch fails with configuration/build
-guidance. Automatic arbitrary configuration generation is separate work.
+Those compiled descriptions are read-only. To choose other dimensions, networks
+or supported algorithm-template parameters, create a configuration asset and
+generate its project request, then rebuild; see :doc:`rltools_configuration_generation`.
+The shipped shapes are defaults, not a permanent shape restriction.
 
 Runtime settings
 ----------------
@@ -300,7 +301,7 @@ The host script checks successful results against source registrations.
 
 Supported functionality is CPU, feedforward SAC/TD3/PPO, Box observations and
 bounded continuous Box actions with registered configurations. Discrete/Dict/custom
-spaces, arbitrary profile generation, recurrent networks, running normalization,
+spaces, recurrent networks, running normalization,
 accelerated devices, checkpoints, final separate-project packaging and automatic
 game/environment collection remain follow-up capabilities. Rendering and useful
 gameplay adaptation require their own validation. The numerical behavior and

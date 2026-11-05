@@ -67,6 +67,9 @@ bool URLToolsWorldSubsystem::ValidateBinding(const URLToolsNPCPolicy& Policy, co
         Error = TEXT("A live game/PIE world with available agent identities is required.");
         return false;
     }
+    ERLToolsAlgorithm Algorithm;
+    FString Configuration;
+    if (!Policy.ResolveConfiguration(Algorithm, Configuration, Error)) return false;
     if (Policy.SharedGroup.IsNone()) return true;
     const auto* GroupId = Runtime->Groups.Find(Policy.SharedGroup);
     const auto* Group = GroupId ? Runtime->Learners.Find(*GroupId) : nullptr;
@@ -76,7 +79,7 @@ bool URLToolsWorldSubsystem::ValidateBinding(const URLToolsNPCPolicy& Policy, co
         Error = TEXT("Shared learner is resetting. Wait for completion before joining.");
         return false;
     }
-    if (Group->Algorithm != Policy.Algorithm || Group->Profile != Policy.Configuration
+    if (Group->Algorithm != Algorithm || Group->Profile != Configuration
         || !SameSettings(Group->Settings, Policy.Settings) || !SameDefinition(Group->Definition, Definition))
     {
         Error = FString::Printf(TEXT("Shared group '%s' is incompatible: algorithm, compiled configuration, full observation/action definitions (including bounds/shape and AgentType), preprocessing and all learner-wide settings must match."),
@@ -89,18 +92,21 @@ bool URLToolsWorldSubsystem::Bind(URLToolsNPCPolicy& Policy, const FInteractionD
 {
     check(IsInGameThread());
     if (!ValidateBinding(Policy, Definition, FGuid(), Error)) return false;
+    ERLToolsAlgorithm Algorithm;
+    FString Configuration;
+    if (!Policy.ResolveConfiguration(Algorithm, Configuration, Error)) return false;
     FGuid LearnerId;
     if (const auto* Group = Runtime->Groups.Find(Policy.SharedGroup); !Policy.SharedGroup.IsNone() && Group)
         LearnerId = *Group;
     else
     {
         FWorldLearner Entry;
-        Entry.Profile = Policy.Configuration;
-        Entry.Algorithm = Policy.Algorithm;
+        Entry.Profile = Configuration;
+        Entry.Algorithm = Algorithm;
         Entry.Definition = Definition;
         Entry.Settings = Policy.Settings;
         Entry.Group = Policy.SharedGroup;
-        Entry.Worker = Runtime->Executor->Create(TCHAR_TO_UTF8(*Policy.Configuration), ToNative(Policy.Settings));
+        Entry.Worker = Runtime->Executor->Create(TCHAR_TO_UTF8(*Configuration), ToNative(Policy.Settings));
         LearnerId = Entry.Worker->Id;
         Runtime->Learners.Add(LearnerId, MoveTemp(Entry));
         if (!Policy.SharedGroup.IsNone()) Runtime->Groups.Add(Policy.SharedGroup, LearnerId);

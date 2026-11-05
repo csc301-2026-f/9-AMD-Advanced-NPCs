@@ -3,6 +3,7 @@
 #include "RLToolsWorldSubsystem.h"
 #include "Learning/RLToolsPolicyConversion.h"
 #include "Engine/World.h"
+#include "RLToolsConfigurationAsset.h"
 
 UWorld* URLToolsNPCPolicy::GetWorld() const
 {
@@ -23,7 +24,10 @@ bool URLToolsNPCPolicy::Init(const FInteractionDefinition& Definition)
     if (!ValidateSpaceDefinition(Definition.ObsSpaceDefn, false, Error)
         || !ValidateSpaceDefinition(Definition.ActionSpaceDefn, true, Error))
         return RejectInitialization(Error);
-    if (!Schola::RLTools::ValidateConfiguration(Algorithm, Configuration, Settings, Definition, Error))
+    ERLToolsAlgorithm RequestedAlgorithm;
+    FString RequestedId;
+    if (!ResolveConfiguration(RequestedAlgorithm, RequestedId, Error)
+        || !Schola::RLTools::ValidateConfiguration(RequestedAlgorithm, RequestedId, Settings, Definition, Error))
         return RejectInitialization(Error);
     if (DecisionCapacity < 1 || DecisionCapacity > 65536 || !FMath::IsFinite(ExperienceRetentionSeconds)
         || ExperienceRetentionSeconds <= 0
@@ -44,6 +48,22 @@ bool URLToolsNPCPolicy::Init(const FInteractionDefinition& Definition)
         FailInitialization(Error);
         Service.Reset();
         return false;
+    }
+    return true;
+}
+bool URLToolsNPCPolicy::ResolveConfiguration(ERLToolsAlgorithm& OutAlgorithm, FString& OutId, FString& Error) const
+{
+    if (ConfigurationAsset)
+    {
+        FRLToolsConfiguration Compiled;
+        if (!ConfigurationAsset->GetCompiledConfiguration(Compiled, Error)) return false;
+        OutAlgorithm = Compiled.Algorithm;
+        OutId = Compiled.Id;
+    }
+    else
+    {
+        OutAlgorithm = Algorithm;
+        OutId = Configuration;
     }
     return true;
 }

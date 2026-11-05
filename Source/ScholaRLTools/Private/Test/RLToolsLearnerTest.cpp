@@ -12,6 +12,7 @@ bool FRLToolsLearnerTest::RunTest(const FString& Parameters)
         AddInfo(FString::Printf(TEXT("Algorithm/configuration: %s"), UTF8_TO_TCHAR(Profile.Id.c_str())));
         FSettings Settings;
         Settings.PublishEveryUpdates = 1;
+        Settings.LearningStarts = Profile.BatchSize;
         std::string Error;
         auto Learner = FLearner::Create(Profile.Id, Settings, Error);
         if (!TestTrue(TEXT("Create"), Learner != nullptr)) continue;
@@ -20,18 +21,19 @@ bool FRLToolsLearnerTest::RunTest(const FString& Parameters)
         std::vector<float> Before, After;
         Snapshot->Evaluate(Observation, Before);
         FDecision Retained;
-        for (unsigned Step = 0; Step < 64; ++Step)
+        const unsigned Records = Profile.Algorithm == EAlgorithm::PPO ? Profile.RolloutLength : FMath::Max(64u, Profile.BatchSize);
+        for (unsigned Step = 0; Step < Records; ++Step)
         {
             FDecision Decision;
             TestTrue(TEXT("Inference"), Learner->Decide(Observation, 7, 0, false, Decision));
             Retained = Decision;
-            TestTrue(TEXT("Admission"), Learner->Submit(Decision, Decision.GetAction(), 1, Observation, Step == 63, false) == ESubmitResult::Accepted);
+            TestTrue(TEXT("Admission"), Learner->Submit(Decision, Decision.GetAction(), 1, Observation, Step + 1 == Records, false) == ESubmitResult::Accepted);
         }
         unsigned Bursts = 0;
         while (Learner->Train() && ++Bursts < 1000) {}
         TestTrue(TEXT("Bounded worker makes progress"), Bursts < 1000);
         const auto Stats = Learner->ReadStats();
-        TestEqual(TEXT("Experiences stored"), static_cast<int64>(Stats.Stored), static_cast<int64>(64));
+        TestEqual(TEXT("Experiences stored"), static_cast<int64>(Stats.Stored), static_cast<int64>(Records));
         TestTrue(TEXT("Real actor and critic updates"), Stats.ActorUpdates > 0 && Stats.CriticUpdates > 0);
         TestTrue(TEXT("Updated policy published"), Stats.Version > 0);
         Snapshot->Evaluate(Observation, After);

@@ -14,7 +14,9 @@ bool FRLToolsNativeBuildTest::RunTest(const FString& Parameters)
     for (const auto& Profile : Schola::RLTools::FLearner::GetProfiles())
     {
         std::string Error;
-        auto Learner = Schola::RLTools::FLearner::Create(Profile.Id, {}, Error);
+        Schola::RLTools::FSettings Settings;
+        Settings.LearningStarts = Profile.BatchSize;
+        auto Learner = Schola::RLTools::FLearner::Create(Profile.Id, Settings, Error);
         if (!TestTrue(UTF8_TO_TCHAR(Profile.Id.c_str()), Learner != nullptr)) continue;
         std::vector<float> Action;
         TestTrue(TEXT("Compiled algorithm initializes and evaluates"),

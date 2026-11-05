@@ -83,8 +83,9 @@ Next integration steps
 
 The reusable numerical learner is described in :doc:`native_rltools_learning`.
 The supplied native policy and world-local learner service are described in
-:doc:`native_adaptive_policy`. Game/environment coordinators, project-local
-generation and checkpoint persistence remain subsequent integration work. Game code
+:doc:`native_adaptive_policy`, and project configuration generation is described
+in :doc:`rltools_configuration_generation`. Game/environment coordinators and
+checkpoint persistence remain subsequent integration work. Game code
 can select the supplied policy and provide task callbacks rather
 than implement its own RLtools wrapper. No new Python learning backend is used.
 

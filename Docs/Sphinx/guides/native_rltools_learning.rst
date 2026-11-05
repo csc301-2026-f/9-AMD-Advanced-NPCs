@@ -88,13 +88,14 @@ The initial configurations are:
      - 32 / 4096 / 64
 
 Prefix an identifier with ``sac/``, ``td3/`` or ``ppo/``. These are internal
-configuration identifiers. Project-local generation will derive entries from
-Schola definitions/settings. An unavailable configuration fails with build
-guidance. A packaged game never compiles new types.
+configuration identifiers. :doc:`rltools_configuration_generation` derives
+project-local entries from Schola definitions/settings at build time. An
+unavailable configuration fails with build guidance. A packaged game never
+compiles new types.
 
 Structural parameters are defined in ``RLToolsLearnerParameters.h``. The
 generated parameter header and registration include provide the extension
-point for the separate generation workflow: discount, target update rates,
+point for project generation: discount, target update rates,
 SAC entropy choices, TD3 target noise, PPO clipping, advantage estimation and
 action-distribution options. The second shipped configuration uses discount
 0.95 and PPO clipping 0.15 to exercise non-default instantiations. The first
@@ -105,8 +106,7 @@ random exploration, collection/training frequency, update bursts, publication,
 PPO epochs, learning rate and TD3 exploration noise. Optional fixed observation
 means/standard deviations are validated and copied into snapshots; observations
 are otherwise unchanged. Running normalization, recurrent models, additional
-devices, checkpoint persistence and automatic configuration
-generation are not implemented by this numerical-runtime change. Their presence
+devices and checkpoint persistence are not implemented. Their presence
 in RLtools is not reported as available Schola functionality.
 
 Execution and lifecycle
