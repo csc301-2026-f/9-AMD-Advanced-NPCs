@@ -452,7 +452,9 @@ struct FLearner::FImpl
     std::unique_ptr<FAlgorithmState> State;
     mutable std::mutex AdmissionMutex, TrainingMutex;
     std::deque<FExperience> Queue;
-    std::atomic<std::shared_ptr<const FPolicy>> Published;
+    // Use the C++11 shared_ptr atomic operations instead of atomic<shared_ptr>.
+    // Apple libc++ does not provide the C++20 specialization used by MSVC.
+    std::shared_ptr<const FPolicy> Published;
     std::shared_ptr<const void> Owner = std::make_shared<int>(0);
     FStats Stats;
     std::unordered_map<std::uint64_t, std::uint64_t> AgentSequences;
@@ -461,6 +463,10 @@ struct FLearner::FImpl
     std::atomic<bool> StopRequested{false};
     FImpl(const FProfile& InProfile, const FSettings& InSettings) : Profile(InProfile), Settings(InSettings)
     { State = MakeState(Profile, Settings); Publish(); }
+    std::shared_ptr<const FPolicy> LoadPublished() const { return std::atomic_load(&Published); }
+    void StorePublished(std::shared_ptr<const FPolicy> Policy) { std::atomic_store(&Published, std::move(Policy)); }
+    std::shared_ptr<const FPolicy> ExchangePublished(std::shared_ptr<const FPolicy> Policy)
+    { return std::atomic_exchange(&Published, std::move(Policy)); }
     void Publish()
     {
         auto Policy = State->Snapshot();
@@ -469,7 +475,7 @@ struct FLearner::FImpl
         Policy->Version = Stats.Version;
         Policy->Generation = Stats.Generation;
         Policy->Owner = Owner;
-        Published.store(std::move(Policy));
+        StorePublished(std::move(Policy));
     }
 };
 
@@ -539,7 +545,7 @@ std::unique_ptr<FLearner> FLearner::Create(const std::string& ProfileId, const F
 bool FLearner::Decide(const std::vector<float>& Observation, std::uint64_t Agent, std::uint64_t Episode,
     bool Deterministic, FDecision& OutDecision)
 {
-    const auto Policy = Impl->Published.load();
+    const auto Policy = Impl->LoadPublished();
     const auto& Settings = Policy->Settings;
     auto Context = std::make_shared<FDecisionContext>();
     if (!Policy->Preprocess(Observation, Context->Observation)) return false;
@@ -578,7 +584,7 @@ ESubmitResult FLearner::Submit(const FDecision& Decision, const std::vector<floa
     if (!I.Stats.LearningEnabled) { ++I.Stats.Frozen; return ESubmitResult::Frozen; }
     const auto& C = Decision.Context;
     std::vector<float> Next;
-    const auto Current = I.Published.load();
+    const auto Current = I.LoadPublished();
     if (!C || C->Policy->Owner != I.Owner || C->Policy->GetGeneration() != I.Stats.Generation
         || C->Policy->GetProfile().Id != I.Profile.Id || !std::isfinite(Reward)
         || !Finite(ExecutedAction, I.Profile.Actions)
@@ -656,7 +662,7 @@ bool FLearner::Train()
             Snapshot->Generation = Local.Generation;
             Snapshot->Version = Local.Version;
             Snapshot->Owner = I.Owner;
-            I.Published.store(std::move(Snapshot));
+            I.StorePublished(std::move(Snapshot));
             I.UpdatesSincePublish = 0;
             if (PPOComplete)
             {
@@ -687,7 +693,7 @@ bool FLearner::Train()
         return I.Stats.Running && I.Stats.LearningEnabled && (!I.Queue.empty() || I.Stats.PendingUpdates > 0);
     }
 }
-std::shared_ptr<const FPolicy> FLearner::CapturePolicy() const { return Impl->Published.load(); }
+std::shared_ptr<const FPolicy> FLearner::CapturePolicy() const { return Impl->LoadPublished(); }
 FStats FLearner::ReadStats() const
 {
     std::lock_guard Lock(Impl->AdmissionMutex);
@@ -737,7 +743,7 @@ void FLearner::Reset(unsigned Seed)
         I.RecordsSinceTrain = I.UpdatesSincePublish = 0;
         I.PPOUpdating = false;
         I.AgentSequences.clear();
-        RetiredPolicy = I.Published.exchange(std::move(Policy));
+        RetiredPolicy = I.ExchangePublished(std::move(Policy));
     }
     // Reclaim the old training state and snapshots outside the admission lock.
 }

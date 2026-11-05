@@ -15,7 +15,11 @@ The HUD shows frame rate, frame time (mean and p99), game-thread inference time 
 
 ## Build and run
 
-Tested on Linux with Unreal Engine 5.8.3 (Vulkan). The Windows path has not been tested.
+Tested on Linux with Unreal Engine 5.8.3 (Vulkan) and on Apple Silicon with Unreal Engine 5.8. The Windows path has not been tested.
+
+Apple Silicon setup for Schola, including gRPC, plugin preparation, and the `-NoUBA` build, is in the [macOS setup guide](../../Docs/macOS-Setup.md).
+
+### Linux
 
 ```bash
 export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8.3

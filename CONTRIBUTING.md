@@ -185,7 +185,7 @@ Update Sphinx sources under `Docs/Sphinx/` when behavior or CLI options change.
 
 ## Building third-party dependencies
 
-Schola ships prebuilt third-party libraries under `Source/ThirdParty`. Rebuild them only if you hit setup issues, using `Resources/Build/windows_dependencies.bat` or `Resources/Build/linux_dependencies.sh` as described in the README. Don't commit updated third party dependencies unless part of a specific commit to update these dependencies.
+Schola ships prebuilt third-party libraries under `Source/ThirdParty`. Rebuild them only if you hit setup issues, using `Resources/Build/windows_dependencies.bat`, `Resources/Build/linux_dependencies.sh`, or `Resources/Build/mac_dependencies.sh` as described in the README. Don't commit updated third party dependencies unless part of a specific commit to update these dependencies. The Mac gRPC tree is generated locally and is gitignored.
 
 ## License
 

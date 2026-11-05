@@ -40,10 +40,15 @@ public class gRPC : ModuleRules
         string platformPath = Path.Combine(ModuleDirectory, Target.Platform.ToString());
         string includePath = Path.Combine(platformPath, "include");
         string libraryPath = Path.Combine(platformPath, "lib");
+        string dependencyBuildScript = Target.Platform == UnrealTargetPlatform.Mac
+            ? "Resources/Build/mac_dependencies.sh"
+            : Target.Platform == UnrealTargetPlatform.Linux
+                ? "Resources/Build/linux_dependencies.sh"
+                : "Resources/Build/windows_dependencies.bat";
 
         EnsureDirectoryExists(
             includePath,
-            $"Missing gRPC headers for {Target.Platform} at {includePath}. Rebuild third-party dependencies with Resources/Build/windows_dependencies.bat."
+            $"Missing gRPC headers for {Target.Platform} at {includePath}. Rebuild third-party dependencies with {dependencyBuildScript}."
         );
 
         PublicSystemIncludePaths.Add(includePath);
@@ -54,7 +59,11 @@ public class gRPC : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
-            AddLibrariesFromDirectory(libraryPath, "*.a", "Linux gRPC archives");
+            AddLibrariesFromDirectory(libraryPath, "*.a", "Linux gRPC archives", dependencyBuildScript);
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            AddLibrariesFromDirectory(libraryPath, "*.a", "Mac gRPC archives", dependencyBuildScript);
         }
         else
         {
@@ -69,7 +78,11 @@ public class gRPC : ModuleRules
 
     private void AddWindowsLibraries(string libraryPath)
     {
-        string[] presentLibraries = GetLibrariesFromDirectory(libraryPath, "*.lib", "Windows gRPC/protobuf libraries");
+        string[] presentLibraries = GetLibrariesFromDirectory(
+            libraryPath,
+            "*.lib",
+            "Windows gRPC/protobuf libraries",
+            "Resources/Build/windows_dependencies.bat");
         HashSet<string> presentNames = new HashSet<string>(
             presentLibraries.Select(Path.GetFileName),
             StringComparer.OrdinalIgnoreCase
@@ -105,19 +118,31 @@ public class gRPC : ModuleRules
         }
     }
 
-    private void AddLibrariesFromDirectory(string libraryPath, string searchPattern, string description)
+    private void AddLibrariesFromDirectory(
+        string libraryPath,
+        string searchPattern,
+        string description,
+        string dependencyBuildScript)
     {
-        foreach (string libraryPathEntry in GetLibrariesFromDirectory(libraryPath, searchPattern, description))
+        foreach (string libraryPathEntry in GetLibrariesFromDirectory(
+            libraryPath,
+            searchPattern,
+            description,
+            dependencyBuildScript))
         {
             PublicAdditionalLibraries.Add(libraryPathEntry);
         }
     }
 
-    private static string[] GetLibrariesFromDirectory(string libraryPath, string searchPattern, string description)
+    private static string[] GetLibrariesFromDirectory(
+        string libraryPath,
+        string searchPattern,
+        string description,
+        string dependencyBuildScript)
     {
         EnsureDirectoryExists(
             libraryPath,
-            $"Missing {description} directory at {libraryPath}. Rebuild third-party dependencies with Resources/Build/windows_dependencies.bat."
+            $"Missing {description} directory at {libraryPath}. Rebuild third-party dependencies with {dependencyBuildScript}."
         );
 
         string[] libraries = Directory
@@ -128,7 +153,7 @@ public class gRPC : ModuleRules
         if (libraries.Length == 0)
         {
             throw new BuildException(
-                $"No {description} were found in {libraryPath}. Rebuild third-party dependencies with Resources/Build/windows_dependencies.bat."
+                $"No {description} were found in {libraryPath}. Rebuild third-party dependencies with {dependencyBuildScript}."
             );
         }
 
