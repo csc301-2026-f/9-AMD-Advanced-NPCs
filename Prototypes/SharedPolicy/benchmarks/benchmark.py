@@ -73,6 +73,8 @@ class TrialSpec:
     measured_requests: int
     trial_index: int
     seed: int
+    measured_architectures: tuple[str, ...] = SUPPORTED_ARCHITECTURES
+    correctness_oracle: str = "A"
 
     def __post_init__(self) -> None:
         if not self.profile_name:
@@ -83,6 +85,25 @@ class TrialSpec:
         _positive_int("measured_requests", self.measured_requests)
         _nonnegative_int("trial_index", self.trial_index)
         _nonnegative_int("seed", self.seed)
+        if not self.measured_architectures:
+            raise ValueError("measured_architectures must not be empty")
+        if len(set(self.measured_architectures)) != len(
+            self.measured_architectures
+        ):
+            raise ValueError("measured_architectures must be unique")
+        unsupported = sorted(
+            set(self.measured_architectures) - set(SUPPORTED_ARCHITECTURES)
+        )
+        if unsupported:
+            raise ValueError(
+                f"unsupported measured architectures: {unsupported}"
+            )
+        if self.correctness_oracle not in SUPPORTED_ARCHITECTURES:
+            raise ValueError(
+                "correctness_oracle must be one of "
+                f"{SUPPORTED_ARCHITECTURES}; received "
+                f"{self.correctness_oracle!r}"
+            )
 
 
 def _positive_int(name: str, value: object) -> int:
@@ -311,8 +332,16 @@ def run_benchmark_trial(
     initialization_ns = time.perf_counter_ns() - initialization_started_ns
 
     first_runs: dict[str, dict[str, object]] = {}
+    correctness_architectures = (
+        spec.correctness_oracle,
+        *(
+            architecture
+            for architecture in spec.measured_architectures
+            if architecture != spec.correctness_oracle
+        ),
+    )
     baseline: npt.NDArray[np.float32] | None = None
-    for architecture in SUPPORTED_ARCHITECTURES:
+    for architecture in correctness_architectures:
         result, duration_ns = _timed_request(
             runtime,
             architecture,
@@ -335,7 +364,7 @@ def run_benchmark_trial(
 
     order_rng = random.Random(spec.seed)
     for _ in range(spec.warmup_requests):
-        order = list(SUPPORTED_ARCHITECTURES)
+        order = list(spec.measured_architectures)
         order_rng.shuffle(order)
         for architecture in order:
             runtime.run(architecture, observations, roles)
@@ -346,11 +375,11 @@ def run_benchmark_trial(
             "model_samples_ns": [],
             "call_samples": [],
         }
-        for architecture in SUPPORTED_ARCHITECTURES
+        for architecture in spec.measured_architectures
     }
     measured_orders: list[list[str]] = []
     for _ in range(spec.measured_requests):
-        order = list(SUPPORTED_ARCHITECTURES)
+        order = list(spec.measured_architectures)
         order_rng.shuffle(order)
         measured_orders.append(order)
         for architecture in order:
@@ -402,6 +431,8 @@ def run_benchmark_trial(
         "measurement": {
             "trials": 1,
             "trial_index": spec.trial_index,
+            "correctness_oracle": spec.correctness_oracle,
+            "measured_architectures": list(spec.measured_architectures),
             "warmup_requests_per_architecture": spec.warmup_requests,
             "measured_requests_per_architecture": spec.measured_requests,
             "candidate_orders": measured_orders,
@@ -501,6 +532,18 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Capture isolated A/B/D ONNX Runtime operator profiles.",
     )
+    mode.add_argument(
+        "--matrix",
+        action="store_true",
+        help="Run the configured repeated benchmark matrix in fresh workers.",
+    )
+    parser.add_argument(
+        "--architectures",
+        nargs="+",
+        choices=SUPPORTED_ARCHITECTURES,
+        default=("C", "D"),
+        help="Architectures to measure in --matrix mode (default: C D).",
+    )
     return parser.parse_args()
 
 
@@ -510,12 +553,22 @@ def main() -> None:
         report = run_smoke_benchmark(args.config, args.artifacts_dir)
         output = args.output or DEFAULT_SMOKE_OUTPUT
         success = "Correctness passed; smoke report"
-    else:
+    elif args.profile:
         from benchmarks.profiling import run_operator_profiles
 
         report = run_operator_profiles(args.config, args.artifacts_dir)
         output = args.output or DEFAULT_PROFILE_OUTPUT
         success = "Operator-profile validation passed; profile report"
+    else:
+        from benchmarks.matrix import run_benchmark_matrix
+
+        report = run_benchmark_matrix(
+            args.config,
+            args.artifacts_dir,
+            tuple(args.architectures),
+        )
+        output = args.output or Path(__file__).with_name("runs") / "cpu-results.json"
+        success = "Correctness passed; benchmark matrix report"
     output_path = write_report(report, output)
     print(f"{success}: {output_path}")
 

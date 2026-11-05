@@ -1,7 +1,8 @@
 # Shared policy architecture benchmarks
 
 Status: A–E can be exported, routed through one validated request contract, and
-run through a correctness-gated timing smoke test. Full measurements are pending.
+run through a correctness-gated timing smoke test. The repeated portable matrix
+is implemented for the narrowed C/D comparison; Unreal measurements are pending.
 
 This experiment evaluates how a shared-backbone, multi-head policy should avoid
 unused head computation. It directly tests the architectures raised in AMD
@@ -30,8 +31,11 @@ not assume a combat game or any particular gameplay meaning.
 | E: separate backbone and heads | One backbone on all `B` rows; host groups features; each nonempty group runs its head model | `1 + K` |
 | F: mixed-row routing inside one graph | One graph groups features by role, executes heads on their subsets, and restores row order | Research extension; graph/runtime feasibility unproven |
 
-A–E are required. F is investigated only if the standard designs cannot satisfy
-the target or if AMD specifically requires one mixed-role inference call.
+A–E remain implemented feasibility evidence. Following AMD review, repeated
+portable measurements focus on D against the current C baseline, with A retained
+as an untimed correctness oracle. If Unreal NNE cannot execute D, the performance
+fallback comparison is A/C/E. F is investigated only if the standard designs
+cannot satisfy the target or if AMD specifically requires one mixed-role call.
 
 C and D partition rows, so each NPC passes through a backbone once, although
 separate role groups lose the efficiency of one larger backbone batch. C stores
@@ -102,10 +106,10 @@ already loads ONNX through NNE and exposes inference metrics. Unreal validation
 is required after the portable screen:
 
 1. Build and run the unchanged host to establish a working NNE baseline.
-2. Probe import/model-creation/execution compatibility for every viable A–E
-   artifact, recording unsupported control flow or opsets precisely.
-3. Integrate A and every supported candidate that skips work or presents a
-   meaningful memory tradeoff under the same routing and output contract.
+2. Probe import/model-creation/execution compatibility for C and D, recording
+   unsupported control flow or opsets precisely.
+3. If D is supported, compare it with C. Otherwise compare A/C/E under the same
+   routing and output contract.
 4. Measure isolated runs with persistent model instances, fixed workloads,
    warm-up, repeated trials, and raw evidence.
 
@@ -140,11 +144,13 @@ roles might change that decision.
 | `export_models.py` | Builds A–E and writes separate validated ONNX files |
 | `runtime.py` | Reuses loaded ONNX sessions, groups roles where needed, and restores original row order |
 | `benchmark.py` | Runs the correctness gate, warm-up, smoke timings, and raw JSON reporting |
+| `matrix.py` | Plans the configured matrix and runs each C/D trial in a fresh sequential worker process |
 | `profiling.py` | Captures ORT operator events and maps optimized nodes back to backbone/head stages |
 | `tests/test_benchmark_models.py` | Checks that those shared pieces have the correct shapes and repeatable weights |
 | `tests/test_benchmark_exports.py` | Checks the exported contracts and proves equivalent action values |
 | `tests/test_benchmark_routing.py` | Sends the same mixed-role requests through A–E and checks actions and call counts |
 | `tests/test_benchmark_measurement.py` | Checks workload generation, timing summaries, configuration failures, and smoke reports |
+| `tests/test_benchmark_matrix.py` | Checks matrix expansion, worker isolation, failure handling, and aggregate reports |
 | `tests/test_benchmark_profiling.py` | Proves A/B execute both heads while each D call executes only its selected branch |
 
 The older model, exporter, demo, and their tests now live in `../legacy/`. We
@@ -154,7 +160,6 @@ keep them as a working baseline while building the benchmark.
 
 | Planned file | What it will do |
 | --- | --- |
-| Full-matrix benchmark mode | Run every configured profile, batch size, role mixture, and repeated trial |
 | `evidence/` | Keep the selected results, profiles, Unreal reports, and final analysis |
 
 Generated ONNX files go in ignored `artifacts/`. Temporary results and profiles
@@ -183,6 +188,22 @@ uv run python -m benchmarks.benchmark \
   --profile \
   --output benchmarks/runs/profile-summary.json
 ```
+
+The full portable comparison runs C and D under the same prepared workload in
+one fresh process per profile/workload/trial. A runs once per worker as an
+untimed correctness oracle. Workers execute sequentially so their measurements
+do not compete for the CPU:
+
+```bash
+uv run python -m benchmarks.benchmark \
+  --config benchmarks/config.json \
+  --matrix \
+  --architectures C D \
+  --output benchmarks/runs/cpu-results.json
+```
+
+The aggregate report is written only after every worker passes. Generated raw
+results remain ignored until selected evidence is deliberately curated.
 
 ## References
 
