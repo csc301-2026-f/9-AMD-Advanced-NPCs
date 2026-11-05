@@ -17,8 +17,8 @@ Implemented numerical learning
 
 The private ``Learning/RLToolsLearner.h`` API is for Schola's native policy and
 world service. It currently implements CPU feedforward SAC, TD3 and PPO.
-Public Unreal policy/settings objects and automatic gameplay coordination
-are subsequent integration work.
+The public Unreal policy/settings adapter and world service are described in
+:doc:`native_adaptive_policy`. Automatic gameplay coordination is separate work.
 
 .. list-table:: Existing Schola and the native implementation
    :header-rows: 1
@@ -105,7 +105,7 @@ random exploration, collection/training frequency, update bursts, publication,
 PPO epochs, learning rate and TD3 exploration noise. Optional fixed observation
 means/standard deviations are validated and copied into snapshots; observations
 are otherwise unchanged. Running normalization, recurrent models, additional
-devices, public settings UI, checkpoint persistence and automatic configuration
+devices, checkpoint persistence and automatic configuration
 generation are not implemented by this numerical-runtime change. Their presence
 in RLtools is not reported as available Schola functionality.
 
