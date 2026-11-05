@@ -152,6 +152,106 @@
         <div class="split ruled-columns"><div><h3>Presentation context</h3><ul class="reference-list"><li><a href="https://github.com/csc301-2026-f/deliverable-documents/tree/main/deliverables/D3" target="_blank" rel="noopener noreferrer">Course D3 templates</a></li><li><a href="../D2/README.md">Repository D2 evidence index</a></li><li><a href="../D2/iteration-02-review.md">D2 iteration review</a></li><li>Schola native online learning specification<br><span class="prompt">3 November 2026. Proposed final-product design.</span></li><li>Demo day rubric supplied by the instructor<br><span class="prompt">Screenshot provided with this task.</span></li></ul></div><div><h3>Your supporting artifacts</h3><p class="placeholder">[D3 PR / release / test report]</p><p class="placeholder">[Demo backup recording or screenshot sequence]</p><p class="placeholder">[Additional technical detail for likely questions]</p></div></div>
         <aside class="speaker-notes" data-time="Backup">Add supporting material as extra sections after this slide. Do not invent links. The specification distinguishes an existing prototype, proposed integration, and final-product requirements. It is not evidence of D3 completion. The linked course product-evolution template is a written deliverable, separate from this slideshow.</aside>
       </section>
+
+      <section class="slide cover dark sp-slide sp-team-cover" id="shared-policy-team" aria-labelledby="shared-policy-team-heading" data-title="Shared Policy NPCs: team" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
+        <div class="cover-content">
+          <div class="sp-reveal">
+            <p class="eyebrow">Advanced NPCs for AMD Schola</p>
+            <h1 id="shared-policy-team-heading">Shared Policy<br>team<span class="accent">.</span></h1>
+            <p class="lead">Shared Policy NPCs &middot; Deliverable 3</p>
+          </div>
+          <div class="cover-mark sp-team sp-reveal"><span>TEAM MEMBERS</span><ul><li>Clementine Yang</li><li>Jaela</li></ul></div>
+        </div>
+        <aside class="speaker-notes" data-time="[Section intro time]">Introduce the Shared Policy team, Clementine Yang and Jaela, before walking through our D2 to D3 progress, the macOS ARM64 build support, and the Unreal NNE compatibility testing.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-progress" aria-labelledby="shared-policy-progress-heading" data-title="Shared Policy NPCs: our progress" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs</span></header>
+        <p class="eyebrow">Shared Policy NPCs</p>
+        <h2 id="shared-policy-progress-heading">Our progress: D2 <span class="sp-arrow">&#8594;</span> D3</h2>
+        <ol class="sp-timeline">
+          <li class="sp-stage">
+            <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D2</span><span class="sp-stage-caption">Shared policy foundation</span></div>
+            <ul class="sp-points">
+              <li>Shared backbone with specialized heads</li>
+              <li>PyTorch-to-ONNX export</li>
+              <li>Python ONNX Runtime prototype</li>
+            </ul>
+          </li>
+          <li class="sp-stage is-current">
+            <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D3</span><span class="sp-stage-caption">Evaluation &amp; engine validation</span></div>
+            <ul class="sp-points">
+              <li>Prototype evaluating five architectures (A&ndash;E)</li>
+              <li>Unreal NNE validation for architectures A, C and D</li>
+              <li>macOS ARM64 build support</li>
+            </ul>
+          </li>
+        </ol>
+        <div class="takeaway sp-reveal"><span>Future work</span><p>Final performance benchmarking remains future work.</p></div>
+        <aside class="speaker-notes" data-time="[Shared Policy progress time]">D2 established the shared-policy design: one shared backbone with specialized heads, exported from PyTorch to ONNX and run in a Python ONNX Runtime prototype. In D3 we built a prototype to evaluate five architectures, A to E, validated architectures A, C and D in Unreal through NNE, and added macOS ARM64 build support. We have not benchmarked final performance yet; that is future work.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-macos" aria-labelledby="shared-policy-macos-heading" data-title="Shared Policy NPCs: macOS ARM64 build support" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Individual contribution</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">My contribution &mdash; Clementine Yang</p><h2 id="shared-policy-macos-heading">macOS ARM64 build support</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #32</span><span class="sp-status">Open / Draft</span></a>
+        </div>
+        <div class="split sp-contribution">
+          <div class="sp-reveal">
+            <p class="sp-column-label">What I built</p>
+            <div class="statement-list">
+              <div><span class="item-number">01</span><div><h3>macOS ARM64 gRPC dependency build scripts</h3></div></div>
+              <div><span class="item-number">02</span><div><h3>Schola build configuration and plugin setup</h3></div></div>
+              <div><span class="item-number">03</span><div><h3>macOS documentation</h3></div></div>
+            </div>
+          </div>
+          <div class="sp-verify sp-reveal">
+            <p class="sp-column-label">How I verified it</p>
+            <ul class="sp-checks">
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p>Built the dependencies on Apple Silicon</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p>Compiled and linked <strong>BackgroundNPCsEditor</strong> with Unreal Engine 5.8 using <code>-NoUBA</code></p></li>
+            </ul>
+          </div>
+        </div>
+        <p class="source-line">Pull request: <a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32" target="_blank" rel="noopener noreferrer">github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32</a> &middot; open as a draft, not yet merged</p>
+        <aside class="speaker-notes" data-time="[Contribution time]">My contribution is macOS ARM64 build support, in PR #32. I wrote the gRPC dependency build scripts for macOS ARM64, set up the Schola build configuration and plugin, and documented the macOS workflow. I verified it by building the dependencies on Apple Silicon and compiling and linking BackgroundNPCsEditor with Unreal Engine 5.8 using the -NoUBA flag. The PR is still open as a draft.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-nne" aria-labelledby="shared-policy-nne-heading" data-title="Shared Policy NPCs: Unreal NNE compatibility testing" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Validation</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">Engine validation</p><h2 id="shared-policy-nne-heading">Unreal NNE compatibility testing</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #33</span><span class="sp-status">Open / Not merged</span></a>
+        </div>
+        <div class="three-columns sp-cards">
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">A</span>
+            <h3>All Heads</h3>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">C</span>
+            <h3>Separate Models</h3>
+            <ul class="sp-cases"><li>Batch 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">D</span>
+            <h3>Conditional Execution</h3>
+            <ul class="sp-cases"><li>Both Boolean branches</li><li>Batch 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+        </div>
+        <dl class="sp-environment sp-reveal">
+          <div><dt>Result</dt><dd>3 / 3 Unreal Automation Tests passed</dd></div>
+          <div><dt>Runtime</dt><dd>NNERuntimeORTCpu</dd></div>
+          <div><dt>Engine &amp; platform</dt><dd>Unreal Engine 5.8 &middot; macOS ARM64</dd></div>
+          <div><dt>Reference</dt><dd>Python ONNX Runtime</dd></div>
+        </dl>
+        <aside class="speaker-notes" data-time="[NNE testing time]">PR #33 adds Unreal NNE compatibility tests for three of the five architectures. A runs all heads; C uses separate models, tested at batch sizes 1 and 2; D uses conditional execution, tested on both Boolean branches at batch sizes 1 and 2. All three Unreal Automation Tests passed using NNERuntimeORTCpu in Unreal Engine 5.8 on macOS ARM64, validated against Python ONNX Runtime reference outputs. PR #33 is open and not merged yet.</aside>
+      </section>
     </div>
   </main>
 
