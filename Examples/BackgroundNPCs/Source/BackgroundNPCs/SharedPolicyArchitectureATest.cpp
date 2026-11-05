@@ -9,7 +9,6 @@
 
 namespace SharedPolicyArchitectureATest
 {
-	constexpr int32 BatchSize = 2;
 	constexpr int32 ObservationWidth = 64;
 	constexpr int32 ActionWidth = 2;
 	constexpr double AbsoluteTolerance = 1e-5;
@@ -17,18 +16,34 @@ namespace SharedPolicyArchitectureATest
 	const TCHAR* ModelObjectPath = TEXT("/Game/A_all_heads.A_all_heads");
 	const TCHAR* RuntimeName = TEXT("NNERuntimeORTCpu");
 
-	const double ExpectedExpert0[BatchSize][ActionWidth] = {
+	const double ExpectedExpert0[2][2] = {
 		{-0.1623554528, -0.1630928367},
 		{-0.1648618877, -0.1687339097},
 	};
-	const double ExpectedExpert1[BatchSize][ActionWidth] = {
+	const double ExpectedExpert1[2][2] = {
 		{0.0694475845, -0.0019764062},
 		{0.0638729781, -0.0013816468},
 	};
+	const int32 BatchSizes[] = {1, 2};
 
 	bool ShapeIs(TConstArrayView<uint32> Shape, uint32 Batch, uint32 Width)
 	{
 		return Shape.Num() == 2 && Shape[0] == Batch && Shape[1] == Width;
+	}
+
+	FString ShapeText(TConstArrayView<int32> Shape)
+	{
+		FString Text = TEXT("[");
+		for (int32 Index = 0; Index < Shape.Num(); ++Index)
+		{
+			if (Index > 0)
+			{
+				Text += TEXT(", ");
+			}
+			Text += FString::FromInt(Shape[Index]);
+		}
+		Text += TEXT("]");
+		return Text;
 	}
 
 	FString ShapeText(TConstArrayView<uint32> Shape)
@@ -92,67 +107,43 @@ bool FSharedPolicyArchitectureAOrtTest::RunTest(const FString&)
 	}
 
 	const TConstArrayView<FTensorDesc> InputDescs = Instance->GetInputTensorDescs();
-	if (!TestEqual(TEXT("Architecture A input count"), InputDescs.Num(), 1))
+	if (!TestEqual(TEXT("Architecture A input count"), InputDescs.Num(), 1)
+		|| !TestTrue(TEXT("Architecture A input is observations"), InputDescs.Num() == 1 && InputDescs[0].GetName() == TEXT("observations")))
 	{
+		FString Names;
+		for (const FTensorDesc& Desc : InputDescs)
+		{
+			Names += Desc.GetName() + TEXT(" ");
+		}
+		AddError(FString::Printf(TEXT("Architecture A inputs were [%s]."), *Names));
 		return false;
 	}
-	if (!TestTrue(TEXT("Architecture A input type is float32"), InputDescs[0].GetDataType() == ENNETensorDataType::Float))
+	const TConstArrayView<int32> ObservationDims = InputDescs[0].GetShape().GetData();
+	if (!TestTrue(TEXT("observations is float32"), InputDescs[0].GetDataType() == ENNETensorDataType::Float)
+		|| !TestEqual(TEXT("observations rank"), ObservationDims.Num(), 2)
+		|| !TestEqual(TEXT("observations feature dimension"), ObservationDims.Num() == 2 ? ObservationDims[1] : 0, ObservationWidth)
+		|| !TestTrue(TEXT("observations batch dimension is dynamic"), ObservationDims.Num() == 2 && ObservationDims[0] < 0))
 	{
-		AddError(FString::Printf(TEXT("Input '%s' is not float32."), *InputDescs[0].GetName()));
+		AddError(FString::Printf(TEXT("observations contract mismatch. Declared shape was %s."), *ShapeText(ObservationDims)));
 		return false;
 	}
-
-	const uint32 InputDims[] = {uint32(BatchSize), uint32(ObservationWidth)};
-	const TArray<FTensorShape> InputShapes = {FTensorShape::Make(MakeArrayView(InputDims))};
-	if (!TestTrue(TEXT("Set input shape [2, 64]"), Instance->SetInputTensorShapes(InputShapes) == EResultStatus::Ok))
-	{
-		AddError(FString::Printf(TEXT("SetInputTensorShapes failed for input '%s'."), *InputDescs[0].GetName()));
-		return false;
-	}
-
-	TArray<float> Observations;
-	Observations.SetNumZeroed(BatchSize * ObservationWidth);
-	Observations[0] = 1.f;
-	Observations[ObservationWidth] = 2.f;
 
 	const TConstArrayView<FTensorDesc> OutputDescs = Instance->GetOutputTensorDescs();
-	const TConstArrayView<FTensorShape> ResolvedBeforeRun = Instance->GetOutputTensorShapes();
-	TArray<TArray<float>> OutputStorage;
-	TArray<FTensorBindingCPU> OutputBindings;
-	OutputStorage.SetNum(OutputDescs.Num());
-	OutputBindings.Reserve(OutputDescs.Num());
 	int32 Expert0Index = INDEX_NONE;
 	int32 Expert1Index = INDEX_NONE;
 	for (int32 Index = 0; Index < OutputDescs.Num(); ++Index)
 	{
-		const FTensorDesc& Desc = OutputDescs[Index];
-		if (Desc.GetDataType() != ENNETensorDataType::Float)
-		{
-			AddError(FString::Printf(TEXT("Output '%s' is not float32."), *Desc.GetName()));
-			return false;
-		}
-		if (Desc.GetName() == TEXT("expert_0_actions"))
+		if (OutputDescs[Index].GetName() == TEXT("expert_0_actions"))
 		{
 			Expert0Index = Index;
 		}
-		else if (Desc.GetName() == TEXT("expert_1_actions"))
+		else if (OutputDescs[Index].GetName() == TEXT("expert_1_actions"))
 		{
 			Expert1Index = Index;
 		}
-		int32 ElementCount = BatchSize * ActionWidth;
-		if (ResolvedBeforeRun.IsValidIndex(Index) && ResolvedBeforeRun[Index].Volume() > 0)
-		{
-			if (ResolvedBeforeRun[Index].Volume() > uint64(MAX_int32))
-			{
-				AddError(FString::Printf(TEXT("Output '%s' is too large to bind."), *Desc.GetName()));
-				return false;
-			}
-			ElementCount = int32(ResolvedBeforeRun[Index].Volume());
-		}
-		OutputStorage[Index].SetNumZeroed(ElementCount);
-		OutputBindings.Add({OutputStorage[Index].GetData(), uint64(ElementCount) * sizeof(float)});
 	}
-	if (!TestTrue(TEXT("Output expert_0_actions is present"), Expert0Index != INDEX_NONE)
+	if (!TestEqual(TEXT("Architecture A output count"), OutputDescs.Num(), 2)
+		|| !TestTrue(TEXT("Output expert_0_actions is present"), Expert0Index != INDEX_NONE)
 		|| !TestTrue(TEXT("Output expert_1_actions is present"), Expert1Index != INDEX_NONE))
 	{
 		FString Names;
@@ -163,27 +154,17 @@ bool FSharedPolicyArchitectureAOrtTest::RunTest(const FString&)
 		AddError(FString::Printf(TEXT("Architecture A outputs were [%s]."), *Names));
 		return false;
 	}
-
-	const FTensorBindingCPU InputBinding = {Observations.GetData(), uint64(Observations.Num()) * sizeof(float)};
-	if (!TestTrue(TEXT("RunSync"), Instance->RunSync(MakeArrayView(&InputBinding, 1), OutputBindings) == EResultStatus::Ok))
-	{
-		AddError(TEXT("NNERuntimeORTCpu RunSync failed for Architecture A."));
-		return false;
-	}
-
-	const TConstArrayView<FTensorShape> OutputShapes = Instance->GetOutputTensorShapes();
-	if (!TestEqual(TEXT("Resolved output count"), OutputShapes.Num(), OutputDescs.Num()))
-	{
-		return false;
-	}
 	const int32 CheckedOutputs[] = {Expert0Index, Expert1Index};
 	for (const int32 Index : CheckedOutputs)
 	{
-		const TConstArrayView<uint32> Shape = OutputShapes[Index].GetData();
-		if (!TestTrue(
-				FString::Printf(TEXT("%s shape is [2, 2], got %s"), *OutputDescs[Index].GetName(), *ShapeText(Shape)),
-				ShapeIs(Shape, uint32(BatchSize), uint32(ActionWidth))))
+		const FTensorDesc& Desc = OutputDescs[Index];
+		const TConstArrayView<int32> Dims = Desc.GetShape().GetData();
+		if (!TestTrue(FString::Printf(TEXT("%s is float32"), *Desc.GetName()), Desc.GetDataType() == ENNETensorDataType::Float)
+			|| !TestEqual(FString::Printf(TEXT("%s rank"), *Desc.GetName()), Dims.Num(), 2)
+			|| !TestEqual(FString::Printf(TEXT("%s feature dimension"), *Desc.GetName()), Dims.Num() == 2 ? Dims[1] : 0, ActionWidth)
+			|| !TestTrue(FString::Printf(TEXT("%s batch dimension is dynamic"), *Desc.GetName()), Dims.Num() == 2 && Dims[0] < 0))
 		{
+			AddError(FString::Printf(TEXT("%s contract mismatch. Declared shape was %s."), *Desc.GetName(), *ShapeText(Dims)));
 			return false;
 		}
 	}
@@ -197,28 +178,85 @@ bool FSharedPolicyArchitectureAOrtTest::RunTest(const FString&)
 		{Expert0Index, ExpectedExpert0},
 		{Expert1Index, ExpectedExpert1},
 	};
+
 	bool bValuesMatch = true;
-	for (const FExpectedOutput& Expected : ExpectedOutputs)
+	for (const int32 BatchSize : BatchSizes)
 	{
-		const FString& Name = OutputDescs[Expected.Index].GetName();
-		const TArray<float>& Actual = OutputStorage[Expected.Index];
-		for (int32 Row = 0; Row < BatchSize; ++Row)
+		const FString CaseName = FString::Printf(TEXT("batch=%d"), BatchSize);
+		const uint32 ConcreteObservationDims[] = {uint32(BatchSize), uint32(ObservationWidth)};
+		const TArray<FTensorShape> InputShapes = {FTensorShape::Make(MakeArrayView(ConcreteObservationDims))};
+		if (!TestTrue(
+				FString::Printf(TEXT("SetInputTensorShapes %s"), *CaseName),
+				Instance->SetInputTensorShapes(InputShapes) == EResultStatus::Ok))
 		{
-			for (int32 Column = 0; Column < ActionWidth; ++Column)
+			AddError(FString::Printf(TEXT("SetInputTensorShapes failed for Architecture A with %s."), *CaseName));
+			return false;
+		}
+
+		TArray<float> Observations;
+		Observations.SetNumZeroed(BatchSize * ObservationWidth);
+		Observations[0] = 1.f;
+		if (BatchSize > 1)
+		{
+			Observations[ObservationWidth] = 2.f;
+		}
+
+		TArray<TArray<float>> OutputStorage;
+		TArray<FTensorBindingCPU> OutputBindings;
+		OutputStorage.SetNum(OutputDescs.Num());
+		OutputBindings.Reserve(OutputDescs.Num());
+		for (int32 Index = 0; Index < OutputDescs.Num(); ++Index)
+		{
+			const int32 ElementCount = BatchSize * ActionWidth;
+			OutputStorage[Index].SetNumZeroed(ElementCount);
+			OutputBindings.Add({OutputStorage[Index].GetData(), uint64(ElementCount) * sizeof(float)});
+		}
+
+		const FTensorBindingCPU InputBinding = {Observations.GetData(), uint64(Observations.Num()) * sizeof(float)};
+		if (!TestTrue(
+				FString::Printf(TEXT("RunSync %s"), *CaseName),
+				Instance->RunSync(MakeArrayView(&InputBinding, 1), OutputBindings) == EResultStatus::Ok))
+		{
+			AddError(FString::Printf(TEXT("NNERuntimeORTCpu RunSync failed for Architecture A with %s."), *CaseName));
+			return false;
+		}
+
+		const TConstArrayView<FTensorShape> OutputShapes = Instance->GetOutputTensorShapes();
+		if (!TestEqual(FString::Printf(TEXT("Resolved output count (%s)"), *CaseName), OutputShapes.Num(), OutputDescs.Num()))
+		{
+			return false;
+		}
+		for (const FExpectedOutput& Expected : ExpectedOutputs)
+		{
+			const FString& Name = OutputDescs[Expected.Index].GetName();
+			const TConstArrayView<uint32> Shape = OutputShapes[Expected.Index].GetData();
+			if (!TestTrue(
+					FString::Printf(TEXT("%s shape is [%d, 2] for %s, got %s"), *Name, BatchSize, *CaseName, *ShapeText(Shape)),
+					ShapeIs(Shape, uint32(BatchSize), uint32(ActionWidth))))
 			{
-				const double Reference = Expected.Values[Row][Column];
-				const double Value = Actual[Row * ActionWidth + Column];
-				const double Tolerance = AbsoluteTolerance + RelativeTolerance * FMath::Abs(Reference);
-				if (FMath::Abs(Value - Reference) > Tolerance)
+				return false;
+			}
+
+			const TArray<float>& Actual = OutputStorage[Expected.Index];
+			for (int32 Row = 0; Row < BatchSize; ++Row)
+			{
+				for (int32 Column = 0; Column < ActionWidth; ++Column)
 				{
-					AddError(FString::Printf(
-						TEXT("%s[%d, %d] = %.10f, Python reference %.10f, tolerance %.10f."),
-						*Name, Row, Column, Value, Reference, Tolerance));
-					bValuesMatch = false;
+					const double Reference = Expected.Values[Row][Column];
+					const double Value = Actual[Row * ActionWidth + Column];
+					const double Tolerance = AbsoluteTolerance + RelativeTolerance * FMath::Abs(Reference);
+					if (FMath::Abs(Value - Reference) > Tolerance)
+					{
+						AddError(FString::Printf(
+							TEXT("%s %s[%d, %d] = %.10f, Python reference %.10f, tolerance %.10f."),
+							*CaseName, *Name, Row, Column, Value, Reference, Tolerance));
+						bValuesMatch = false;
+					}
 				}
 			}
 		}
 	}
+
 	TestTrue(TEXT("NNE outputs match Python ONNX Runtime"), bValuesMatch);
 	return bValuesMatch;
 }
