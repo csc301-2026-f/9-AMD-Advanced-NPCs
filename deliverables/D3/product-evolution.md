@@ -30,10 +30,10 @@
 
 |Subteam| Workflow or quality | Before D3 | After D3 | Supporting evidence |
 | --- | --- | --- | --- | --- |
-|Shared-Policy| [Aspect improved] | [D2 baseline] | [Observed D3 improvement] | [Demo, test, feedback, or measurement] |
-|Shared-Policy| Architecture comparison | No systematic comparison | Evaluated five architectures (A–E) and their inference trade-offs | PR #24 |
-|Shared-Policy| Unreal compatibility | Mainly Python testing | A, C and D passed Unreal NNE tests | PR #33 |
-|Shared-Policy| macOS support | Limited build support | Added ARM64 build support | PR #32 |
+|[Subteam Name]| [Aspect improved] | [D2 baseline] | [Observed D3 improvement] | [Demo, test, feedback, or measurement] |
+|Shared Policy| Architecture comparison | No systematic comparison | Evaluated five architectures (A–E) and their inference trade-offs | PR #24 |
+|Shared Policy| Unreal compatibility | Mainly Python testing | A, C and D passed Unreal NNE tests | PR #33 |
+|Shared Policy| macOS support | Limited build support | Added ARM64 build support | PR #32 |
 
 [Explain the impact and any limits of the comparison. Use comparable conditions
 for measurements.]
