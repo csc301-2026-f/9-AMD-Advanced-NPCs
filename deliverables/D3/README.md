@@ -1,4 +1,4 @@
-# Deliverable 3 scaffolding
+# Deliverable 3 preparation
 
 Initial files for the team to fill in:
 
@@ -6,8 +6,6 @@ Initial files for the team to fill in:
 - [Product evolution](product-evolution.md)
 - [Individual contributions](Individual_Contributions_Deliverable3.md)
 
-The written documents follow the course D3 templates and contain placeholders
-only. Add the team's actual implementation, results, and contributions later.
 
 ## Presentation skeleton
 
@@ -36,7 +34,6 @@ Without JavaScript, all slides are available in document order.
 
 Edit the text directly in `index.html`. Bracketed text such as `[Presenter]` is a
 placeholder, not a claim about delivered work. This is a source-editable skeleton,
-not an in-browser editor. Most of the presentation intentionally remains blank.
 
 The only populated project baseline is a brief summary of the existing D2
 online-learning write-up. Other subteams can add their context or replace it to
@@ -120,7 +117,3 @@ URL. Fonts, colors, and layouts are in `styles.css`.
 - Existing [D2 evidence index](../D2/README.md),
   [iteration review](../D2/iteration-02-review.md), and
   [project README](../../README.md) for the D2 baseline only.
-
-The written product-evolution and individual-contribution scaffolds remain
-separate from the slideshow. All three are starting points for the team to fill
-in before submission.

@@ -19,6 +19,14 @@ The event-based NPC work focuses on allowing NPCs to perform inference in respon
 | Efficient background agents | Batched, non-blocking inference for large populations of ML-controlled Actors and Mass entities. The game thread submits observations and applies actions on a later frame. Background workers run the ONNX policy in batches. Researchers can scale agent counts and decision rates without the model running inside the frame. |
 | Shared Policy NPC inference | A reference ONNX model batches observations from multiple NPCs and supports role-specific Combat and Support outputs. Unreal-side bindings associate each NPC with a head, while the Shared Policy Stepper collects observations and routes returned actions. The reference model and Unreal routing infrastructure are implemented separately; real NNE integration and performance evaluation remain future work. |
 
+## D3 highlight: CampusCrowd
+
+**20,000 agents. 200,000 decisions per second. 60 FPS.** [Watch the CampusCrowd demo](https://utoronto-my.sharepoint.com/:v:/g/personal/maxh_xu_mail_utoronto_ca/IQDEpcI8CITpT6vs0vv20yCwAU4lH9gFIKJzbEZhq47R4p8?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=R3tV6g).
+
+Max Xu’s Background NPC work extends the D2 comparison into CampusCrowd, a campus scene with pedestrian routes and up to 100,000 Mass agents. Recorded local runs reached 60 FPS with 50,000 students; 100,000 students remained below 60 FPS. See the [setup and measured limits](Examples/CampusCrowd/README.md), [D3 report](deliverables/D3/product-evolution.md), and [presentation section](deliverables/D3/index.html#background-campus).
+
+CampusCrowd is merged into `main` through PR #25. It runs locally in Unreal Engine with build and package scripts in `Examples/CampusCrowd`. The demo adds queue sizing, missed-target reporting, and CAD validation evidence. Cross-platform validation and a trained policy remain open.
+
 ## Access the D2 product
 
 | Item | Location |
@@ -369,7 +377,7 @@ On Windows, run `New-Item -ItemType Junction -Path Plugins/Schola -Target ../../
 
 ```bash
 "$UE_ENGINE_ROOT/Engine/Binaries/Linux/UnrealEditor-Cmd" "$PWD/BackgroundNPCs.uproject" -nullrhi -unattended -nosound \
-  "-ExecCmds=Automation RunTests Schola.Inference.Background+Schola.Mass;Quit" "-TestExit=Automation Test Queue Empty"
+  "-ExecCmds=Automation RunTests Schola.Inference.Background+Schola.Mass;Quit"
 ```
 
 On the development machine, all 43 `Schola.Inference.Background` and `Schola.Mass` automation tests passed from the example project (UE 5.8.3, Linux).
@@ -381,6 +389,10 @@ On the development machine, all 43 `Schola.Inference.Background` and `Schola.Mas
 ## Deployment and GitHub workflow
 
 The adaptive prototype has repeatable build, test, and packaging scripts under `Examples/AdaptiveTag`. Its source, map, materials, and pinned dependency are versioned together in this repository. Generated binaries and caches remain ignored. The packaged game still needs a published D2 release location.
+
+**D3 Background NPC CI/CD alternative:** We do not use GitHub Actions for Unreal builds and tests. Standard hosted runners lack our configured Unreal installation and graphics environment; provisioning that image and its dependencies does not fit the course’s short jobs and shared minutes budget. We use local automated tests, build verification, comparison reports, and scripted packaging under the rubric’s project-constraints exception. This is a manually invoked workflow, with no automatic deployment on merge. See the [CampusCrowd validation and deployment commands](Examples/CampusCrowd/README.md#local-validation-and-deployment-d3).
+
+**D3 Background NPC quality evidence:** Five CAD regression tests passed locally on 5 November 2026. The [CampusCrowd NFR evidence](Examples/CampusCrowd/README.md#non-functional-requirements) covers performance budgets, bounded queues, stale-action handling, input validation, explicit errors, keyboard controls, and disabling the unused Android file server. The D3 editor build, 43 Unreal background/Mass tests, packaging, and packaged smoke test passed on UE 5.8.3/Linux. The standalone run delivered 59.98 FPS and 199,922 decisions/s for 20,000 agents, with zero dropped requests during capture. [Retained validation evidence](Examples/CampusCrowd/Evidence/d3-validation-2026-11-05/README.md). Peer review and independent-machine validation still need confirmation.
 
 Existing Schola development conventions are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
