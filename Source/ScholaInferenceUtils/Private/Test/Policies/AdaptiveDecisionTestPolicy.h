@@ -72,6 +72,16 @@ protected:
     }
 };
 
+/** Verifies that common tickets/identity can serve a backend with categorical spaces. */
+UCLASS()
+class UAdaptiveDiscreteTestPolicy : public UAdaptiveDecisionTestPolicy
+{
+    GENERATED_BODY()
+protected:
+    bool ValidateSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error) const override;
+    bool ValidatePoint(const TInstancedStruct<FPoint>& Point, const TInstancedStruct<FSpace>& Definition, FString& Error) const override;
+};
+
 /** An immutable scalar actor used to verify the common snapshot contract without a learner. */
 UCLASS()
 class UAdaptiveTestSnapshot : public UAdaptivePolicySnapshot

@@ -71,7 +71,7 @@ tree; they retain their algorithms and game behavior.
 ``ScholaRLTools`` compiles with C++20, precise floating-point semantics, no RTTI
 or exceptions, and no unity merging or precompiled header. RLtools operation
 definitions are confined to
-``Private/Learning/RLToolsSACInstantiations.cpp``. The spaces descriptor carries
+``Private/Learning/RLToolsLearner.cpp``. The spaces descriptor carries
 template dimensions only; it does not implement game movement or rewards.
 The ``Schola.RLTools.NativeBuild`` automation test initializes CPU SAC and
 evaluates a copied actor for two numerical configurations. Those test shapes
@@ -81,9 +81,10 @@ learning through the plugin.
 Next integration steps
 ----------------------
 
-The reusable numeric learner, supplied native policy, world-local learner
-service, bounded executor, game/environment coordinators, project-local profile
-generation, and checkpoint modes remain separate integration work. Game code
+The reusable numerical learner is described in :doc:`native_rltools_learning`.
+The supplied native policy, world-local learner service, game/environment
+coordinators, project-local generation and checkpoint persistence remain
+subsequent integration work. Game code
 must eventually select the supplied policy and provide task callbacks rather
 than implement its own RLtools wrapper. No new Python learning backend is used.
 

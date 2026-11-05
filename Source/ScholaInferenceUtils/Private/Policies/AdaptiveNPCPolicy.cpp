@@ -96,12 +96,22 @@ bool ValidateBoxDefinition(const TInstancedStruct<FSpace>& Definition, bool bAct
 }
 }
 
+bool UAdaptiveNPCPolicy::ValidateSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error) const
+{
+    return ValidateBoxDefinition(Definition, bActionSpace, Error);
+}
+
+bool UAdaptiveNPCPolicy::ValidatePoint(const TInstancedStruct<FPoint>& Point, const TInstancedStruct<FSpace>& Definition, FString& Error) const
+{
+    return ValidateBoxPoint(Point, Definition, Error);
+}
+
 bool UAdaptiveNPCPolicy::Init(const FInteractionDefinition& InDefinition)
 {
     check(IsInGameThread());
     FString Error;
-    if (!ValidateBoxDefinition(InDefinition.ObsSpaceDefn, false, Error)
-        || !ValidateBoxDefinition(InDefinition.ActionSpaceDefn, true, Error))
+    if (!ValidateSpaceDefinition(InDefinition.ObsSpaceDefn, false, Error)
+        || !ValidateSpaceDefinition(InDefinition.ActionSpaceDefn, true, Error))
     {
         LastError = MoveTemp(Error);
         if (!bInitialized)
@@ -249,7 +259,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
         return false;
     }
     FString Error;
-    if (!ValidateBoxPoint(Observation, InteractionDefinition.ObsSpaceDefn, Error))
+    if (!ValidatePoint(Observation, InteractionDefinition.ObsSpaceDefn, Error))
     {
         LastError = TEXT("Observation rejected: ") + Error;
         return false;
@@ -324,17 +334,17 @@ EAdaptiveSubmitResult UAdaptiveNPCPolicy::SubmitExperience(const FAdaptiveExperi
         return EAdaptiveSubmitResult::Rejected;
     }
     FString Error;
-    if (!ValidateBoxPoint(Experience.Observation, InteractionDefinition.ObsSpaceDefn, Error))
+    if (!ValidatePoint(Experience.Observation, InteractionDefinition.ObsSpaceDefn, Error))
     {
         LastError = TEXT("Experience observation rejected: ") + Error;
         return EAdaptiveSubmitResult::Rejected;
     }
-    if (!ValidateBoxPoint(Experience.NextObservation, InteractionDefinition.ObsSpaceDefn, Error))
+    if (!ValidatePoint(Experience.NextObservation, InteractionDefinition.ObsSpaceDefn, Error))
     {
         LastError = TEXT("Experience next observation rejected: ") + Error;
         return EAdaptiveSubmitResult::Rejected;
     }
-    if (!ValidateBoxPoint(Experience.ExecutedAction, InteractionDefinition.ActionSpaceDefn, Error))
+    if (!ValidatePoint(Experience.ExecutedAction, InteractionDefinition.ActionSpaceDefn, Error))
     {
         LastError = TEXT("Experience executed action rejected: ") + Error;
         return EAdaptiveSubmitResult::Rejected;
@@ -377,7 +387,7 @@ bool UAdaptiveNPCPolicy::CompleteDecision(const FAdaptiveDecision& InDecision)
         return false;
     }
     FString Error;
-    if (InDecision.PolicyVersion < 0 || !ValidateBoxPoint(InDecision.Action, InteractionDefinition.ActionSpaceDefn, Error))
+    if (InDecision.PolicyVersion < 0 || !ValidatePoint(InDecision.Action, InteractionDefinition.ActionSpaceDefn, Error))
     {
         FailDecision(Request, InDecision.PolicyVersion < 0
             ? TEXT("Result policy version must be nonnegative.") : TEXT("Action rejected: ") + Error);
