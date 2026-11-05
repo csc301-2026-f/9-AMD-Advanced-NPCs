@@ -12,7 +12,7 @@
 **[Name]**, [Role]
 > [Specific contributions]
 
-**Clementine Yang**, Shared Policy Unreal Integration
+### Clementine Yang — Shared Policy Unreal Integration
 
 - **PR #32 – macOS ARM64 Support:** Added macOS build scripts and dependency configuration for Schola. Successfully built gRPC dependencies and compiled the BackgroundNPCsEditor project on Apple Silicon using Unreal Engine 5.8.
 
