@@ -217,19 +217,21 @@
               <li>Shared backbone with specialized heads</li>
               <li>PyTorch-to-ONNX export</li>
               <li>Python ONNX Runtime prototype</li>
+              <li>Per-NPC head bindings and Shared Policy Stepper</li>
             </ul>
           </li>
           <li class="sp-stage is-current">
             <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D3</span><span class="sp-stage-caption">Evaluation &amp; engine validation</span></div>
             <ul class="sp-points">
-              <li>Prototype evaluating five architectures (A&ndash;E)</li>
-              <li>Unreal NNE validation for architectures A, C and D</li>
+              <li>Prototype evaluation of five architectures (A&ndash;E)</li>
+              <li>Unreal NNE compatibility and correctness validation for architectures A, C and D</li>
+              <li>Unreal C vs D performance benchmarking: 48 fresh-process trials across 16 workloads</li>
               <li>macOS ARM64 build support</li>
             </ul>
           </li>
         </ol>
-        <div class="takeaway sp-reveal"><span>Future work</span><p>Final performance benchmarking remains future work.</p></div>
-        <aside class="speaker-notes" data-time="[Shared Policy progress time]">D2 established the shared-policy design: one shared backbone with specialized heads, exported from PyTorch to ONNX and run in a Python ONNX Runtime prototype. In D3 we built a prototype to evaluate five architectures, A to E, validated architectures A, C and D in Unreal through NNE, and added macOS ARM64 build support. We have not benchmarked final performance yet; that is future work.</aside>
+        <div class="takeaway sp-reveal"><span>Future work</span><p>Further evaluation of memory usage, model scalability, and AMD hardware performance.</p></div>
+        <aside class="speaker-notes" data-time="[Shared Policy progress time]">D2 established the shared-policy foundation: a shared backbone with specialized heads, PyTorch-to-ONNX export, a Python ONNX Runtime prototype, and Unreal per-NPC head bindings with the Shared Policy Stepper. Those Unreal pieces are not yet connected through a real NNE policy. In D3 the prototype evaluated five architectures, A through E. Unreal NNE compatibility and correctness validation covers A, C and D only. We also completed the Unreal C versus D performance benchmark, 48 fresh-process trials across 16 workloads, and added macOS ARM64 build support. Further evaluation of memory usage, model scalability, and AMD hardware performance remains future work. That includes memory and model storage, scaling to 4 and 8 experts, integration with trained policies and actual gameplay, and AMD hardware validation.</aside>
       </section>
 
       <section class="slide sp-slide" id="shared-policy-macos" aria-labelledby="shared-policy-macos-heading" data-title="Shared Policy NPCs: macOS ARM64 build support" data-section="Shared Policy NPCs">
