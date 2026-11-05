@@ -73,8 +73,8 @@ or exceptions, and no unity merging or precompiled header. RLtools operation
 definitions are confined to
 ``Private/Learning/RLToolsLearner.cpp``. The spaces descriptor carries
 template dimensions only; it does not implement game movement or rewards.
-The ``Schola.RLTools.NativeBuild`` automation test initializes CPU SAC and
-evaluates a copied actor for two numerical configurations. Those test shapes
+The ``Schola.RLTools.NativeBuild`` automation test initializes every registered
+CPU SAC, TD3 and PPO configuration and evaluates its actor. Those test shapes
 are not a fixed gameplay-profile catalogue or evidence of complete online
 learning through the plugin.
 
@@ -82,10 +82,11 @@ Next integration steps
 ----------------------
 
 The reusable numerical learner is described in :doc:`native_rltools_learning`.
-The supplied native policy, world-local learner service, game/environment
-coordinators, project-local generation and checkpoint persistence remain
-subsequent integration work. Game code
-must eventually select the supplied policy and provide task callbacks rather
+The supplied native policy and world-local learner service are described in
+:doc:`native_adaptive_policy`, and project configuration generation is described
+in :doc:`rltools_configuration_generation`. Game/environment coordinators and
+checkpoint persistence remain subsequent integration work. Game code
+can select the supplied policy and provide task callbacks rather
 than implement its own RLtools wrapper. No new Python learning backend is used.
 
 Verification

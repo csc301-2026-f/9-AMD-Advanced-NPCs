@@ -19,6 +19,8 @@ class SCHOLAINFERENCEUTILS_API UAdaptiveNPCPolicy : public UObject, public IPoli
     GENERATED_BODY()
 
 public:
+    /** Shared Box-definition validation for backend configuration tools; no session or learner allocation. */
+    static bool ValidateBoxSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error);
     /** Reject invalid definitions without replacing an existing valid definition. See GetLastError. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     bool Init(const FInteractionDefinition& InDefinition) override;
@@ -52,7 +54,7 @@ public:
 
     /** Invalidate a pending or ready action without stopping the learner or resetting its weights. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
-    bool CancelDecision(int64 DecisionId);
+    virtual bool CancelDecision(int64 DecisionId);
 
     /** Advance the encounter, cancelling its actions while preserving the ready learning session. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
@@ -102,7 +104,26 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     virtual FAdaptiveOperationResult CaptureSnapshot(UAdaptivePolicySnapshot*& OutSnapshot);
 
+    /** The last 32 supported operations are retained. Unknown/retired IDs report Failed. */
+    UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
+    FAdaptiveOperationResult GetOperationResult(FGuid OperationId) const;
+
 protected:
+    /** Backend-independent diagnostics and asynchronous operation tracking. */
+    void SetBackendError(const FString& Error) { LastError = Error; }
+    bool RejectInitialization(const FString& Error);
+    void FailInitialization(const FString& Error);
+    FAdaptiveOperationResult RecordOperation(EAdaptiveOperationStatus Status, const FString& Diagnostic = FString());
+    void CompleteOperation(FGuid OperationId, EAdaptiveOperationStatus Status, const FString& Diagnostic = FString());
+
+    /** Invalidate attribution while a backend reconstructs state; does not release its binding. */
+    void SuspendSession();
+
+    /** Also called for abandoned asynchronous initialization, before a Ready session existed. */
+    virtual void OnSessionEnded(const FAdaptiveSessionInfo& PreviousSession) {}
+    virtual void OnDecisionRetrieved(int64 DecisionId) {}
+    /** Cancelled means explicit invalidation. Otherwise only the action-selection window ended. */
+    virtual void OnDecisionRetired(int64 DecisionId, bool bCancelled) {}
     /** Default validation supports Box spaces. Other backends override these hooks while
      * retaining common identity, finite-reward, ticket and lifecycle validation.
      */
@@ -177,4 +198,7 @@ private:
     EAdaptiveRequestStatus RequestStatus = EAdaptiveRequestStatus::Unknown;
     FString RequestError;
     double DeadlineSeconds = 0.0;
+
+    UPROPERTY(Transient, DuplicateTransient)
+    TArray<FAdaptiveOperationResult> OperationHistory;
 };
