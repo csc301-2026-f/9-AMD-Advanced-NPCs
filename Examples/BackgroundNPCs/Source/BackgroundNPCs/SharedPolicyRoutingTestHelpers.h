@@ -23,6 +23,19 @@ namespace SharedPolicyRouting
 		TArray<FModelCall> Calls;
 	};
 
+	struct FMeasurementConfig
+	{
+		int32 WarmupRequests = 0;
+		int32 MeasuredRequests = 1;
+	};
+
+	struct FMeasurementResult
+	{
+		TArray<double> RequestMilliseconds;
+		TArray<float> LastActions;
+		FRequestReport RequestReport;
+	};
+
 	class IExpertBackend
 	{
 	public:
@@ -43,6 +56,16 @@ namespace SharedPolicyRouting
 		TArray<float>& OutActions,
 		FRequestReport& OutReport,
 		FString& OutError);
+
+	bool MeasureRequests(
+		IExpertBackend& Backend,
+		TConstArrayView<float> Observations,
+		TConstArrayView<int32> Experts,
+		const FMeasurementConfig& Config,
+		FMeasurementResult& OutResult,
+		FString& OutError);
+
+	double PercentileMilliseconds(TConstArrayView<double> Samples, double Percentile);
 
 	enum class EArchitecture : uint8
 	{

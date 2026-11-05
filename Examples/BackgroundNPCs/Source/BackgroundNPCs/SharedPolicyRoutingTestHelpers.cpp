@@ -4,9 +4,13 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Algo/Sort.h"
+#include "HAL/PlatformTime.h"
 #include "NNE.h"
 #include "NNEModelData.h"
 #include "NNERuntimeCPU.h"
+
+#include <limits>
 
 namespace SharedPolicyRouting
 {
@@ -118,6 +122,88 @@ namespace SharedPolicyRouting
 		OutActions = MoveTemp(RestoredActions);
 		OutReport = MoveTemp(Report);
 		return true;
+	}
+
+	bool MeasureRequests(
+		IExpertBackend& Backend,
+		TConstArrayView<float> Observations,
+		TConstArrayView<int32> Experts,
+		const FMeasurementConfig& Config,
+		FMeasurementResult& OutResult,
+		FString& OutError)
+	{
+		OutResult = FMeasurementResult();
+		OutError.Reset();
+		if (Config.WarmupRequests < 0 || Config.MeasuredRequests <= 0)
+		{
+			return Fail(OutError, TEXT("Measurement requires non-negative warm-up and at least one measured request."));
+		}
+
+		for (int32 RequestIndex = 0;
+			RequestIndex < Config.WarmupRequests + Config.MeasuredRequests;
+			++RequestIndex)
+		{
+			const bool bMeasured = RequestIndex >= Config.WarmupRequests;
+			const double StartSeconds = bMeasured ? FPlatformTime::Seconds() : 0.0;
+			TArray<float> Actions;
+			FRequestReport Report;
+			if (!RouteRequest(Backend, Observations, Experts, Actions, Report, OutError))
+			{
+				OutResult = FMeasurementResult();
+				return false;
+			}
+			if (!bMeasured)
+			{
+				continue;
+			}
+
+			const double ElapsedMilliseconds = (FPlatformTime::Seconds() - StartSeconds) * 1000.0;
+			if (!FMath::IsFinite(ElapsedMilliseconds) || ElapsedMilliseconds < 0.0)
+			{
+				OutResult = FMeasurementResult();
+				return Fail(OutError, TEXT("Platform timer returned an invalid request duration."));
+			}
+			if (OutResult.RequestMilliseconds.IsEmpty())
+			{
+				OutResult.RequestReport = Report;
+			}
+			else
+			{
+				if (Report.Calls.Num() != OutResult.RequestReport.Calls.Num())
+				{
+					OutResult = FMeasurementResult();
+					return Fail(OutError, TEXT("Model-call count changed between measured requests."));
+				}
+				for (int32 CallIndex = 0; CallIndex < Report.Calls.Num(); ++CallIndex)
+				{
+					const FModelCall& Actual = Report.Calls[CallIndex];
+					const FModelCall& Expected = OutResult.RequestReport.Calls[CallIndex];
+					if (Actual.Expert != Expected.Expert || Actual.RowCount != Expected.RowCount)
+					{
+						OutResult = FMeasurementResult();
+						return Fail(OutError, TEXT("Model-call grouping changed between measured requests."));
+					}
+				}
+			}
+
+			OutResult.RequestMilliseconds.Add(ElapsedMilliseconds);
+			OutResult.LastActions = MoveTemp(Actions);
+		}
+		return true;
+	}
+
+	double PercentileMilliseconds(TConstArrayView<double> Samples, double Percentile)
+	{
+		if (Samples.IsEmpty() || !FMath::IsFinite(Percentile) || Percentile < 0.0 || Percentile > 1.0)
+		{
+			return std::numeric_limits<double>::quiet_NaN();
+		}
+		TArray<double> Sorted(Samples);
+		Algo::Sort(Sorted);
+		const double Position = Percentile * double(Sorted.Num() - 1);
+		const int32 Lower = FMath::FloorToInt(Position);
+		const int32 Upper = FMath::CeilToInt(Position);
+		return FMath::Lerp(Sorted[Lower], Sorted[Upper], Position - double(Lower));
 	}
 
 	struct FNneExpertBackend::FImpl
