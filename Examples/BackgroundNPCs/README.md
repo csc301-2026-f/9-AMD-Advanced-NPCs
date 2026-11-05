@@ -13,6 +13,8 @@ The HUD shows frame rate, frame time (mean and p99), game-thread inference time 
 
 `Content/Models/crowd_policy.onnx` is a hand-built steering network, **not a trained policy**. Its action is the direction to the agent's goal plus a bounded "wander" term from a randomly initialized 64→256→256→2 MLP. The MLP gives every decision a realistic small-network inference cost, and its output visibly steers agents. `Tools/make_crowd_policy.py` regenerates it (requires `numpy` and `onnx`). The demo measures scheduling and frame cost, not navigation quality.
 
+For CPU versus ROCm inference measurements, batch/worker recommendations, and reproduction commands, see [the ROCm feasibility benchmark](Benchmarks/README.md). The benchmark is separate from the demo's CPU-only NNE backend.
+
 ## Build and run
 
 Tested on Linux with Unreal Engine 5.8.3 (Vulkan) and on Apple Silicon with Unreal Engine 5.8. The Windows path has not been tested.

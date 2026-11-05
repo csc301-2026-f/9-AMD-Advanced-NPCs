@@ -1,0 +1,4 @@
+matplotlib==3.11.2
+shapely==2.2.0
+scikit-image==0.26.0
+ezdxf==1.4.5
