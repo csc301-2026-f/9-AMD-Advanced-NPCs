@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-05",
+  "sourceRevision": "7caa25975cc6b130d9e9edc2d9016fd7194c7f9b",
+  "mainBase": "d855e76",
+  "integratedFeatureTip": "2cb4d855f2a9777674010af82f3d903b3de70de7",
+  "environment": "Windows, UE 5.8.4, Win64 Development Editor, headless -nullrhi",
+  "unrealBuild": "Succeeded",
+  "unrealTests": {
+    "expected": 40,
+    "completed": 40,
+    "failed": 0,
+    "editorTestExitCode": 0,
+    "results": "adaptive-unreal-summary.json"
+  },
+  "generator": {
+    "checksPassed": 43,
+    "command": "./Test/rltools_generation/Run.ps1 -EnginePath <UE_5.8_root>"
+  },
+  "profiles": {
+    "shipped": 6,
+    "generated": [
+      {
+        "algorithm": "SAC",
+        "observations": 6,
+        "actions": 3
+      },
+      {
+        "algorithm": "TD3",
+        "observations": 7,
+        "actions": 4
+      },
+      {
+        "algorithm": "PPO",
+        "observations": 8,
+        "actions": 2
+      }
+    ]
+  },
+  "scope": "Local numerical/API checks. Rendering, packaged gameplay, useful adaptation and hard frame-time guarantees are not established."
+}

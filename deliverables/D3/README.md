@@ -1,126 +1,121 @@
-# Deliverable 3 scaffolding
+# Deliverable 3: Advanced NPCs for AMD Schola
 
-Initial files for the team to fill in:
-
-- [Presentation skeleton](index.html)
-- [Product evolution](product-evolution.md)
+- [Slideshow](index.html)
+- [Product evolution report](product-evolution.md)
 - [Individual contributions](Individual_Contributions_Deliverable3.md)
+- [Adaptive NPC workflow, test results and NFR evidence](adaptive-npc-evidence.md)
 
-The written documents follow the course D3 templates and contain placeholders
-only. Add the team's actual implementation, results, and contributions later.
+The adaptive NPC section covers the reusable native Schola/RLtools integration.
+The existing Shared Policy slides and report content remain owned by that subteam.
 
-## Presentation skeleton
+## Open and present the slideshow
 
-Open **[index.html](index.html)** directly in a modern browser. The slideshow is
-static HTML, CSS, and JavaScript. It works offline with no installation, build
-step, server, or external fonts/libraries.
+Open **index.html** in a modern browser. The slides work offline with no server,
+external fonts or installed packages. Keep this folder and its relative paths
+within the repository when following evidence links.
 
-## Presenting
+- Arrow keys, Page Up / Page Down, or the on-screen buttons change slides.
+- Space / Shift + Space changes slides when a button or link is not focused.
+- **O** opens the overview. **Home / End** selects the first / last slide.
+- **N** toggles speaker notes. Notes appear in the shared browser window; close
+  them before showing the audience the slide.
+- **F** requests fullscreen. **?** shows shortcuts. **Escape** closes dialogs/notes.
+- Browser Print / Save as PDF exports one 16:9 page per slide. Enable background
+  graphics and disable browser headers/footers. Notes and controls do not print.
 
-- **Next / previous:** arrow keys, Page Down / Page Up, or the on-screen buttons.
-- **Space / Shift + Space:** next / previous when a button or link is not focused.
-- **Home / End:** first / last slide (the last slide is the reference appendix).
-- **O:** open the slide overview and jump to any slide.
-- **N:** toggle speaker notes. Notes appear in the same window, so they are
-  visible to an audience when that window is shared. Close them before presenting.
-- **F:** toggle fullscreen where the browser supports it.
-- **?:** keyboard help. **Escape:** close the active dialog or notes.
-- Each slide has a URL fragment, such as `index.html#demo`, for direct access.
-- Use browser **Print / Save as PDF** for all slides, one 16:9 page per slide.
-  Choose background graphics and disable browser headers/footers if offered.
-  Controls and speaker notes are excluded from print output.
+The adaptive slides use these stable links:
 
-Without JavaScript, all slides are available in document order.
+| Slide | Purpose |
+| --- | --- |
+| [Opening](index.html#title) | Native learning through Schola |
+| [D2 baseline](index.html#baseline) | Task-specific prototypes and the reuse gap |
+| [Gap](index.html#gap) | Developer need and observable acceptance criterion |
+| [Workflow](index.html#improvement) | Configure, connect gameplay and observe learning |
+| [Architecture](index.html#architecture) | Game, Schola and RLtools responsibilities |
+| [Before / after](index.html#comparison) | Concrete capability changes |
+| [Live game demo](index.html#demo) | Handoff to the team's prepared game |
+| [Validation](index.html#validation) | UE 5.8.4 results and their limits |
+| [Non-functional requirements](index.html#nfr) | Reliability, resources, isolation and evidence |
+| [Process / CI/CD](index.html#process) | Reviewed PRs, repeatable checks and pending AMD integration |
+| [D4 scope](index.html#d4) | Automatic collection, evaluation, persistence and delivery |
+| [Discussion](index.html#questions) | Questions about the adaptive section |
+| [References](index.html#references) | Repository artifacts and implementation PRs |
 
-## Filling it in
+The Shared Policy section follows these slides, starting at
+[index.html#shared-policy-team](index.html#shared-policy-team). Its content and
+layout are preserved. Use the overview to move between subteams.
 
-Edit the text directly in `index.html`. Bracketed text such as `[Presenter]` is a
-placeholder, not a claim about delivered work. This is a source-editable skeleton,
-not an in-browser editor. Most of the presentation intentionally remains blank.
+## Adaptive developer workflow
 
-The only populated project baseline is a brief summary of the existing D2
-online-learning write-up. Other subteams can add their context or replace it to
-match the team's chosen D3 story. No D3 implementation, measurements, feedback,
-release links, or delivery dates have been assumed.
+The game defines observations, actions, rewards and episode conditions. Schola
+connects those concepts to native SAC, TD3 or PPO, which learns inside Unreal.
+This parallels Schola's Python integration with SB3/RLlib while using C++ locally.
 
-| Slide | Fill in | Rubric / purpose |
-| --- | --- | --- |
-| 1. Title | Presenters, date, one-sentence improvement | Opening and clarity |
-| 2. D2 baseline | Relevant starting workflow and screenshot | Context |
-| 3. Gap | Most important gap, how it was found, why it matters | Gap identification and motivation |
-| 4. Implementation | Completed improvement and user workflow | Product improvement explanation |
-| 5. Design | Actual architecture, integration challenge, trade-off | Design understanding |
-| 6. Before / after | Concrete comparison with supporting evidence | Impact |
-| 7. Live demo | Start state, exact actions, expected result | Demo quality |
-| 8. Verification | Relevant D3 checks, artifacts, limitations | Reliability and engineering evidence |
-| 9. Process | Practice improved since D2, example, reflection | Engineering and process awareness |
-| 10. D4 | Remaining work, dependency / owner, risk | Awareness of remaining work |
-| 11. Questions | Main takeaway and real project links | Handling questions |
-| 12. References | D3 artifacts and demo backup | Optional appendix |
+1. Configure the native policy and supported spaces/settings in Blueprint or C++.
+2. Initialize with a Schola interaction definition and wait for **Ready**.
+3. Request a decision and execute its returned action.
+4. Submit the attributed reward, next observation and episode outcome.
+5. Inspect accepted experiences, completed updates and a newer policy version.
 
-Each `<section class="slide">` is one slide. Its `id` must be unique, and
-`aria-labelledby` must match its heading's `id`. The `data-title` appears in the
-overview and `data-section` appears in the control bar. Duplicate or remove whole
-sections to change the outline. Navigation, numbering, and progress update
-automatically. Supporting material can follow the reference slide.
+Custom shapes and supported network settings come from a configuration asset.
+Export the project request, rebuild the C++ project and assign the asset to the
+policy. The [configuration guide](../../Docs/Sphinx/guides/rltools_configuration_generation.rst)
+explains the settings and build requirements.
 
-Each slide has an `<aside class="speaker-notes" data-time="...">`. Replace the
-time placeholder with a rehearsed budget. **The supplied context does not specify
-the presentation duration**, so agree on the actual course slot before setting
-timings. Keep the main talk, live demo, and Q&A within that slot. The appendix
-does not need a speaking allocation.
+For reproducible headless verification on Windows with **UE 5.8.4**, Visual Studio
+2022 Game development with C++ and a Windows SDK, run from the repository root:
 
-### Images and other media
-
-Create an `assets` directory here when you add screenshots or a demo backup.
-Use relative file paths so the whole D3 folder can be shared together. Replace a
-placeholder figure, for example:
-
-```html
-<figure>
-  <img class="slide-image" src="assets/d3-workflow.png"
-       alt="Describe the actual workflow and result shown">
-  <figcaption>Build / revision and what this image establishes</figcaption>
-</figure>
+```powershell
+./Examples/NativeLearning/Test-NativeLearning.ps1 -EnginePath 'D:\Apps\Epic Games\UE_5.8'
+./Test/rltools_generation/Run.ps1 -EnginePath 'D:\Apps\Epic Games\UE_5.8'
 ```
 
-Keep captions short and screenshots readable at presentation size. Put detailed
-logs or supplementary diagrams in appendix slides. For a recording, use a local
-`<video controls src="assets/demo-backup.mp4">` or a link to a real recording.
-The live demo slide intentionally does not launch an app or point to a fabricated
-URL. Fonts, colors, and layouts are in `styles.css`.
+Expected results: **40 successful Unreal tests** and **43 generator checks**.
+First-time compilation can take several minutes. No Python training service is
+required. See the [evidence record](adaptive-npc-evidence.md) for outputs, exact
+scope, test names and [machine-readable results](evidence/adaptive-unreal-summary.json).
 
-## Rehearsal checklist
+## Live-game demo and rehearsal
 
-- [ ] Pick one central gap and a coherent team-wide story.
-- [ ] Replace every bracketed field, including the speaker-note timings.
-- [ ] Distinguish completed D3 work from proposed architecture and D4 work.
-- [ ] Link the actual D3 PRs, release, and evidence. Use comparable before / after conditions.
-- [ ] Set the demo build / revision: **[fill in]**.
-- [ ] Record exact setup / launch steps and controls: **[fill in]**.
-- [ ] Rehearse the starting state, core workflow, and expected visible result: **[fill in]**.
-- [ ] Confirm the demo functions reliably and prepare a real recording or screenshot backup.
-- [ ] Assign presenters, transitions, and who handles implementation / trade-off questions.
-- [ ] Rehearse to the actual allotted time and close the visible notes panel.
-- [ ] Check fullscreen, screenshots, links, and optional PDF on the presentation machine.
+The team will show a game during the presentation; the demo slide provides its
+handoff and the observations to explain. The game's presenter should rehearse
+its launch and starting state, then show the task, scored gameplay outcomes and
+learning progress. Name the implementation the game actually uses. A D2 prototype
+is valid evidence for its own gameplay, while the D3 policy tests establish the
+reusable integration. A changed policy version alone does not prove improved
+behavior.
 
-## Context used
+Suggested adaptive slide timings total about **five minutes**, including a
+one-minute game handoff, before discussion. These are rehearsal budgets, not a
+course-imposed duration; fit this section to the full team's allotted slot. Keep
+the already-built NativeLearning host and saved results ready as an API fallback
+if the game cannot run. A recording or game command is not fabricated here.
 
-- [Course D3 folder](https://github.com/csc301-2026-f/deliverable-documents/tree/main/deliverables/D3)
-  and its [product evolution template](https://github.com/csc301-2026-f/deliverable-documents/blob/main/deliverables/D3/product-evolution.md):
-  gap, implementation, before / after, and reflection.
-- Instructor's demo day rubric screenshot supplied with this task: presentation
-  clarity and timing, gap and motivation, improvement explanation, live demo,
-  engineering process, and Q&A / D4 awareness.
-- **Schola Native Online Learning Specification.docx**, dated 3 November 2026,
-  supplied separately by the user. It describes the final-product target and
-  separates existing code from proposed work. It is planning context, not proof
-  of D3 implementation. Its implementation instructions were not executed as
-  part of this presentation request. The document is not copied into this folder.
-- Existing [D2 evidence index](../D2/README.md),
-  [iteration review](../D2/iteration-02-review.md), and
-  [project README](../../README.md) for the D2 baseline only.
+Before presenting, confirm the actual game build and controls, the presenter
+handoff, the available time, and a genuine gameplay backup. Check fullscreen and
+links on the presentation machine and keep notes closed during screen sharing.
+The report and slide copy are complete for the implemented adaptive integration;
+the game presentation is a separate team-owned activity.
 
-The written product-evolution and individual-contribution scaffolds remain
-separate from the slideshow. All three are starting points for the team to fill
-in before submission.
+## Engineering process and non-functional requirements
+
+The [NFR record](adaptive-npc-evidence.md#non-functional-requirements) maps resource
+bounds, responsive background execution, decision integrity, world isolation,
+reliable teardown and developer access to actual tests. Supported scope is CPU
+feedforward networks, Box observations and bounded continuous Box actions.
+Execution limits are cooperative, not hard real-time guarantees.
+
+**AMD has its own CI/CD checks. Those checks have not been integrated into this
+codebase yet; we are working with the partner to get that setup.** Current
+verification uses repeatable local scripts and teammate-reviewed PRs. This
+outstanding dependency is visible in the dedicated process slide and report;
+local results are not labelled as CI results.
+
+## D3 submission boundary
+
+The adaptive materials document implemented capabilities and their limits.
+Automatic task collection, resumable checkpoints and separate-project packaged
+validation remain follow-ups. Other subteams own their report, contribution and
+slide content. The final team submission still needs the required `D3` release/tag
+and each member's ICM1 submission; this folder does not imply those actions have
+already happened.
