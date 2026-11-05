@@ -9,7 +9,6 @@
 
 namespace SharedPolicyArchitectureDTest
 {
-	constexpr int32 BatchSize = 2;
 	constexpr int32 ObservationWidth = 64;
 	constexpr int32 ActionWidth = 2;
 	constexpr double AbsoluteTolerance = 1e-5;
@@ -17,13 +16,28 @@ namespace SharedPolicyArchitectureDTest
 	const TCHAR* ModelObjectPath = TEXT("/Game/D_conditional.D_conditional");
 	const TCHAR* RuntimeName = TEXT("NNERuntimeORTCpu");
 
-	const double ExpectedExpert0[BatchSize][ActionWidth] = {
+	// Rows are independent. Batch size 1 uses the first row of each reference.
+	const double ExpectedExpert0[][ActionWidth] = {
 		{-0.1623554528, -0.1630928367},
 		{-0.1648618877, -0.1687339097},
 	};
-	const double ExpectedExpert1[BatchSize][ActionWidth] = {
+	const double ExpectedExpert1[][ActionWidth] = {
 		{0.0694475845, -0.0019764062},
 		{0.0638729781, -0.0013816468},
+	};
+
+	struct FCase
+	{
+		int32 BatchSize;
+		bool bUseFirstExpert;
+		const double (*Expected)[ActionWidth];
+	};
+
+	const FCase Cases[] = {
+		{1, true, ExpectedExpert0},
+		{1, false, ExpectedExpert1},
+		{2, true, ExpectedExpert0},
+		{2, false, ExpectedExpert1},
 	};
 
 	bool ShapeIs(TConstArrayView<uint32> Shape, uint32 Batch, uint32 Width)
@@ -142,8 +156,8 @@ bool FSharedPolicyArchitectureDOrtTest::RunTest(const FString&)
 	if (!TestTrue(TEXT("observations is float32"), ObservationsDesc.GetDataType() == ENNETensorDataType::Float)
 		|| !TestEqual(TEXT("observations rank"), ObservationDims.Num(), 2)
 		|| !TestEqual(TEXT("observations feature dimension"), ObservationDims.Num() == 2 ? ObservationDims[1] : 0, ObservationWidth)
-		|| !TestTrue(TEXT("observations batch dimension is 2 or dynamic"),
-			ObservationDims.Num() == 2 && (ObservationDims[0] == BatchSize || ObservationDims[0] < 0)))
+		|| !TestTrue(TEXT("observations batch dimension is dynamic"),
+			ObservationDims.Num() == 2 && ObservationDims[0] < 0))
 	{
 		AddError(FString::Printf(TEXT("observations contract mismatch. dtype/shape was %s."), *ShapeText(ObservationDims)));
 		return false;
@@ -158,31 +172,6 @@ bool FSharedPolicyArchitectureDOrtTest::RunTest(const FString&)
 			TEXT("use_first_expert must be a rank-0 Boolean. Declared shape was %s."), *ShapeText(ExpertDims)));
 		return false;
 	}
-
-	const uint32 ConcreteObservationDims[] = {uint32(BatchSize), uint32(ObservationWidth)};
-	TArray<FTensorShape> InputShapes;
-	InputShapes.Reserve(InputDescs.Num());
-	for (int32 Index = 0; Index < InputDescs.Num(); ++Index)
-	{
-		if (Index == ObservationsIndex)
-		{
-			InputShapes.Add(FTensorShape::Make(MakeArrayView(ConcreteObservationDims)));
-		}
-		else
-		{
-			InputShapes.Add(FTensorShape::Make(TConstArrayView<uint32>()));
-		}
-	}
-	if (!TestTrue(TEXT("Set input shapes [2, 64] and scalar Boolean"), Instance->SetInputTensorShapes(InputShapes) == EResultStatus::Ok))
-	{
-		AddError(TEXT("SetInputTensorShapes failed for Architecture D. The runtime did not accept the observation or scalar Boolean shape."));
-		return false;
-	}
-
-	TArray<float> Observations;
-	Observations.SetNumZeroed(BatchSize * ObservationWidth);
-	Observations[0] = 1.f;
-	Observations[ObservationWidth] = 2.f;
 
 	const TConstArrayView<FTensorDesc> OutputDescs = Instance->GetOutputTensorDescs();
 	int32 ActionsIndex = INDEX_NONE;
@@ -209,40 +198,60 @@ bool FSharedPolicyArchitectureDOrtTest::RunTest(const FString&)
 		return false;
 	}
 
-	const TConstArrayView<FTensorShape> ResolvedBeforeRun = Instance->GetOutputTensorShapes();
-	TArray<TArray<float>> OutputStorage;
-	TArray<FTensorBindingCPU> OutputBindings;
-	OutputStorage.SetNum(OutputDescs.Num());
-	OutputBindings.Reserve(OutputDescs.Num());
-	for (int32 Index = 0; Index < OutputDescs.Num(); ++Index)
-	{
-		int32 ElementCount = BatchSize * ActionWidth;
-		if (ResolvedBeforeRun.IsValidIndex(Index) && ResolvedBeforeRun[Index].Volume() > 0)
-		{
-			if (ResolvedBeforeRun[Index].Volume() > uint64(MAX_int32))
-			{
-				AddError(FString::Printf(TEXT("Output '%s' is too large to bind."), *OutputDescs[Index].GetName()));
-				return false;
-			}
-			ElementCount = int32(ResolvedBeforeRun[Index].Volume());
-		}
-		OutputStorage[Index].SetNumZeroed(ElementCount);
-		OutputBindings.Add({OutputStorage[Index].GetData(), uint64(ElementCount) * sizeof(float)});
-	}
-
-	struct FExpertCase
-	{
-		bool bUseFirstExpert;
-		const double (*Expected)[ActionWidth];
-	};
-	const FExpertCase Cases[] = {
-		{true, ExpectedExpert0},
-		{false, ExpectedExpert1},
-	};
-
 	bool bValuesMatch = true;
-	for (const FExpertCase& Case : Cases)
+	for (const FCase& Case : Cases)
 	{
+		const FString CaseName = FString::Printf(
+			TEXT("batch=%d use_first_expert=%s"),
+			Case.BatchSize,
+			Case.bUseFirstExpert ? TEXT("true") : TEXT("false"));
+
+		const uint32 ConcreteObservationDims[] = {uint32(Case.BatchSize), uint32(ObservationWidth)};
+		TArray<FTensorShape> InputShapes;
+		InputShapes.Reserve(InputDescs.Num());
+		for (int32 Index = 0; Index < InputDescs.Num(); ++Index)
+		{
+			if (Index == ObservationsIndex)
+			{
+				InputShapes.Add(FTensorShape::Make(MakeArrayView(ConcreteObservationDims)));
+			}
+			else
+			{
+				InputShapes.Add(FTensorShape::Make(TConstArrayView<uint32>()));
+			}
+		}
+		if (!TestTrue(FString::Printf(TEXT("SetInputTensorShapes %s"), *CaseName), Instance->SetInputTensorShapes(InputShapes) == EResultStatus::Ok))
+		{
+			AddError(FString::Printf(TEXT("SetInputTensorShapes failed for Architecture D with %s."), *CaseName));
+			return false;
+		}
+		const TConstArrayView<FTensorShape> BoundInputShapes = Instance->GetInputTensorShapes();
+		if (!TestTrue(
+				FString::Printf(TEXT("use_first_expert stays a rank-0 scalar for %s"), *CaseName),
+				BoundInputShapes.IsValidIndex(ExpertIndex) && BoundInputShapes[ExpertIndex].Rank() == 0))
+		{
+			return false;
+		}
+
+		TArray<float> Observations;
+		Observations.SetNumZeroed(Case.BatchSize * ObservationWidth);
+		Observations[0] = 1.f;
+		if (Case.BatchSize > 1)
+		{
+			Observations[ObservationWidth] = 2.f;
+		}
+
+		TArray<TArray<float>> OutputStorage;
+		TArray<FTensorBindingCPU> OutputBindings;
+		OutputStorage.SetNum(OutputDescs.Num());
+		OutputBindings.Reserve(OutputDescs.Num());
+		for (int32 Index = 0; Index < OutputDescs.Num(); ++Index)
+		{
+			const int32 ElementCount = Case.BatchSize * ActionWidth;
+			OutputStorage[Index].SetNumZeroed(ElementCount);
+			OutputBindings.Add({OutputStorage[Index].GetData(), uint64(ElementCount) * sizeof(float)});
+		}
+
 		// ONNX Boolean values are one byte. NNERuntimeORT rejects any other binding size.
 		uint8 UseFirstExpert = Case.bUseFirstExpert ? 1 : 0;
 		TArray<FTensorBindingCPU> InputBindings;
@@ -250,28 +259,27 @@ bool FSharedPolicyArchitectureDOrtTest::RunTest(const FString&)
 		InputBindings[ObservationsIndex] = {Observations.GetData(), uint64(Observations.Num()) * sizeof(float)};
 		InputBindings[ExpertIndex] = {&UseFirstExpert, 1};
 
-		const TCHAR* CaseName = Case.bUseFirstExpert ? TEXT("use_first_expert=true") : TEXT("use_first_expert=false");
-		if (!TestTrue(FString::Printf(TEXT("RunSync %s"), CaseName), Instance->RunSync(InputBindings, OutputBindings) == EResultStatus::Ok))
+		if (!TestTrue(FString::Printf(TEXT("RunSync %s"), *CaseName), Instance->RunSync(InputBindings, OutputBindings) == EResultStatus::Ok))
 		{
-			AddError(FString::Printf(TEXT("NNERuntimeORTCpu RunSync failed for Architecture D with %s."), CaseName));
+			AddError(FString::Printf(TEXT("NNERuntimeORTCpu RunSync failed for Architecture D with %s."), *CaseName));
 			return false;
 		}
 
 		const TConstArrayView<FTensorShape> OutputShapes = Instance->GetOutputTensorShapes();
-		if (!TestEqual(FString::Printf(TEXT("Resolved output count (%s)"), CaseName), OutputShapes.Num(), OutputDescs.Num()))
+		if (!TestEqual(FString::Printf(TEXT("Resolved output count (%s)"), *CaseName), OutputShapes.Num(), OutputDescs.Num()))
 		{
 			return false;
 		}
 		const TConstArrayView<uint32> ActionShape = OutputShapes[ActionsIndex].GetData();
 		if (!TestTrue(
-				FString::Printf(TEXT("actions shape is [2, 2] for %s, got %s"), CaseName, *ShapeText(ActionShape)),
-				ShapeIs(ActionShape, uint32(BatchSize), uint32(ActionWidth))))
+				FString::Printf(TEXT("actions shape is [%d, 2] for %s, got %s"), Case.BatchSize, *CaseName, *ShapeText(ActionShape)),
+				ShapeIs(ActionShape, uint32(Case.BatchSize), uint32(ActionWidth))))
 		{
 			return false;
 		}
 
 		const TArray<float>& Actual = OutputStorage[ActionsIndex];
-		for (int32 Row = 0; Row < BatchSize; ++Row)
+		for (int32 Row = 0; Row < Case.BatchSize; ++Row)
 		{
 			for (int32 Column = 0; Column < ActionWidth; ++Column)
 			{
@@ -282,7 +290,7 @@ bool FSharedPolicyArchitectureDOrtTest::RunTest(const FString&)
 				{
 					AddError(FString::Printf(
 						TEXT("%s actions[%d, %d] = %.10f, Python reference %.10f, tolerance %.10f."),
-						CaseName, Row, Column, Value, Reference, Tolerance));
+						*CaseName, Row, Column, Value, Reference, Tolerance));
 					bValuesMatch = false;
 				}
 			}
