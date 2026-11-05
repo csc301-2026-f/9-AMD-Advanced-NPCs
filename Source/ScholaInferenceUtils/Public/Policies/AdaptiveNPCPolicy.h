@@ -19,6 +19,8 @@ class SCHOLAINFERENCEUTILS_API UAdaptiveNPCPolicy : public UObject, public IPoli
     GENERATED_BODY()
 
 public:
+    /** Shared Box-definition validation for backend configuration tools; no session or learner allocation. */
+    static bool ValidateBoxSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error);
     /** Reject invalid definitions without replacing an existing valid definition. See GetLastError. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     bool Init(const FInteractionDefinition& InDefinition) override;

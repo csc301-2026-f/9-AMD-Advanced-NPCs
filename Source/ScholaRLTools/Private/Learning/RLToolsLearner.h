@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "RLToolsNetworkTypes.h"
 
 /** Internal, engine-independent API used by the ScholaRLTools policy/service implementation.
  * All algorithm headers stay in RLToolsLearner.cpp. Game code uses Schola points and policies.
@@ -21,6 +22,8 @@ struct FProfile
     EAlgorithm Algorithm;
     unsigned Observations, Actions, HiddenWidth, BatchSize, ReplayCapacity, RolloutLength;
     unsigned ActorLayers = 3, CriticLayers = 3;
+    unsigned CriticHiddenWidth = 32;
+    EActivation ActorActivation = EActivation::ReLU, CriticActivation = EActivation::ReLU;
     float Discount = 0.99f;
     float TargetTau = 0.005f, EntropyCoefficient = 0.5f;
     unsigned ActorInterval = 1, TargetInterval = 1;

@@ -12,11 +12,17 @@ From the repository root:
 
 The script builds Development Editor, runs headless automation, checks every
 matching source registration has a successful result, and saves logs and JSON
-under `Saved/NativeLearning`. Build Accelerator is disabled by default; use
+under `Saved/NativeLearning`. Build Accelerator detouring is disabled by default; use
 `-UseBuildAccelerator` if desired.
 
-The `Schola.RLTools.Policy.SAC`, `.TD3` and `.PPO` tests each demonstrate both
-compiled shapes:
+The host includes three project requests in `Config/ScholaRLTools.json`, exported
+through the configuration asset API: SAC 6/3, TD3 7/4 and PPO 8/2. Building the
+project generates their configurations without modifying plugin templates.
+See [configuration generation](../../Docs/Sphinx/guides/rltools_configuration_generation.rst)
+for the editor workflow.
+
+The `Schola.RLTools.Policy.SAC`, `.TD3` and `.PPO` tests demonstrate all shipped
+and project-generated configurations:
 
 1. Configure `URLToolsNPCPolicy` with an algorithm, profile and runtime settings.
 2. Initialize with an `FInteractionDefinition`; wait for Ready and inspect the
@@ -36,15 +42,18 @@ calling integration's responsibility. The complete developer guide is
 ## Verified locally
 
 On 2026-11-05, UE 5.8.4 Win64 Development Editor built this host with every
-Schola module enabled and the root plugin descriptor unchanged. All **36**
-selected automation tests passed: 16 policy/world integration tests, two native
-learner tests and 18 common adaptive API tests. The script verified no matching
+Schola module enabled and the root plugin descriptor unchanged. All **40**
+selected automation tests passed: four configuration-generation tests, 16
+policy/world integration tests, two native learner tests and 18 common adaptive
+API tests. Nine compiled configurations were exercised (six shipped and three
+project-generated). The script verified no matching
 source registrations were missing.
 
 The standalone native learner suite also passed for all six compiled
-algorithm/configuration combinations. The five existing SAC policy tests passed
-in the AdaptiveSAC regression host. A focused strict Sphinx build of the three
-linked native guides and whitespace checks passed.
+algorithm/configuration combinations. The build-generator tests cover validation,
+determinism and project isolation using the same C# code as UnrealBuildTool.
+A focused strict Sphinx build of the four linked native guides and whitespace
+checks passed.
 
 The full build reports existing MSVC C4305 float-conversion warnings in unchanged
 RLlib/SB3 settings headers. This validation does not establish rendering,

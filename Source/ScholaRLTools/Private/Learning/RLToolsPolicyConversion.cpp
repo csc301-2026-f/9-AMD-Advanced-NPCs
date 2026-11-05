@@ -33,6 +33,9 @@ FRLToolsConfiguration DescribeProfile(const FProfile& P)
     R.Observations = P.Observations;
     R.Actions = P.Actions;
     R.HiddenWidth = P.HiddenWidth;
+    R.CriticHiddenWidth = P.CriticHiddenWidth;
+    R.ActorActivation = static_cast<ERLToolsActivation>(P.ActorActivation);
+    R.CriticActivation = static_cast<ERLToolsActivation>(P.CriticActivation);
     R.ActorLayers = P.ActorLayers;
     R.CriticLayers = P.CriticLayers;
     R.BatchSize = P.BatchSize;

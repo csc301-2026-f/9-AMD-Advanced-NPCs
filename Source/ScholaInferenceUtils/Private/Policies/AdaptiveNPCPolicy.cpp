@@ -98,6 +98,11 @@ bool ValidateBoxDefinition(const TInstancedStruct<FSpace>& Definition, bool bAct
 
 bool UAdaptiveNPCPolicy::ValidateSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error) const
 {
+    return ValidateBoxSpaceDefinition(Definition, bActionSpace, Error);
+}
+
+bool UAdaptiveNPCPolicy::ValidateBoxSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error)
+{
     return ValidateBoxDefinition(Definition, bActionSpace, Error);
 }
 

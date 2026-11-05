@@ -13,6 +13,7 @@ bool CheckAlgorithm(FAutomationTestBase& Test, ERLToolsAlgorithm Algorithm)
         FWorld Fixture;
         auto* P = Fixture.Policy(Algorithm, Profile.Id);
         P->Settings.PPOEpochs = 2;
+        P->Settings.LearningStarts = Profile.BatchSize;
         P->Settings.MaxRecordsPerBurst = 8;
         P->Settings.ObservationMean.Init(0.1f, Profile.Observations);
         P->Settings.ObservationStd.Init(2.0f, Profile.Observations);
@@ -38,19 +39,20 @@ bool CheckAlgorithm(FAutomationTestBase& Test, ERLToolsAlgorithm Algorithm)
         FAdaptiveDecision RetainedOldPolicy;
         if (!Test.TestTrue(TEXT("Retain an outcome across publication"), Decision(P, Obs, RetainedOldPolicy))) return false;
 
-        // 64 experiences exercise PPO's full rollout and SAC/TD3 warm-up, through common APIs only.
-        for (int32 Step = 0; Step < 64; ++Step)
+        const int32 Records = Algorithm == ERLToolsAlgorithm::PPO ? Profile.RolloutLength : FMath::Max(64, Profile.BatchSize);
+        // Exercise a full PPO rollout or SAC/TD3 warm-up for every compiled configuration.
+        for (int32 Step = 0; Step < Records; ++Step)
         {
             if (!Test.TestTrue(TEXT("Request/poll action"), Decision(P, Obs, D))) return false;
             const auto& Values = D.Action.Get<FBoxPoint>().Values;
             for (float Value : Values) Test.TestTrue(TEXT("Non-default finite bounds"), Value >= 10000.1f && Value <= 10000.2f);
             auto E = Outcome(D, Obs);
-            E.bTerminated = Step == 63;
+            E.bTerminated = Step + 1 == Records;
             if (!Test.TestEqual(TEXT("Unchanged executed action admitted (including PPO float round trip)"),
                 P->SubmitExperience(E), EAdaptiveSubmitResult::Accepted)) return false;
         }
         if (!Test.TestTrue(TEXT("Background training and publication"),
-            Wait([P] { const auto S = Stats(P); return S.Stored == 64 && S.Version > 0 && !S.bTraining; }))) return false;
+            Wait([P, Records] { const auto S = Stats(P); return S.Stored == Records && S.Version > 0 && !S.bTraining; }))) return false;
         const auto S = Stats(P);
         Test.TestTrue(TEXT("Real actor/critic updates"), S.ActorUpdates > 0 && S.CriticUpdates > 0);
         Test.TestTrue(TEXT("Pending work is eventually drained"), Wait([P] { auto S = Stats(P); return S.PendingUpdates == 0 && S.Queued == 0 && !S.bTraining; }));

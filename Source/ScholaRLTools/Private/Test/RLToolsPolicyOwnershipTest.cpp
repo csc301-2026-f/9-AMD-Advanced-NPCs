@@ -156,9 +156,8 @@ bool FRLToolsPolicyConfigurationTest::RunTest(const FString&)
 {
     FWorld F;
     auto* P = F.Policy();
-    TestEqual(TEXT("SAC discovered shapes"), P->GetAvailableConfigurations(ERLToolsAlgorithm::SAC).Num(), 2);
-    TestEqual(TEXT("TD3 discovered shapes"), P->GetAvailableConfigurations(ERLToolsAlgorithm::TD3).Num(), 2);
-    TestEqual(TEXT("PPO discovered shapes"), P->GetAvailableConfigurations(ERLToolsAlgorithm::PPO).Num(), 2);
+    for (auto Algorithm : {ERLToolsAlgorithm::SAC, ERLToolsAlgorithm::TD3, ERLToolsAlgorithm::PPO})
+        TestTrue(TEXT("Shipped configurations remain available alongside project configurations"), P->GetAvailableConfigurations(Algorithm).Num() >= 2);
     TestEqual(TEXT("Nondefault compiled discount visible"), P->GetAvailableConfigurations(ERLToolsAlgorithm::PPO)[1].Discount, 0.95f);
     auto Def = Definition();
     TestTrue(TEXT("Init"), P->Init(Def));

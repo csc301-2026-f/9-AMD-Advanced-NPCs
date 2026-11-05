@@ -6,6 +6,9 @@
 UENUM(BlueprintType)
 enum class ERLToolsAlgorithm : uint8 { SAC, TD3, PPO };
 
+UENUM(BlueprintType)
+enum class ERLToolsActivation : uint8 { ReLU, Tanh };
+
 /** Runtime choices copied on Init. Structural and algorithm-template parameters come from the profile. */
 USTRUCT(BlueprintType)
 struct SCHOLARLTOOLS_API FRLToolsRuntimeSettings
@@ -91,11 +94,21 @@ struct SCHOLARLTOOLS_API FRLToolsConfiguration
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Schola|RLtools|Configuration")
     int32 Actions = 0;
 
-    /** Hidden width; fixed by compilation. */
+    /** Actor hidden width; fixed by compilation. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Schola|RLtools|Configuration")
     int32 HiddenWidth = 0;
 
-    /** Actor layers, including output; ReLU hidden activations. */
+    /** Critic hidden width; the existing HiddenWidth field describes the actor. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Schola|RLtools|Configuration")
+    int32 CriticHiddenWidth = 0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Schola|RLtools|Configuration")
+    ERLToolsActivation ActorActivation = ERLToolsActivation::ReLU;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Schola|RLtools|Configuration")
+    ERLToolsActivation CriticActivation = ERLToolsActivation::ReLU;
+
+    /** Actor layers, including output. Hidden activation is reported separately. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Schola|RLtools|Configuration")
     int32 ActorLayers = 0;
 

@@ -5,6 +5,9 @@
 #endif
 #include "RLToolsLearner.h"
 #include "Generated/RLToolsLearnerParameters.h"
+#ifdef SCHOLA_RLTOOLS_PROJECT_PARAMETERS
+#include SCHOLA_RLTOOLS_PROJECT_PARAMETERS
+#endif
 #include <unordered_map>
 #include <rl_tools/operations/cpu_mux.h>
 #include <rl_tools/nn/optimizers/adam/instance/operations_generic.h>
@@ -38,6 +41,9 @@ using FDevice = rlt::devices::DEVICE_FACTORY<>;
 using TI = FDevice::index_t;
 using FTypePolicy = rlt::numeric_types::Policy<float>;
 using FRng = FDevice::SPEC::RANDOM::ENGINE<>;
+template<EActivation Activation>
+constexpr auto NativeActivation = Activation == EActivation::Tanh
+    ? rlt::nn::activation_functions::TANH : rlt::nn::activation_functions::RELU;
 
 static bool Finite(const std::vector<float>& Values, unsigned Count)
 {
@@ -114,7 +120,11 @@ template <unsigned O, unsigned A, unsigned H, unsigned B, unsigned R, typename T
 struct TSACParameters : rlt::rl::algorithms::sac::loop::core::DefaultParameters<FTypePolicy, TI,
     rlt::rl::environments::ScholaSpaces<float, TI, O, A>>
 {
-    static constexpr TI REPLAY_BUFFER_CAP = R, ACTOR_HIDDEN_DIM = H, CRITIC_HIDDEN_DIM = H;
+    static constexpr TI REPLAY_BUFFER_CAP = R, ACTOR_HIDDEN_DIM = H;
+    static constexpr TI CRITIC_HIDDEN_DIM = TParameters::CriticHiddenWidth ? TParameters::CriticHiddenWidth : H;
+    static constexpr TI ACTOR_NUM_LAYERS = TParameters::ActorLayers, CRITIC_NUM_LAYERS = TParameters::CriticLayers;
+    static constexpr auto ACTOR_ACTIVATION_FUNCTION = NativeActivation<TParameters::ActorActivation>;
+    static constexpr auto CRITIC_ACTIVATION_FUNCTION = NativeActivation<TParameters::CriticActivation>;
     static_assert(O > 0 && A > 0 && H > 0 && B > 1 && R >= B);
     static_assert(TParameters::Discount > 0 && TParameters::Discount <= 1);
     static_assert(TParameters::TargetTau > 0 && TParameters::TargetTau <= 1);
@@ -136,7 +146,11 @@ template <unsigned O, unsigned A, unsigned H, unsigned B, unsigned R, typename T
 struct TTD3Parameters : rlt::rl::algorithms::td3::loop::core::DefaultParameters<FTypePolicy, TI,
     rlt::rl::environments::ScholaSpaces<float, TI, O, A>>
 {
-    static constexpr TI REPLAY_BUFFER_CAP = R, ACTOR_HIDDEN_DIM = H, CRITIC_HIDDEN_DIM = H;
+    static constexpr TI REPLAY_BUFFER_CAP = R, ACTOR_HIDDEN_DIM = H;
+    static constexpr TI CRITIC_HIDDEN_DIM = TParameters::CriticHiddenWidth ? TParameters::CriticHiddenWidth : H;
+    static constexpr TI ACTOR_NUM_LAYERS = TParameters::ActorLayers, CRITIC_NUM_LAYERS = TParameters::CriticLayers;
+    static constexpr auto ACTOR_ACTIVATION_FUNCTION = NativeActivation<TParameters::ActorActivation>;
+    static constexpr auto CRITIC_ACTIVATION_FUNCTION = NativeActivation<TParameters::CriticActivation>;
     struct TD3_PARAMETERS : rlt::rl::algorithms::td3::DefaultParameters<FTypePolicy, TI>
     {
         static constexpr TI ACTOR_BATCH_SIZE = B, CRITIC_BATCH_SIZE = B;
@@ -159,7 +173,11 @@ struct TPPOParameters : rlt::rl::algorithms::ppo::loop::core::DefaultParameters<
     static_assert(TParameters::GAE >= 0 && TParameters::GAE <= 1 && TParameters::PPOClip > 0);
     static constexpr TI N_ENVIRONMENTS = 1, ON_POLICY_RUNNER_STEPS_PER_ENV = L;
     static constexpr TI DATASET_SIZE = L, BATCH_SIZE = B;
-    static constexpr TI ACTOR_HIDDEN_DIM = H, CRITIC_HIDDEN_DIM = H;
+    static constexpr TI ACTOR_HIDDEN_DIM = H;
+    static constexpr TI CRITIC_HIDDEN_DIM = TParameters::CriticHiddenWidth ? TParameters::CriticHiddenWidth : H;
+    static constexpr TI ACTOR_NUM_LAYERS = TParameters::ActorLayers, CRITIC_NUM_LAYERS = TParameters::CriticLayers;
+    static constexpr auto ACTOR_ACTIVATION_FUNCTION = NativeActivation<TParameters::ActorActivation>;
+    static constexpr auto CRITIC_ACTIVATION_FUNCTION = NativeActivation<TParameters::CriticActivation>;
     struct PPO_PARAMETERS : rlt::rl::algorithms::ppo::DefaultParameters<FTypePolicy, TI, B>
     {
         static constexpr TI N_EPOCHS = 1;
@@ -432,18 +450,27 @@ struct TPPOState : FAlgorithmState
 
 // This registration include is the extension point for project-local generated configurations.
 // Entries describe actual compiled implementations; unsupported requests never silently change shape.
+template<EAlgorithm Algorithm, unsigned O, unsigned A, unsigned H, unsigned B, unsigned R, unsigned L, typename Parameters>
+static std::unique_ptr<FAlgorithmState> CreateProfile(const FSettings& Settings)
+{
+    if constexpr (Algorithm == EAlgorithm::PPO) return std::make_unique<TPPOState<O,A,H,B,L,Parameters>>(Settings);
+    else return std::make_unique<TOffPolicyState<Algorithm,O,A,H,B,R,Parameters>>(Settings);
+}
+#define SCHOLA_RLTOOLS_ALGORITHM_PROFILE(Kind, Identifier, O, A, H, B, R, L, Parameters) \
+    if (Profile.Algorithm == EAlgorithm::Kind && Configuration == Identifier) \
+        return CreateProfile<EAlgorithm::Kind,O,A,H,B,R,L,Parameters>(Settings);
 #define SCHOLA_RLTOOLS_PROFILE(Identifier, O, A, H, B, R, L, Parameters) \
-    if (Configuration == Identifier) { \
-        if (Profile.Algorithm == EAlgorithm::SAC) return std::make_unique<TOffPolicyState<EAlgorithm::SAC,O,A,H,B,R,Parameters>>(Settings); \
-        if (Profile.Algorithm == EAlgorithm::TD3) return std::make_unique<TOffPolicyState<EAlgorithm::TD3,O,A,H,B,R,Parameters>>(Settings); \
-        if (Profile.Algorithm == EAlgorithm::PPO) return std::make_unique<TPPOState<O,A,H,B,L,Parameters>>(Settings); }
+    SCHOLA_RLTOOLS_ALGORITHM_PROFILE(SAC, Identifier, O,A,H,B,R,L,Parameters) \
+    SCHOLA_RLTOOLS_ALGORITHM_PROFILE(TD3, Identifier, O,A,H,B,R,L,Parameters) \
+    SCHOLA_RLTOOLS_ALGORITHM_PROFILE(PPO, Identifier, O,A,H,B,R,L,Parameters)
 static std::unique_ptr<FAlgorithmState> MakeState(const FProfile& Profile, const FSettings& Settings)
 {
     const std::string Configuration = Profile.Id.substr(Profile.Id.find('/') + 1);
-#include "Generated/RLToolsLearnerProfiles.inl"
+#include "RLToolsProfileRegistry.inl"
     return nullptr;
 }
 #undef SCHOLA_RLTOOLS_PROFILE
+#undef SCHOLA_RLTOOLS_ALGORITHM_PROFILE
 
 struct FLearner::FImpl
 {
@@ -479,6 +506,11 @@ static FProfile Describe(const std::string& Id, EAlgorithm Algorithm, unsigned O
 {
     FProfile P{Id, Algorithm, O, A, H, B, Algorithm == EAlgorithm::PPO ? 0u : R,
         Algorithm == EAlgorithm::PPO ? L : 0u};
+    P.ActorLayers = TParameters::ActorLayers;
+    P.CriticLayers = TParameters::CriticLayers;
+    P.CriticHiddenWidth = TParameters::CriticHiddenWidth ? TParameters::CriticHiddenWidth : H;
+    P.ActorActivation = TParameters::ActorActivation;
+    P.CriticActivation = TParameters::CriticActivation;
     P.Discount = TParameters::Discount;
     P.TargetTau = TParameters::TargetTau;
     P.ActorInterval = TParameters::ActorInterval ? TParameters::ActorInterval : Algorithm == EAlgorithm::TD3 ? 2 : 1;
@@ -502,8 +534,11 @@ std::vector<FProfile> FLearner::GetProfiles()
     {
         const std::string Prefix = Algorithm == EAlgorithm::SAC ? "sac/" : Algorithm == EAlgorithm::TD3 ? "td3/" : "ppo/";
 #define SCHOLA_RLTOOLS_PROFILE(Id, O, A, H, B, R, L, Parameters) Profiles.push_back(Describe<Parameters>(Prefix + Id, Algorithm, O, A, H, B, R, L));
-#include "Generated/RLToolsLearnerProfiles.inl"
+#define SCHOLA_RLTOOLS_ALGORITHM_PROFILE(Kind, Id, O, A, H, B, R, L, Parameters) \
+    if (Algorithm == EAlgorithm::Kind) SCHOLA_RLTOOLS_PROFILE(Id,O,A,H,B,R,L,Parameters)
+#include "RLToolsProfileRegistry.inl"
 #undef SCHOLA_RLTOOLS_PROFILE
+#undef SCHOLA_RLTOOLS_ALGORITHM_PROFILE
     }
     return Profiles;
 }

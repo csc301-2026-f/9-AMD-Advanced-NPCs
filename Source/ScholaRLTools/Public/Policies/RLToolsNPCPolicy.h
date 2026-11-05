@@ -7,6 +7,7 @@
 #include "RLToolsNPCPolicy.generated.h"
 
 class URLToolsWorldSubsystem;
+class URLToolsConfigurationAsset;
 
 /** Schola adapter for native SAC, TD3 and PPO. Create with a world/actor/component outer.
  * Configuration is copied on Init; readiness is asynchronous. All policy calls belong on the game thread.
@@ -16,11 +17,15 @@ class SCHOLARLTOOLS_API URLToolsNPCPolicy : public UAdaptiveNPCPolicy
 {
     GENERATED_BODY()
 public:
+    /** Optional generated configuration asset. Generate its project request and rebuild before Init. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Schola|RLtools")
+    TObjectPtr<URLToolsConfigurationAsset> ConfigurationAsset;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Schola|RLtools", meta = (EditCondition = "ConfigurationAsset == nullptr"))
     ERLToolsAlgorithm Algorithm = ERLToolsAlgorithm::SAC;
 
     /** Full compiled identifier. Must agree with Algorithm. Query GetAvailableConfigurations. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Schola|RLtools")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Schola|RLtools", meta = (EditCondition = "ConfigurationAsset == nullptr"))
     FString Configuration = TEXT("sac/3x2-mlp32");
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Schola|RLtools")
@@ -74,6 +79,7 @@ protected:
 
 private:
     friend class URLToolsWorldSubsystem;
+    bool ResolveConfiguration(ERLToolsAlgorithm& OutAlgorithm, FString& OutId, FString& Error) const;
     void BindingReady(FGuid Binding, FGuid Session, int64 Agent);
     void BindingFailed(FGuid Binding, const FString& Error);
     void BindingResetting(FGuid Binding);
