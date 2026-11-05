@@ -103,6 +103,12 @@ public:
     virtual FAdaptiveOperationResult CaptureSnapshot(UAdaptivePolicySnapshot*& OutSnapshot);
 
 protected:
+    /** Default validation supports Box spaces. Other backends override these hooks while
+     * retaining common identity, finite-reward, ticket and lifecycle validation.
+     */
+    virtual bool ValidateSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error) const;
+    virtual bool ValidatePoint(const TInstancedStruct<FPoint>& Point, const TInstancedStruct<FSpace>& Definition, FString& Error) const;
+
     /** Native learner integration hooks, not Blueprint readiness switches.
      * A subclass calls StartSession after its learner is ready. Decision completions belong on the
      * game thread; deferred completions retain a weak policy pointer and the original request identity.
