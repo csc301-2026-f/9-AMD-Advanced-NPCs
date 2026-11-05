@@ -336,7 +336,7 @@ The build, launch, packaging, and Unreal test scripts discover the installed eng
 | --- | --- |
 | `Source/TagLearningRuntime` | Native numeric learner and training worker |
 | `Source/CSC301Host/TagArena*` | Arena, input, and display |
-| `ThirdParty/RLtools` | Pinned dependency and license notice |
+| `../../Source/ThirdParty/RLTools` | Canonical pinned dependency and license notice |
 | `Tools/LearningTests` | Standalone native learning checks |
 | `Learning-Demo.md` | Detailed play, learning, build, and test guide |
 | `Evidence/FasterActor` | Current learning reports and recorded transitions |
@@ -344,7 +344,7 @@ The build, launch, packaging, and Unreal test scripts discover the installed eng
 
 ### Installing Schola Into Your Project
 
-For the existing Schola plugin's installation and Python tooling, use [the Schola setup guide](README-Schola.md). The adaptive tag prototype runs independently of that plugin setup.
+For the existing Schola plugin's installation and Python tooling, use [the Schola setup guide](README-Schola.md). Apple Silicon build steps are in the [macOS setup guide](Docs/macOS-Setup.md). The adaptive tag prototype runs independently of that plugin setup.
 
 Gameplay writes experience and telemetry CSV files beneath the packaged game's `CSC301Host/Saved/TagLearning` directory. New sessions overwrite those files, so copy them before starting another recording session if you need to retain them.
 

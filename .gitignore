@@ -93,6 +93,10 @@ documentation/*.bkp
 !/Source/ThirdParty/**/*.lib
 !/Source/ThirdParty/**/*.a
 
+# macOS gRPC archives are produced locally by Resources/Build/mac_dependencies.sh.
+# The directory rule wins over the third-party archive exceptions above.
+/Source/ThirdParty/gRPC/Mac/
+
 # zipped files
 /Plugins/Schola/Resources/**/*.zip
 /Content/ZippedModels/*.zip

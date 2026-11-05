@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Schola Deliverable 3 presentation skeleton for the Advanced NPCs team.">
+  <title>Schola · Deliverable 3</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="slideshow.js" defer></script>
+</head>
+<body>
+  <main id="deck" aria-label="Deliverable 3 presentation">
+    <div id="stage">
+      <!-- Edit slide content here. Duplicate a section to add a slide.
+           Give each section a unique id and update its title and speaker notes. -->
+      <section class="slide cover dark" id="title" aria-labelledby="title-heading" data-title="Schola" data-section="Introduction">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
+        <div class="cover-content">
+          <div>
+            <p class="eyebrow">Advanced NPCs for AMD Schola</p>
+            <h1 id="title-heading">Native online<br>learning<span class="accent">.</span></h1>
+            <p class="lead">Deliverable 3 demo day</p>
+            <p class="placeholder">[One sentence describing your D3 improvement]</p>
+          </div>
+          <div class="cover-mark" aria-hidden="true"><span>DELIVERABLE</span><strong>03</strong><span>PRODUCT EVOLUTION</span></div>
+        </div>
+        <div class="cover-meta"><span>[Presenters / team members]</span><span>[Presentation date]</span><span class="draft-label">Presentation skeleton</span></div>
+        <aside class="speaker-notes" data-time="[Opening time]">Introduce the team and the specific improvement demonstrated today. Replace the bracketed fields before presenting. Set the total time budget using the course's allotted slot, including the live demo and questions. No presentation duration was supplied in the context.</aside>
+      </section>
+
+      <section class="slide" id="baseline" aria-labelledby="baseline-heading" data-title="Where we left off at D2" data-section="Context">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Context</span></header>
+        <p class="eyebrow">D2 baseline</p>
+        <h2 id="baseline-heading">Where we left off</h2>
+        <p class="intro">The online-learning strand demonstrated a native Unreal Engine + RLtools prototype.</p>
+        <div class="split baseline-layout">
+          <div class="statement-list">
+            <div><span class="item-number">01</span><div><h3>Learning during gameplay</h3><p>The AdaptiveTag tagger learned a route preference from game outcomes.</p></div></div>
+            <div><span class="item-number">02</span><div><h3>A standalone prototype</h3><p>The D2 write-up left Schola API integration as future work.</p></div></div>
+            <p class="placeholder">[Add other subteams' relevant D2 context]</p>
+          </div>
+          <figure class="media-slot"><span class="slot-label">D2 screenshot</span><p>[Insert the starting workflow or prototype]</p><figcaption>Show the baseline your improvement builds on.</figcaption></figure>
+        </div>
+        <p class="source-line">Baseline: repository D2 README and iteration review. Update if presenting a different strand.</p>
+        <aside class="speaker-notes" data-time="[Context time]">Keep the recap short. These two statements summarize the local D2 documentation, not the current D3 implementation. Add the relevant baseline for other subteams if this is a whole-team presentation. Source: ../D2/README.md and ../D2/iteration-02-review.md.</aside>
+      </section>
+
+      <section class="slide" id="gap" aria-labelledby="gap-heading" data-title="The gap and why it matters" data-section="Motivation">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Gap identification &amp; motivation</span></header>
+        <p class="eyebrow">The reason for this iteration</p>
+        <h2 id="gap-heading">The gap that mattered most</h2>
+        <p class="hero-placeholder">[Name the most important limitation after D2]</p>
+        <div class="split ruled-columns">
+          <div><h3>How we identified it</h3><p class="placeholder">[Feedback, testing, partner input, or team reflection]</p><p class="prompt">Add one specific observation and its source.</p></div>
+          <div><h3>Why it mattered</h3><p class="placeholder">[Who was affected, and what could they not do?]</p><p class="prompt">Connect the gap to a developer or player workflow.</p></div>
+        </div>
+        <div class="takeaway"><span>Success criterion</span><p>[What observable change would show this gap is addressed?]</p></div>
+        <aside class="speaker-notes" data-time="[Motivation time]">Choose one central gap and explain how the team found it. The specification suggests reusable plugin integration as a possible motivation, but it does not establish which improvement shipped in D3. Use real feedback or evidence and name the affected user. Do not invent a partner quote.</aside>
+      </section>
+
+      <section class="slide" id="improvement" aria-labelledby="improvement-heading" data-title="What we implemented" data-section="Improvement">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Product improvement</span></header>
+        <p class="eyebrow">D3 scope</p>
+        <h2 id="improvement-heading">What we implemented</h2>
+        <p class="intro placeholder">[Describe the completed improvement in one sentence]</p>
+        <div class="three-columns workflow">
+          <div><span class="step-number">01</span><h3>[User starts here]</h3><p>[Initial setup or action]</p></div>
+          <div><span class="step-number">02</span><h3>[System change]</h3><p>[New behavior that addresses the gap]</p></div>
+          <div><span class="step-number">03</span><h3>[User sees the result]</h3><p>[Observable benefit in the workflow]</p></div>
+        </div>
+        <div class="takeaway"><span>Delivered scope</span><p>[Name the merged feature or integration and its PR / release]</p></div>
+        <aside class="speaker-notes" data-time="[Improvement time]">Explain what is actually implemented and how it improves the system. Separate completed changes from planned work. Link the relevant merged PR or release. The full specification is a target design, not a list of D3 accomplishments.</aside>
+      </section>
+
+      <section class="slide" id="architecture" aria-labelledby="architecture-heading" data-title="Design and integration decisions" data-section="Improvement">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Design &amp; integration</span></header>
+        <p class="eyebrow">Under the hood</p>
+        <h2 id="architecture-heading">Design and integration decisions</h2>
+        <div class="split architecture-layout">
+          <figure class="media-slot architecture-slot"><span class="slot-label">Architecture diagram</span><p>[Show only the components involved in your D3 change]</p><figcaption>Label the changed boundary and the data moving across it.</figcaption></figure>
+          <div class="decision-list"><div><h3>Key decision</h3><p class="placeholder">[Choice and why it fits this use case]</p></div><div><h3>Integration challenge</h3><p class="placeholder">[Boundary, constraint, and resolution]</p></div><div><h3>Trade-off</h3><p class="placeholder">[Alternative considered and its cost]</p></div></div>
+        </div>
+        <p class="source-line">Planning reference: native online learning specification. Replace with the implemented D3 design.</p>
+        <aside class="speaker-notes" data-time="[Design time]">The specification proposes game-owned task callbacks, Schola-owned integration/runtime management, and RLtools numerical operations. Use these boundaries only if they describe your actual implementation. For continuous SAC, do not present the categorical AdaptiveTag learner as the same backend. Prepare to explain lifecycle, worker ownership, and compatibility choices where relevant.</aside>
+      </section>
+
+      <section class="slide" id="comparison" aria-labelledby="comparison-heading" data-title="Before vs. after" data-section="Impact">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Before vs. after</span></header>
+        <p class="eyebrow">Product impact</p>
+        <h2 id="comparison-heading">What changed for the user</h2>
+        <p class="intro placeholder">[One sentence connecting the change to the original gap]</p>
+        <table class="comparison-table"><caption class="sr-only">D2 baseline compared with D3 and its evidence</caption><thead><tr><th scope="col">Workflow / quality</th><th scope="col">Before · D2</th><th scope="col">After · D3</th><th scope="col">Evidence</th></tr></thead><tbody>
+          <tr><th scope="row">[Core user task]</th><td>[Previous steps or limitation]</td><td>[New steps or capability]</td><td>[Demo moment / artifact]</td></tr>
+          <tr><th scope="row">[Reliability / usability]</th><td>[Observed baseline]</td><td>[Observed improvement]</td><td>[Test / feedback source]</td></tr>
+          <tr><th scope="row">[Relevant measure]</th><td>[Value + conditions]</td><td>[Value + same conditions]</td><td>[Report / measurement]</td></tr>
+        </tbody></table>
+        <p class="prompt">Use measured values where available. Remove rows that do not apply.</p>
+        <aside class="speaker-notes" data-time="[Comparison time]">Make the before and after comparison concrete. Use comparable conditions for timings or rates and explain the baseline. Qualitative workflow evidence is fine when you have no defensible metric. Do not turn a proposed acceptance criterion into a measured result.</aside>
+      </section>
+
+      <section class="slide dark" id="demo" aria-labelledby="demo-heading" data-title="Live demo" data-section="Demo">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Live walkthrough</span></header>
+        <div class="demo-title"><div><p class="eyebrow">The improvement in action</p><h2 id="demo-heading">Live demo<span class="accent">.</span></h2></div><span class="demo-label">[Presenter]</span></div>
+        <p class="intro placeholder">[Name the core workflow the audience is about to see]</p>
+        <ol class="demo-steps"><li><span>Set up</span><p>[Starting state and required inputs]</p></li><li><span>Show the change</span><p>[Actions that exercise the D3 improvement]</p></li><li><span>Verify the result</span><p>[Visible outcome and before / after impact]</p></li></ol>
+        <div class="takeaway"><span>Watch for</span><p>[The specific behavior that proves the improvement]</p></div>
+        <aside class="speaker-notes" data-time="[Live demo time]">Switch to the real system. Rehearse from a known starting state and narrate each action. Fill in the exact build, launch steps, controls, and expected output in the README rehearsal checklist. Keep an actual recording or screenshot sequence ready as backup. No demo URL or backup recording is wired into this skeleton.</aside>
+      </section>
+
+      <section class="slide" id="validation" aria-labelledby="validation-heading" data-title="How we verified the improvement" data-section="Evidence">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Validation</span></header>
+        <p class="eyebrow">Evidence behind the demo</p>
+        <h2 id="validation-heading">How we verified the improvement</h2>
+        <div class="split evidence-layout"><div class="statement-list">
+          <div><span class="item-number">01</span><div><h3>[Behavior / integration check]</h3><p>[Method, observed result, and artifact]</p></div></div>
+          <div><span class="item-number">02</span><div><h3>[Regression / reliability check]</h3><p>[Environment, scope, and result]</p></div></div>
+          <div><span class="item-number">03</span><div><h3>Known limitation</h3><p>[What this evidence does not yet establish]</p></div></div>
+        </div><figure class="media-slot"><span class="slot-label">Evidence</span><p>[Insert a readable test result, trace, or comparison]</p><figcaption>[Build / revision, environment, and test date]</figcaption></figure></div>
+        <aside class="speaker-notes" data-time="[Validation time]">Use D3 evidence. A D2 report is baseline evidence only. State the tested engine/platform/build and whether the check ran in-editor or packaged. For learning claims, distinguish correct experience admission and model updates from useful task adaptation. Include only checks relevant to the improvement.</aside>
+      </section>
+
+      <section class="slide" id="process" aria-labelledby="process-heading" data-title="Engineering and process reflection" data-section="Reflection">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Engineering &amp; process awareness</span></header>
+        <p class="eyebrow">Since D2</p>
+        <h2 id="process-heading">How our process improved</h2>
+        <div class="split ruled-columns process-columns"><div><h3>Practice we changed</h3><p class="placeholder">[Testing, CI, PR review, deployment, or coordination]</p><p class="prompt">What changed in the way the team works?</p><div class="inline-evidence">[Concrete example: PR, check, release, or review]</div></div><div><h3>What we learned</h3><p class="placeholder">[What worked well or was harder than expected]</p><p class="prompt">How did that affect integration or delivery?</p><div class="inline-evidence">[Adjustment the team will carry into D4]</div></div></div>
+        <aside class="speaker-notes" data-time="[Reflection time]">Explain one meaningful process improvement since D2 and support it with an example. Name the engineering practice and its effect. Also acknowledge a real challenge and what the team changed in response. Do not list tools without explaining how they helped.</aside>
+      </section>
+
+      <section class="slide" id="d4" aria-labelledby="d4-heading" data-title="Remaining work toward D4" data-section="Next steps">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Path to D4</span></header>
+        <p class="eyebrow">Remaining work</p>
+        <h2 id="d4-heading">What remains for D4</h2>
+        <div class="three-columns next-steps"><div><span class="step-number">01</span><h3>[Remaining product work]</h3><p>[Expected outcome and acceptance evidence]</p></div><div><span class="step-number">02</span><h3>[Integration / verification]</h3><p>[Dependency, owner, and how to verify it]</p></div><div><span class="step-number">03</span><h3>[Open risk or decision]</h3><p>[Impact and next action]</p></div></div>
+        <div class="takeaway"><span>Immediate next step</span><p>[The next concrete action after D3]</p></div>
+        <aside class="speaker-notes" data-time="[D4 time]">State the remaining work honestly. Use the specification as planning context, not a promise that every proposed capability is in D3. Confirm priorities and ownership with the team. Explain any unresolved trade-off or risk likely to come up in questions.</aside>
+      </section>
+
+      <section class="slide dark closing" id="questions" aria-labelledby="questions-heading" data-title="Questions" data-section="Discussion">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Discussion</span></header>
+        <p class="eyebrow">Advanced NPCs for AMD Schola</p>
+        <h2 id="questions-heading">Questions<span class="accent">?</span></h2>
+        <p class="closing-takeaway">[One sentence summarizing the demonstrated improvement]</p>
+        <div class="closing-links"><p>[Repository / D3 release link]</p><p>[Team contact or presenters]</p></div>
+        <aside class="speaker-notes" data-time="[Q&amp;A time]">Prepare answers about the selected gap, implementation decisions, alternatives, validation limits, and remaining work toward D4. Use the overview to jump to supporting slides. The reference slide follows this one and can remain outside the main talk.</aside>
+      </section>
+
+      <section class="slide references" id="references" aria-labelledby="references-heading" data-title="References and backup material" data-section="Appendix">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Appendix / not part of the main talk</span></header>
+        <p class="eyebrow">Preparation &amp; Q&amp;A</p>
+        <h2 id="references-heading">References and backup material</h2>
+        <div class="split ruled-columns"><div><h3>Presentation context</h3><ul class="reference-list"><li><a href="https://github.com/csc301-2026-f/deliverable-documents/tree/main/deliverables/D3" target="_blank" rel="noopener noreferrer">Course D3 templates</a></li><li><a href="../D2/README.md">Repository D2 evidence index</a></li><li><a href="../D2/iteration-02-review.md">D2 iteration review</a></li><li>Schola native online learning specification<br><span class="prompt">3 November 2026. Proposed final-product design.</span></li><li>Demo day rubric supplied by the instructor<br><span class="prompt">Screenshot provided with this task.</span></li></ul></div><div><h3>Your supporting artifacts</h3><p class="placeholder">[D3 PR / release / test report]</p><p class="placeholder">[Demo backup recording or screenshot sequence]</p><p class="placeholder">[Additional technical detail for likely questions]</p></div></div>
+        <aside class="speaker-notes" data-time="Backup">Add supporting material as extra sections after this slide. Do not invent links. The specification distinguishes an existing prototype, proposed integration, and final-product requirements. It is not evidence of D3 completion. The linked course product-evolution template is a written deliverable, separate from this slideshow.</aside>
+      </section>
+
+      <section class="slide cover dark sp-slide sp-team-cover" id="shared-policy-team" aria-labelledby="shared-policy-team-heading" data-title="Shared Policy NPCs: team" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
+        <div class="cover-content">
+          <div class="sp-reveal">
+            <p class="eyebrow">Advanced NPCs for AMD Schola</p>
+            <h1 id="shared-policy-team-heading">Shared Policy<br>team<span class="accent">.</span></h1>
+            <p class="lead">Shared Policy NPCs &middot; Deliverable 3</p>
+          </div>
+          <div class="cover-mark sp-team sp-reveal"><span>TEAM MEMBERS</span><ul><li>Clementine Yang</li><li>Jaela</li></ul></div>
+        </div>
+        <aside class="speaker-notes" data-time="[Section intro time]">Introduce the Shared Policy team, Clementine Yang and Jaela, before walking through our D2 to D3 progress, the macOS ARM64 build support, and the Unreal NNE compatibility testing.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-progress" aria-labelledby="shared-policy-progress-heading" data-title="Shared Policy NPCs: our progress" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs</span></header>
+        <p class="eyebrow">Shared Policy NPCs</p>
+        <h2 id="shared-policy-progress-heading">Our progress: D2 <span class="sp-arrow">&#8594;</span> D3</h2>
+        <ol class="sp-timeline">
+          <li class="sp-stage">
+            <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D2</span><span class="sp-stage-caption">Shared policy foundation</span></div>
+            <ul class="sp-points">
+              <li>Shared backbone with specialized heads</li>
+              <li>PyTorch-to-ONNX export</li>
+              <li>Python ONNX Runtime prototype</li>
+            </ul>
+          </li>
+          <li class="sp-stage is-current">
+            <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D3</span><span class="sp-stage-caption">Evaluation &amp; engine validation</span></div>
+            <ul class="sp-points">
+              <li>Prototype evaluating five architectures (A&ndash;E)</li>
+              <li>Unreal NNE validation for architectures A, C and D</li>
+              <li>macOS ARM64 build support</li>
+            </ul>
+          </li>
+        </ol>
+        <div class="takeaway sp-reveal"><span>Future work</span><p>Final performance benchmarking remains future work.</p></div>
+        <aside class="speaker-notes" data-time="[Shared Policy progress time]">D2 established the shared-policy design: one shared backbone with specialized heads, exported from PyTorch to ONNX and run in a Python ONNX Runtime prototype. In D3 we built a prototype to evaluate five architectures, A to E, validated architectures A, C and D in Unreal through NNE, and added macOS ARM64 build support. We have not benchmarked final performance yet; that is future work.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-macos" aria-labelledby="shared-policy-macos-heading" data-title="Shared Policy NPCs: macOS ARM64 build support" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Individual contribution</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">My contribution &mdash; Clementine Yang</p><h2 id="shared-policy-macos-heading">macOS ARM64 build support</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #32</span><span class="sp-status">Open / Draft</span></a>
+        </div>
+        <div class="split sp-contribution">
+          <div class="sp-reveal">
+            <p class="sp-column-label">What I built</p>
+            <div class="statement-list">
+              <div><span class="item-number">01</span><div><h3>macOS ARM64 gRPC dependency build scripts</h3></div></div>
+              <div><span class="item-number">02</span><div><h3>Schola build configuration and plugin setup</h3></div></div>
+              <div><span class="item-number">03</span><div><h3>macOS documentation</h3></div></div>
+            </div>
+          </div>
+          <div class="sp-verify sp-reveal">
+            <p class="sp-column-label">How I verified it</p>
+            <ul class="sp-checks">
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p>Built the dependencies on Apple Silicon</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p>Compiled and linked <strong>BackgroundNPCsEditor</strong> with Unreal Engine 5.8 using <code>-NoUBA</code></p></li>
+            </ul>
+          </div>
+        </div>
+        <p class="source-line">Pull request: <a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32" target="_blank" rel="noopener noreferrer">github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32</a> &middot; open as a draft, not yet merged</p>
+        <aside class="speaker-notes" data-time="[Contribution time]">My contribution is macOS ARM64 build support, in PR #32. I wrote the gRPC dependency build scripts for macOS ARM64, set up the Schola build configuration and plugin, and documented the macOS workflow. I verified it by building the dependencies on Apple Silicon and compiling and linking BackgroundNPCsEditor with Unreal Engine 5.8 using the -NoUBA flag. The PR is still open as a draft.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-nne" aria-labelledby="shared-policy-nne-heading" data-title="Shared Policy NPCs: Unreal NNE compatibility testing" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Validation</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">Engine validation</p><h2 id="shared-policy-nne-heading">Unreal NNE compatibility testing</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #33</span><span class="sp-status">Open / Not merged</span></a>
+        </div>
+        <div class="three-columns sp-cards">
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">A</span>
+            <h3>All Heads</h3>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">C</span>
+            <h3>Separate Models</h3>
+            <ul class="sp-cases"><li>Batch 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">D</span>
+            <h3>Conditional Execution</h3>
+            <ul class="sp-cases"><li>Both Boolean branches</li><li>Batch 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+        </div>
+        <dl class="sp-environment sp-reveal">
+          <div><dt>Result</dt><dd>3 / 3 Unreal Automation Tests passed</dd></div>
+          <div><dt>Runtime</dt><dd>NNERuntimeORTCpu</dd></div>
+          <div><dt>Engine &amp; platform</dt><dd>Unreal Engine 5.8 &middot; macOS ARM64</dd></div>
+          <div><dt>Reference</dt><dd>Python ONNX Runtime</dd></div>
+        </dl>
+        <aside class="speaker-notes" data-time="[NNE testing time]">PR #33 adds Unreal NNE compatibility tests for three of the five architectures. A runs all heads; C uses separate models, tested at batch sizes 1 and 2; D uses conditional execution, tested on both Boolean branches at batch sizes 1 and 2. All three Unreal Automation Tests passed using NNERuntimeORTCpu in Unreal Engine 5.8 on macOS ARM64, validated against Python ONNX Runtime reference outputs. PR #33 is open and not merged yet.</aside>
+      </section>
+    </div>
+  </main>
+
+  <footer class="controls" aria-label="Presentation controls">
+    <div class="controls-left"><span class="deck-name">SCHOLA / D3</span><span id="section-name"></span></div>
+    <div class="slide-navigation"><button id="previous" type="button" aria-label="Previous slide" title="Previous slide (Left arrow)">&#8592;</button><output id="slide-count" aria-live="polite" aria-atomic="true"></output><button id="next" type="button" aria-label="Next slide" title="Next slide (Right arrow)">&#8594;</button></div>
+    <div class="controls-right"><button id="overview-button" type="button" title="Slide overview (O)">Overview</button><button id="notes-button" type="button" title="Speaker notes (N)" aria-pressed="false" aria-controls="notes-panel">Notes</button><button id="fullscreen" type="button" title="Fullscreen (F)">Fullscreen</button><button id="help-button" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button></div>
+    <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+  </footer>
+
+  <aside id="notes-panel" class="notes-panel" aria-labelledby="notes-heading" hidden><div class="panel-header"><h2 id="notes-heading">Speaker notes</h2><button id="close-notes" type="button" aria-label="Close speaker notes">Close</button></div><p id="notes-time"></p><p id="notes-text"></p><p class="notes-warning">Notes appear in this browser window and are visible if you share it.</p></aside>
+  <dialog id="overview-dialog" aria-labelledby="overview-heading"><div class="panel-header"><div><p class="dialog-kicker">SCHOLA / D3</p><h2 id="overview-heading">Slide overview</h2></div><button type="button" data-close-dialog>Close</button></div><nav id="slide-list" aria-label="Jump to slide"></nav></dialog>
+  <dialog id="help-dialog" aria-labelledby="help-heading"><div class="panel-header"><h2 id="help-heading">Keyboard shortcuts</h2><button type="button" data-close-dialog>Close</button></div><dl class="shortcuts"><dt>Right / Down / Space / Page Down</dt><dd>Next slide</dd><dt>Left / Up / Shift + Space / Page Up</dt><dd>Previous slide</dd><dt>Home / End</dt><dd>First / last slide</dd><dt>O</dt><dd>Slide overview</dd><dt>N</dt><dd>Toggle speaker notes</dd><dt>F</dt><dd>Toggle fullscreen</dd><dt>?</dt><dd>Show shortcuts</dd><dt>Escape</dt><dd>Close notes or dialog</dd></dl><p>Print from your browser to export all slides as a PDF.</p></dialog>
+  <p id="status" class="sr-only" role="status"></p>
+  <noscript><p class="no-script">JavaScript is off. All slides are shown below in order. Enable it for slideshow controls.</p></noscript>
+</body>
+</html>

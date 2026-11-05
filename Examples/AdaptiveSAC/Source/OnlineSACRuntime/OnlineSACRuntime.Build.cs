@@ -19,9 +19,7 @@ public class OnlineSACRuntime : ModuleRules
         string Shared = Path.Combine(AdaptiveTag, "Source/OnlineSACRuntime");
         PublicIncludePaths.Add(Path.Combine(Shared, "Public"));
         PrivateIncludePaths.Add(Path.Combine(Shared, "Private"));
-        string Dependency = Path.Combine(AdaptiveTag, "ThirdParty/RLtools");
-        PublicSystemIncludePaths.Add(Path.Combine(Dependency, "include"));
+        PrivateDependencyModuleNames.Add("RLTools");
         PrivateDefinitions.AddRange(new string[] { "NOMINMAX", "RL_TOOLS_DEBUG" });
-        RuntimeDependencies.Add("$(TargetOutputDir)/RLTools-LICENSE.txt", Path.Combine(Dependency, "LICENSE"), StagedFileType.NonUFS);
     }
 }

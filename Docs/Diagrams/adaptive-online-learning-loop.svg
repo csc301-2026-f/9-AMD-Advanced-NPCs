@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="860" viewBox="0 0 1120 860" style="max-width:100%;height:auto" role="img" aria-labelledby="title description">
-  <title id="title">Adaptive NPC: gameplay, decisions, and learning</title>
-  <desc id="description">C collects observations and executes actions. A validates and tracks Unreal API calls. D exchanges messages with B's neural policy and acknowledges accepted experience. B later trains in batches and publishes a complete new inference snapshot.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="790" viewBox="0 0 1120 790" style="max-width:100%;height:auto" role="img" aria-labelledby="title description">
+  <title id="title">Adaptive NPC: native gameplay and RLtools learning</title>
+  <desc id="description">Gameplay requests a decision through Schola. The native policy reads an immutable actor snapshot and returns an action and its version. Gameplay submits the completed experience to a bounded learner queue. A training worker later updates the model and publishes a new snapshot. All components run inside one process.</desc>
   <defs>
     <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#334155"/></marker>
     <style>
@@ -15,43 +15,39 @@
       .reply { stroke-dasharray: 6 4; }
     </style>
   </defs>
-  <rect width="1120" height="860" rx="16" fill="#ffffff"/>
-  <text x="36" y="44" class="title">Adaptive NPC: the intended loop</text>
-  <text x="36" y="74" class="subtitle">Proposed design. Arrows show ownership handoffs; gameplay keeps running while work is pending.</text>
+  <rect width="1120" height="790" rx="16" fill="#ffffff"/>
+  <text x="36" y="44" class="title">Adaptive NPC: native gameplay and learning</text>
+  <text x="36" y="74" class="subtitle">One process. Decisions read complete snapshots; gameplay never waits for training.</text>
   <rect x="36" y="102" width="232" height="86" rx="12" fill="#dbeafe"/>
   <rect x="310" y="102" width="232" height="86" rx="12" fill="#dcfce7"/>
-  <rect x="584" y="102" width="232" height="86" rx="12" fill="#ffedd5"/>
-  <rect x="858" y="102" width="226" height="86" rx="12" fill="#ede9fe"/>
-  <text x="152" y="136" class="owner">C · Gameplay</text>
+  <rect x="584" y="102" width="232" height="86" rx="12" fill="#ede9fe"/>
+  <rect x="858" y="102" width="226" height="86" rx="12" fill="#ffedd5"/>
+  <text x="152" y="136" class="owner">Gameplay</text>
   <text x="152" y="165" class="role">Observe, execute, score</text>
-  <text x="426" y="136" class="owner">A · Unreal API</text>
-  <text x="426" y="165" class="role">Validate and track work</text>
-  <text x="700" y="136" class="owner">D · Communication</text>
-  <text x="700" y="165" class="role">Native client + service</text>
-  <text x="971" y="136" class="owner">B · Neural policy</text>
-  <text x="971" y="165" class="role">Infer, learn, publish</text>
-  <path d="M152 188V760 M426 188V760 M700 188V760 M971 188V760" class="lane"/>
-  <text x="289" y="218" class="label">1. Observation</text>
-  <path d="M152 232H426" class="message"/>
-  <text x="563" y="268" class="label">2. Identified request</text>
-  <path d="M426 282H700" class="message"/>
-  <text x="835" y="318" class="label">3. Use current snapshot</text>
-  <path d="M700 332H971" class="message"/>
-  <text x="835" y="368" class="label">4. Action + policy version</text>
-  <path d="M971 382H700" class="message reply"/>
-  <text x="563" y="418" class="label">5. Identified response</text>
-  <path d="M700 432H426" class="message reply"/>
-  <text x="289" y="468" class="label">6. Valid action to execute</text>
-  <path d="M426 482H152" class="message reply"/>
-  <text x="289" y="528" class="label">7. Completed experience</text>
-  <path d="M152 542H426" class="message"/>
-  <text x="563" y="578" class="label">8. Validated experience</text>
-  <path d="M426 592H700" class="message"/>
-  <text x="835" y="628" class="label">9. Unique learning sample</text>
-  <path d="M700 642H971" class="message"/>
-  <text x="563" y="688" class="label">10. Acceptance acknowledgement</text>
-  <path d="M700 702H426" class="message reply"/>
-  <rect x="36" y="756" width="1048" height="76" rx="12" fill="#f1f5f9"/>
-  <text x="560" y="785" class="label">Later, B trains a bounded batch and publishes a complete new inference snapshot.</text>
-  <text x="560" y="812" class="label">Subsequent decisions can use its new version. Acceptance does not mean training has finished.</text>
+  <text x="426" y="136" class="owner">Schola policy</text>
+  <text x="426" y="165" class="role">Tickets + learner adapter</text>
+  <text x="700" y="136" class="owner">Actor snapshot</text>
+  <text x="700" y="165" class="role">Immutable RLtools policy</text>
+  <text x="971" y="136" class="owner">Training worker</text>
+  <text x="971" y="165" class="role">Bounded queue + SAC</text>
+  <path d="M152 188V684 M426 188V684 M700 188V684 M971 188V684" class="lane"/>
+  <text x="289" y="222" class="label">1. RequestDecision(observation)</text>
+  <path d="M152 236H426" class="message"/>
+  <text x="563" y="277" class="label">2. Act from current snapshot</text>
+  <path d="M426 291H700" class="message"/>
+  <text x="563" y="332" class="label">3. Action + policy version</text>
+  <path d="M700 346H426" class="message reply"/>
+  <text x="289" y="387" class="label">4. Read Ready action; execute once</text>
+  <path d="M426 401H152" class="message reply"/>
+  <text x="289" y="442" class="label">5. Submit completed experience</text>
+  <path d="M152 456H426" class="message"/>
+  <text x="699" y="497" class="label">6. AddExperience: enqueue numeric data</text>
+  <path d="M426 511H971" class="message"/>
+  <text x="289" y="552" class="label">7. Return local submission result</text>
+  <path d="M426 566H152" class="message reply"/>
+  <text x="835" y="622" class="label">8. Train, then publish snapshot</text>
+  <path d="M971 636H700" class="message reply"/>
+  <rect x="36" y="696" width="1048" height="66" rx="12" fill="#f1f5f9"/>
+  <text x="560" y="723" class="label">Decision inference completes from a snapshot on the game thread; training runs on its own worker.</text>
+  <text x="560" y="748" class="label">Queue acceptance does not mean training has finished. Subsequent decisions can use a new version.</text>
 </svg>

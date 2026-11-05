@@ -6,10 +6,12 @@
 #include "Policies/PolicyInterface.h"
 #include "AdaptiveNPCPolicy.generated.h"
 
+class UAdaptivePolicySnapshot;
+
 /**
  * Nonblocking adaptive decision lifecycle. Call all methods on the game thread.
  * Currently accepts Box observations and finite, bounded Box actions of configurable size.
- * Init validates and copies definitions only; it does not connect to Python or mark a session Ready.
+ * Base Init validates and copies definitions only; a native learner subclass starts the Ready session.
  */
 UCLASS(BlueprintType, Blueprintable, EditInlineNew, DefaultToInstanced)
 class SCHOLAINFERENCEUTILS_API UAdaptiveNPCPolicy : public UObject, public IPolicy
@@ -42,7 +44,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     EAdaptiveRequestStatus TryGetDecision(int64 DecisionId, FAdaptiveDecision& OutDecision);
 
-    /** Invalidate a pending or ready action; cancellation does not promise remote computation stops. */
+    /** Validate the active session and numerical data, then submit without waiting for training.
+     * Accepted means the native learner admitted the record. Read GetLastError for a failure reason.
+     */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual EAdaptiveSubmitResult SubmitExperience(const FAdaptiveExperience& Experience);
+
+    /** Invalidate a pending or ready action without stopping the learner or resetting its weights. */
     UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
     bool CancelDecision(int64 DecisionId);
 
@@ -72,19 +80,62 @@ public:
     UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
     bool GetInteractionDefinition(FInteractionDefinition& OutDefinition) const;
 
+    /** Copy this NPC's attribution state. This does not expose mutable learner state. */
+    UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
+    FAdaptiveSessionInfo GetSessionInfo() const;
+
+    UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
+    virtual FAdaptiveCapabilities GetCapabilities() const { return {}; }
+
+    /** Pause/resume training independently of action selection. Backends define acknowledgement. */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult SetLearningEnabled(bool bEnabled);
+
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult SetInferenceMode(EAdaptiveInferenceMode Mode);
+
+    /** Reset learned state, not merely this NPC's encounter. May affect a shared learner group. */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult ResetLearning(int32 Seed);
+
+    /** Capture immutable inference state. Failure preserves OutSnapshot for native callers. */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult CaptureSnapshot(UAdaptivePolicySnapshot*& OutSnapshot);
+
 protected:
-    /** Native integration hooks, not Blueprint readiness switches. No network implementation yet.
-     * The future client calls StartSession only after a successful handshake. Completions must be
-     * marshalled to the game thread, capturing a weak policy pointer and the original request identity.
+    /** Default validation supports Box spaces. Other backends override these hooks while
+     * retaining common identity, finite-reward, ticket and lifecycle validation.
+     */
+    virtual bool ValidateSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error) const;
+    virtual bool ValidatePoint(const TInstancedStruct<FPoint>& Point, const TInstancedStruct<FSpace>& Definition, FString& Error) const;
+
+    /** Native learner integration hooks, not Blueprint readiness switches.
+     * A subclass calls StartSession after its learner is ready. Decision completions belong on the
+     * game thread; deferred completions retain a weak policy pointer and the original request identity.
      */
     bool StartSession(const FGuid& InSessionId, int64 InAgentId, int64 InEpisodeId);
     bool CompleteDecision(const FAdaptiveDecision& InDecision);
     bool FailDecision(const FAdaptiveDecisionRequest& InRequest, const FString& Error);
 
     /** Must return promptly and copy input before retaining it. False means dispatch was rejected.
-     * May complete synchronously. The base implementation rejects dispatch; tests override this hook.
+     * May complete synchronously from a learner snapshot. The base implementation rejects dispatch.
      */
     virtual bool DispatchDecision(const FAdaptiveDecisionRequest& InRequest) { return false; }
+
+    /** Admit a validated record to the native learner without waiting for training.
+     * Copy any retained data. The base has no learner and returns NotReady.
+     */
+    virtual EAdaptiveSubmitResult DispatchExperience(const FAdaptiveExperience& Experience) { return EAdaptiveSubmitResult::NotReady; }
+
+    /** Called once when a Ready binding ends: Shutdown, successful Init, or destruction.
+     * Common identity and tickets are invalidated before this call. Release only this binding;
+     * a shared runtime stops only after its last binding is released. Failed Init never calls it.
+     * Partial initialization failures remain the subclass's responsibility.
+     */
+    virtual void ReleaseLearnerBinding(const FAdaptiveSessionInfo& PreviousSession) {}
+
+    /** Agent-local notification after advancing the episode. Preserve weights and replay. */
+    virtual void OnEpisodeReset(const FAdaptiveSessionInfo& PreviousSession) {}
 
     /** Monotonic local elapsed time. Overridden only by deterministic tests. */
     virtual double GetTimeSeconds() const;
@@ -94,6 +145,7 @@ protected:
     void PostDuplicate(bool bDuplicateForPIE) override;
 
 private:
+    void EndSession(const FString& Reason);
     void ResetRuntimeState();
     void ExpireDecision();
     void InvalidateDecision(const FString& Reason);
