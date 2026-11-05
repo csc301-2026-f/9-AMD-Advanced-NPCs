@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "RLToolsNetworkTypes.h"
 
 /** Internal, engine-independent API used by the ScholaRLTools policy/service implementation.
  * All algorithm headers stay in RLToolsLearner.cpp. Game code uses Schola points and policies.
@@ -21,6 +22,8 @@ struct FProfile
     EAlgorithm Algorithm;
     unsigned Observations, Actions, HiddenWidth, BatchSize, ReplayCapacity, RolloutLength;
     unsigned ActorLayers = 3, CriticLayers = 3;
+    unsigned CriticHiddenWidth = 32;
+    EActivation ActorActivation = EActivation::ReLU, CriticActivation = EActivation::ReLU;
     float Discount = 0.99f;
     float TargetTau = 0.005f, EntropyCoefficient = 0.5f;
     unsigned ActorInterval = 1, TargetInterval = 1;
@@ -116,6 +119,8 @@ class FLearner
 public:
     ~FLearner();
     static std::vector<FProfile> GetProfiles();
+    // Validate without constructing numerical state; shared by Unreal and native construction.
+    static bool ValidateSettings(const std::string& ProfileId, const FSettings& Settings, std::string& Error);
     static std::unique_ptr<FLearner> Create(const std::string& ProfileId, const FSettings& Settings, std::string& Error);
     bool Decide(const std::vector<float>& Observation, std::uint64_t Agent, std::uint64_t Episode,
         bool Deterministic, FDecision& OutDecision);

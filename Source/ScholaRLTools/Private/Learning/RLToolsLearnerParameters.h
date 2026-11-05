@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 #pragma once
+#include "RLToolsNetworkTypes.h"
 
 namespace Schola::RLTools
 {
@@ -9,6 +10,9 @@ namespace Schola::RLTools
  */
 struct FAlgorithmParameters
 {
+    static constexpr unsigned CriticHiddenWidth = 0; // 0 inherits the registered actor width.
+    static constexpr unsigned ActorLayers = 3, CriticLayers = 3;
+    static constexpr EActivation ActorActivation = EActivation::ReLU, CriticActivation = EActivation::ReLU;
     static constexpr float Discount = 0.99f;
     static constexpr float TargetTau = 0.005f;
     static constexpr unsigned ActorInterval = 0; // 0 selects SAC=1, TD3=2.
