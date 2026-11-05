@@ -6,8 +6,8 @@ from typing import Sequence, cast
 import numpy as np
 import pytest
 
-from export_shared_policy import INPUT_NAME, OUTPUT_NAMES
-from run_shared_policy_demo import (
+from legacy.export_shared_policy import INPUT_NAME, OUTPUT_NAMES
+from legacy.run_shared_policy_demo import (
     FloatArray,
     HeadName,
     TWO_NPC_HEADS,

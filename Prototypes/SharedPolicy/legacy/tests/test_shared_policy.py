@@ -2,7 +2,7 @@
 
 import torch
 
-from shared_policy import SharedPolicyReferenceModel
+from legacy.shared_policy import SharedPolicyReferenceModel
 
 
 def test_single_observation_returns_both_action_heads() -> None:

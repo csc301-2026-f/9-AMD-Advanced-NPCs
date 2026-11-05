@@ -6,8 +6,8 @@ from typing import Sequence
 import numpy as np
 import onnxruntime as ort
 
-from export_shared_policy import export_shared_policy
-from run_shared_policy_demo import (
+from legacy.export_shared_policy import export_shared_policy
+from legacy.run_shared_policy_demo import (
     FloatArray,
     TWO_NPC_HEADS,
     TWO_NPC_OBSERVATIONS,

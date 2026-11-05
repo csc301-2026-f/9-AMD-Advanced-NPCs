@@ -128,6 +128,15 @@ documentation/*.bkp
 .cline_storage
 .cursor/*
 
+# Private AI working context
+tasks/
+learn.md
+tracker.md
+AGENTS.md
+CLAUDE.md
+CODEX.md
+codex.md
+
 # ignore pytest temporary files
 **/.pytest_tmp/*
 **/.pytest_cache/*

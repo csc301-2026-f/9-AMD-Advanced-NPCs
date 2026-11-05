@@ -8,7 +8,7 @@ from pathlib import Path
 import onnx
 import torch
 
-from shared_policy import SharedPolicyReferenceModel
+from legacy.shared_policy import SharedPolicyReferenceModel
 
 INPUT_NAME = "observations"
 OUTPUT_NAMES = ("combat_actions", "support_actions")
