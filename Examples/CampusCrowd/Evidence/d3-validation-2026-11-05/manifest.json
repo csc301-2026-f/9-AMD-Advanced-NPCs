@@ -1,0 +1,116 @@
+{
+  "base_commit": "58b0ccb47157bbc646ae67ad1944c3d4b302adee",
+  "working_tree": "D3 documentation plus Android file server disabled/token removed in Config/DefaultEngine.ini; no C++ edits",
+  "config_sha256": "1d8017c37d6b01fad21c7dd4941dfe3a3e301a437f5a8c3176af9839f587dc42",
+  "engine": {
+    "version": "5.8.3",
+    "changelist": 58210709,
+    "platform": "Linux"
+  },
+  "editor_build_exit_code": 0,
+  "automation_exit_code": 0,
+  "automation": {
+    "succeeded": 40,
+    "succeededWithWarnings": 3,
+    "failed": 0,
+    "notRun": 0,
+    "inProcess": 0,
+    "totalDuration": 3.508915901184082
+  },
+  "initial_automation_exit_code": 1,
+  "initial_automation_note": "43 tests passed, 0 failures. -TestExit forced the process to exit with status 1. Reran without -TestExit and with the Automation Quit command; final exit status 0.",
+  "package_exit_code": 0,
+  "packaged_background_exit_code": 0,
+  "packaged_controls_exit_code": 0,
+  "packaged_report": {
+    "mode": "background",
+    "agents": 20000,
+    "scene": "50H_NORTH campus",
+    "cad_buildings": 340,
+    "route_nodes": 4135,
+    "decision_hz_per_agent": 10,
+    "target_decisions_per_second": 200000,
+    "max_fps": 60,
+    "capture_seconds": 10.00389342699782,
+    "frames": 600,
+    "fps": 59.97664852973756,
+    "frame_ms_mean": 16.667198949993082,
+    "frame_ms_p50": 16.66704200033564,
+    "frame_ms_p95": 16.71128100133501,
+    "frame_ms_p99": 16.7277419968741,
+    "inference_game_thread_ms_mean": 1.6374038748957294,
+    "inference_game_thread_ms_p99": 2.011132994084619,
+    "decisions_per_second": 199922.16176579185,
+    "target_fraction": 0.9996108088289593,
+    "target_met": true,
+    "movement_ms_mean": 1.538727603474399,
+    "workers": 2,
+    "max_batch": 64,
+    "max_rows_per_frame": 5000,
+    "max_pending_rows": 10000,
+    "deferred_rows": 0,
+    "rejected_submissions": 0,
+    "expired_rows": 0,
+    "failed_rows": 0,
+    "stale_results_discarded": 0,
+    "action_latency_ms_mean": 15.80958442438076,
+    "rows_per_model_call": 62.89322097849327,
+    "model_calls": 31804,
+    "model_ms_per_second": 334.0325570624183,
+    "dropped_rows": 0,
+    "submitted_requests": 600,
+    "busy_rejections": 0,
+    "invalid_submissions": 0,
+    "cpu": "AMD Ryzen 5 7600X 6-Core Processor",
+    "gpu": "AMD Radeon RX 7800 XT (RADV NAVI32)"
+  },
+  "controls": {
+    "agents": 2000,
+    "verified": [
+      "Camera preset 3 switched to pedestrian view; preset 1 returned to overview",
+      "Tab switched background to synchronous inference and back",
+      "Space stopped movement (HUD 0.00 ms) and resumed it (HUD 0.98 ms)",
+      "Alt+F4 closed normally (exit 0)"
+    ],
+    "notes": [
+      "The first automated taps were ignored until the viewport was focused with a mouse click. Held-key retries succeeded.",
+      "Route overlay key was exercised, but route visibility was not verified.",
+      "333 cumulative dropped requests were visible after interactive mode switches. The separate timed 20,000-agent run had 0 dropped requests."
+    ]
+  },
+  "package_directory": "Examples/CampusCrowd/Saved/Package/Linux",
+  "package_files": {
+    "CampusCrowd.sh": {
+      "bytes": 258,
+      "sha256": "68cac3283ac2395fb62c023c6e35018e4b36fccb95081d8c4286a70b4d120407"
+    },
+    "CampusCrowd/Binaries/Linux/CampusCrowd": {
+      "bytes": 316224592,
+      "sha256": "57491b150db463156dfdb86eef551f8a8f81a682ab42a4c883f7d95201440c11"
+    },
+    "CampusCrowd/Content/Paks/CampusCrowd-Linux.pak": {
+      "bytes": 10367146,
+      "sha256": "67a7f86e5972d00192b456ce20c1b9446c1c08adca07b75b76d86b89345cb75b"
+    },
+    "CampusCrowd/Content/Paks/CampusCrowd-Linux.utoc": {
+      "bytes": 132526,
+      "sha256": "2e1a6640fc3082105ee37d1143eab03fe0a9103fd771a1d6b619c78c1d3d4bff"
+    },
+    "CampusCrowd/Content/Paks/CampusCrowd-Linux.ucas": {
+      "bytes": 157499792,
+      "sha256": "15076e48cec07ea7bb054ebf2bfdd330cda0ac81eb2c5008a914352f86a49d18"
+    }
+  },
+  "commands": {
+    "build": "UE_ENGINE_ROOT=/home/future/Downloads/UnrealEngine-5.8.3 timeout 900 Scripts/build.sh",
+    "automation": "timeout 240 \"$UE_ENGINE_ROOT/Engine/Binaries/Linux/UnrealEditor-Cmd\" \"$PWD/CampusCrowd.uproject\" -nullrhi -unattended -nosound -nop4 \"-ExecCmds=Automation RunTests Schola.Inference.Background+Schola.Mass;Quit\" \"-ReportExportPath=$PWD/Saved/D3Validation/Automation\" \"-abslog=$PWD/Saved/D3Validation/automation.log\"",
+    "package": "UE_ENGINE_ROOT=/home/future/Downloads/UnrealEngine-5.8.3 timeout 1200 Scripts/package.sh",
+    "packaged_background": "timeout 180 Saved/Package/Linux/CampusCrowd.sh -windowed -nosound -unattended -ResX=1600 -ResY=900 -Agents=20000 -DecisionHz=10 -Workers=2 -MaxBatch=64 -Mode=Background -WarmupSeconds=10 -CaptureSeconds=10 \"-Report=$PWD/Saved/D3Validation/packaged-background.json\" \"-Screenshot=$PWD/Saved/D3Validation/packaged-background.png\" \"-abslog=$PWD/Saved/D3Validation/packaged-background.log\""
+  },
+  "generated_input_config": {
+    "path": "tested-DefaultInput.ini.gz",
+    "note": "Unreal automatically expanded default input settings during validation. This snapshot was present when packaging. Source DefaultInput.ini restored to its original two-line form after the check.",
+    "uncompressed_sha256": "d88f8d0290b30ea5d4bc91ecca5087409dfd4db9ad9b803531f9d09796ba2620"
+  },
+  "post_validation_config_note": "Before committing, the editor-regenerated Android development token was cleared explicitly with SecurityToken= to prevent automatic regeneration. The Android file server and network connection remain disabled. config_sha256 identifies the configuration at validation time."
+}

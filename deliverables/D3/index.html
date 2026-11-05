@@ -145,6 +145,54 @@
         <aside class="speaker-notes" data-time="Appendix">All linked artifacts are repository files or implementation PRs. The D3 report includes the before/after analysis and reflection. The evidence record distinguishes local tests, gameplay claims and the pending partner CI/CD integration. No private plan or conversation is required to understand the work.</aside>
       </section>
 
+
+      <section class="slide" id="background-campus" aria-labelledby="background-campus-heading" data-title="Background NPCs: CampusCrowd" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">Max Xu</p>
+        <h2 id="background-campus-heading">Benchmarking agent swarms</h2>
+        <div class="split">
+          <div><p>Simulating large crowds: over 20,000 agents</p><h3>What I built</h3><p>A campus inspired demo of crowd behavior.</p><p>Shows how developers can use background inference in a large game/simulation scene.</p></div>
+          <figure style="margin: 0"><img class="slide-image" src="assets/campus-overview.png" alt="CampusCrowd overview with imported buildings, pedestrian routes, and performance HUD"><figcaption>Packaged build · 20,000 agents · 60 FPS</figcaption></figure>
+        </div>
+        <aside class="speaker-notes" data-time="45 seconds">I am the only Background NPC subteam member. D2 showed that batching could improve a comparison scene. Reviewing that scope exposed the next gap: showing how developers would use the API in a large environment. CampusCrowd adds real campus geometry and pedestrian routes. It demonstrates a production use case; it has not been validated as a production deployment.</aside>
+      </section>
+
+      <section class="slide" id="background-design" aria-labelledby="background-design-heading" data-title="Background NPCs: design and reliability" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">Integration and engineering</p>
+        <h2 id="background-design-heading">Batch decisions off the game thread</h2>
+        <div class="three-columns workflow">
+          <div><span class="step-number">01</span><h3>Gather</h3><p>Mass agents submit observations at a configured decision rate.</p></div>
+          <div><span class="step-number">02</span><h3>Run inference</h3><p>Workers evaluate batches. The game thread continues.</p></div>
+          <div><span class="step-number">03</span><h3>Apply</h3><p>Completed actions influence steering alongside routes and separation.</p></div>
+        </div>
+        <p class="source-line">Local validation: 5 CAD + 43 Unreal tests passed · build, package, and standalone smoke test passed.</p>
+        <aside class="speaker-notes" data-time="50 seconds">The D2 scheduler batches decisions on workers; D3 integrates it into the campus and improves queue sizing and reporting. Actions usually arrive about one frame later. The model is untrained, so this demonstrates integration and throughput. We use local tests and scripted packaging because provisioning our Unreal image does not fit the course’s short GitHub Actions jobs. Five CAD tests and 43 Unreal tests passed; three Unreal tests have recorded warnings. Packaging and the 20,000-agent standalone run passed. Input bounds, overload reporting, and disabling the unused Android file server address reliability and security. Independent-machine validation remains open.</aside>
+      </section>
+
+      <section class="slide" id="background-results" aria-labelledby="background-results-heading" data-title="Background NPCs: measured scale" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">Measured performance</p>
+        <h2 id="background-results-heading">50,000 students at 60 FPS</h2>
+        <table class="comparison-table"><thead><tr><th scope="col">Students</th><th scope="col">FPS</th><th scope="col">Decisions/s</th><th scope="col">Target/s</th></tr></thead><tbody>
+          <tr><th scope="row">20,000</th><td>60</td><td>200,000</td><td>200,000</td></tr>
+          <tr><th scope="row">50,000</th><td>60</td><td>499,000</td><td>500,000</td></tr>
+          <tr><th scope="row">100,000 · default limits</th><td>36</td><td>895,000</td><td>1,000,000</td></tr>
+          <tr><th scope="row">100,000 · raised limits</th><td>39</td><td>997,000</td><td>1,000,000</td></tr>
+        </tbody></table>
+        <p class="prompt">Ryzen 5 7600X · RX 7800 XT · 1600×900 · 60 FPS cap<br>10 decisions/s per student · 2 CPU workers · batch size 64 · rounded local results</p>
+        <aside class="speaker-notes" data-time="55 seconds">These are local CampusCrowd results, not a D2-to-D3 speedup comparison. At 100,000 students, the default submission cap admits fewer decisions than required and a backlog increases game-thread work. Raising the queue to 100,000 and rows per frame to 50,000 restores roughly one million decisions per second, but FPS stays below 60. Rendering also exceeds the 60 FPS budget at that scale. A separate 2,000-agent same-scene comparison reduced game-thread inference from 1.83 to 0.34 milliseconds per frame; both modes reached 60 FPS.</aside>
+      </section>
+
+      <section class="slide dark" id="background-demo" aria-labelledby="background-demo-heading" data-title="Background NPCs: 20,000 agents at 60 FPS" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">CampusCrowd demo · Max Xu</p>
+        <h2 id="background-demo-heading">20,000 agents. 200,000 decisions/s. 60 FPS.</h2>
+        <p class="intro"><a href="https://utoronto-my.sharepoint.com/:v:/g/personal/maxh_xu_mail_utoronto_ca/IQDEpcI8CITpT6vs0vv20yCwAU4lH9gFIKJzbEZhq47R4p8?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=R3tV6g" target="_blank" rel="noopener noreferrer">Watch the CampusCrowd demo video ↗</a></p>
+        <div class="takeaway"><span>D4 priority</span><p>Improve setup and controls. Reduce boilerplate for developers integrating the API.</p></div>
+        <aside class="speaker-notes" data-time="2 minutes 10 seconds">Use the prepared package from main. Click the viewport before using keyboard controls. Launch commands, controls, and retained validation reports are in the D3 README. Keep the model, crowd size, resolution, and decision rate fixed when toggling modes. Do not promise a specific synchronous FPS at 20,000 without rehearsal. Explain that asynchronous actions have latency. The 50,000-agent run is a separate scale demonstration. Open the linked video in a separate tab before presenting and test playback with the presentation account. Use it to show 20,000 agents making 200,000 decisions per second at 60 FPS, or as backup for the live demo. Keep playback within the demo time budget. D4 focuses on UX and avoiding boilerplate: clearer setup and controls, with reusable configuration for developers. This section has five minutes: 45 seconds for the gap, 50 for design, 55 for results, 130 for the demo and D4, and 20 for the transition or questions.</aside>
+      </section>
+
       <section class="slide cover dark sp-slide sp-team-cover" id="shared-policy-team" aria-labelledby="shared-policy-team-heading" data-title="Shared Policy NPCs: team" data-section="Shared Policy NPCs">
         <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
         <div class="cover-content">

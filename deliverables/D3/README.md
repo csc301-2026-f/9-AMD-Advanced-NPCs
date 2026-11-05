@@ -4,6 +4,8 @@
 - [Product evolution report](product-evolution.md)
 - [Individual contributions](Individual_Contributions_Deliverable3.md)
 - [Adaptive NPC workflow, test results and NFR evidence](adaptive-npc-evidence.md)
+- [CampusCrowd setup, local tests and packaging](../../Examples/CampusCrowd/README.md)
+- [CampusCrowd D3 validation results](../../Examples/CampusCrowd/Evidence/d3-validation-2026-11-05/README.md)
 
 The adaptive NPC section covers the reusable native Schola/RLtools integration.
 The existing Shared Policy slides and report content remain owned by that subteam.
@@ -41,7 +43,13 @@ The adaptive slides use these stable links:
 | [Discussion](index.html#questions) | Questions about the adaptive section |
 | [References](index.html#references) | Repository artifacts and implementation PRs |
 
-The Shared Policy section follows these slides, starting at
+The Background NPC section follows the adaptive slides, starting at
+[index.html#background-campus](index.html#background-campus). Max Xu’s five-minute
+CampusCrowd section covers the gap, design, measured results, demo video and D4
+UX priorities. The standalone validation reached 59.98 FPS and 199,922 decisions/s
+with 20,000 agents. Its local tests, packaging logs and screenshots are linked above.
+
+The Shared Policy section follows CampusCrowd, starting at
 [index.html#shared-policy-team](index.html#shared-policy-team). Its content and
 layout are preserved. Use the overview to move between subteams.
 
