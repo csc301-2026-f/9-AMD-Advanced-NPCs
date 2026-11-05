@@ -12,7 +12,7 @@
 
 **Why addressing it matters:** [Affected user or workflow and expected benefit]
 
-**Shared Policy Team
+**Shared Policy Team**
 In D2, we had a working Shared Policy prototype with a shared backbone and multiple specialized heads, but it was mainly tested in Python. We needed to verify its compatibility with Unreal Engine and explore different architectures to understand their potential performance trade-offs.
 
 ## 2. What You Did
@@ -25,7 +25,7 @@ In D2, we had a working Shared Policy prototype with a shared backbone and multi
 
 **Supporting artifacts:** [Relevant PRs, release, or implementation links]
 
-**Shared policy Team
+**Shared policy Team**
 We developed a benchmark prototype to compare five architectures (A–E) and evaluate their inference behaviour (PR #24). We also added macOS ARM64 build support for Schola (PR #32) and implemented Unreal NNE Automation Tests for architectures A, C, and D. All three passed and their outputs were validated against Python ONNX Runtime reference results (PR #33).
 
 ## 3. Before vs. After
@@ -45,5 +45,5 @@ for measurements.]
 
 **Path to D4:** [Remaining work, risks, and next steps]
 
-**Shared Policy Team
+**Shared Policy Team**
 D3 helped us move beyond the initial prototype and verify that multiple Shared Policy architectures can run in Unreal. We also learned that supporting selective inference does not automatically guarantee better performance. Next, we plan to complete NPC head-routing integration, improve the benchmark, and evaluate the architectures under more realistic conditions.
