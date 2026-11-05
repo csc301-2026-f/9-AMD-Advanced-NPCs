@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
 $revision = 'b32d9985c65a5e098a6bbf190fd994962d288b99'
-$destination = Join-Path $PSScriptRoot 'ThirdParty/RLtools'
+$destination = Join-Path $PSScriptRoot '../../Source/ThirdParty/RLTools'
 if (Test-Path (Join-Path $destination 'REVISION')) {
     if ((Get-Content (Join-Path $destination 'REVISION') -Raw).Trim() -ne $revision) { throw 'RLtools revision mismatch.' }
-    if (!(Test-Path (Join-Path $destination 'include/rl_tools/operations/cpu_mux.h'))) { throw 'Pinned RLtools headers are missing. Restore ThirdParty/RLtools from Git.' }
+    if (!(Test-Path (Join-Path $destination 'include/rl_tools/operations/cpu_mux.h'))) { throw 'Pinned RLtools headers are missing. Restore Source/ThirdParty/RLTools from Git.' }
     Write-Output "RLtools ready: $revision"
     return
 }

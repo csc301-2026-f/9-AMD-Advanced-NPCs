@@ -9,7 +9,7 @@ This was verified on Apple Silicon with Unreal Engine 5.8 and Xcode 26.1.1. The 
 - An Apple Silicon Mac.
 - Unreal Engine 5.8. Set `UE_ENGINE_ROOT` to the engine directory that contains `Engine/Build`.
 - Xcode, including the Metal toolchain. Xcode 26 does not always install that toolchain until the command below has been run.
-- Git, CMake, Ninja, and the Xcode command-line tools.
+- Git, CMake, the Xcode command-line tools, and either Ninja or Make.
 
 Unreal Engine 5.8 links Mac editor binaries for macOS 14.0. `Resources/Build/mac_dependencies.sh` pins the gRPC build to that deployment target so the archives match the engine.
 

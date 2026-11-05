@@ -30,6 +30,90 @@ enum class EAdaptiveRequestStatus : uint8
     Expired
 };
 
+/** Outcome of submitting experience. Accepted means learner admission, not a completed training update. */
+UENUM(BlueprintType)
+enum class EAdaptiveSubmitResult : uint8
+{
+    Accepted,
+    Rejected,
+    Dropped,
+    Frozen,
+    NotReady
+};
+
+/** Copied identity of one policy binding. Only Ready carries an active session identity. */
+USTRUCT(BlueprintType)
+struct SCHOLAINFERENCEUTILS_API FAdaptiveSessionInfo
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    EAdaptiveSessionState State = EAdaptiveSessionState::Uninitialized;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    FGuid SessionId;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    int64 AgentId = INDEX_NONE;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    int64 EpisodeId = INDEX_NONE;
+};
+
+/** Action selection and parameter updates are independent controls. */
+UENUM(BlueprintType)
+enum class EAdaptiveInferenceMode : uint8
+{
+    Stochastic,
+    Deterministic
+};
+
+/** Optional operations must report Unsupported rather than pretend to have changed a learner. */
+UENUM(BlueprintType)
+enum class EAdaptiveOperationStatus : uint8
+{
+    Unsupported,
+    Pending,
+    Succeeded,
+    Failed,
+    Cancelled
+};
+
+USTRUCT(BlueprintType)
+struct SCHOLAINFERENCEUTILS_API FAdaptiveOperationResult
+{
+    GENERATED_BODY()
+
+    /** A backend assigns an ID to an operation it supports; unsupported requests have no ID. */
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    FGuid OperationId;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    EAdaptiveOperationStatus Status = EAdaptiveOperationStatus::Unsupported;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    FString Diagnostic;
+};
+
+/** Supported API operations, independent of whether a particular session is currently Ready. */
+USTRUCT(BlueprintType)
+struct SCHOLAINFERENCEUTILS_API FAdaptiveCapabilities
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    bool bLearningControl = false;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    bool bInferenceMode = false;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    bool bLearningReset = false;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Schola|Adaptive")
+    bool bSnapshots = false;
+};
+
 /** Copied input for one decision. The policy assigns its session and ticket identity. */
 USTRUCT(BlueprintType)
 struct SCHOLAINFERENCEUTILS_API FAdaptiveDecisionRequest

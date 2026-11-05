@@ -4,7 +4,7 @@
 # Build gRPC v1.80.0 (protobuf 31.1) static libraries for macOS arm64 and
 # install headers plus archives into Source/ThirdParty/gRPC/Mac.
 #
-# CMake options match the configuration that linked and launched the
+# CMake options match the configuration that compiled and linked the
 # BackgroundNPCs editor on Apple Silicon with Unreal Engine 5.8:
 # Apple Clang, arm64, static libraries, and the gRPC-bundled abseil,
 # c-ares, protobuf, re2, BoringSSL, and zlib modules.
@@ -52,8 +52,10 @@ for tool in git cmake c++ cc perl; do
 done
 
 if command -v ninja >/dev/null 2>&1; then
+    cmake_generator_name="Ninja"
     cmake_generator=(-G Ninja)
 else
+    cmake_generator_name="Unix Makefiles"
     cmake_generator=(-G "Unix Makefiles")
 fi
 
@@ -78,6 +80,11 @@ work_root="${work_root%/}"
 grpc_root="${work_root}/src"
 build_dir="${work_root}/build"
 install_dir="${work_root}/install"
+
+if [[ -z "${work_root}" || "${work_root}" == "/" ]]; then
+    echo "Refusing unsafe SCHOLA_GRPC_WORK_ROOT='${work_root}'." >&2
+    exit 1
+fi
 
 echo "repo_root=${repo_root}"
 echo "work_root=${work_root}"
@@ -112,6 +119,18 @@ fi
 # RE2_BUILD_TESTING defaults to ON; the shipped archives do not include its tests.
 export MACOSX_DEPLOYMENT_TARGET=14.0
 rm -rf "${install_dir}"
+
+# Reuse build outputs when possible, but discard a cache created with a
+# different generator. CMake otherwise rejects a later run if Ninja becomes
+# available (or unavailable) between invocations.
+cmake_cache="${build_dir}/CMakeCache.txt"
+if [[ -f "${cmake_cache}" ]]; then
+    cached_generator="$(sed -n 's/^CMAKE_GENERATOR:INTERNAL=//p' "${cmake_cache}" | head -n 1)"
+    if [[ -n "${cached_generator}" && "${cached_generator}" != "${cmake_generator_name}" ]]; then
+        echo "CMake generator changed from '${cached_generator}' to '${cmake_generator_name}'; recreating ${build_dir}."
+        rm -rf "${build_dir}"
+    fi
+fi
 mkdir -p "${build_dir}" "${install_dir}"
 
 cmake -S "${grpc_root}" -B "${build_dir}" \

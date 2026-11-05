@@ -13,7 +13,7 @@ public class OnlineSACRuntime : ModuleRules
         CppStandard = CppStandardVersion.Cpp20;
         FPSemantics = FPSemanticsMode.Precise;
         PrivateDependencyModuleNames.Add("Core");
-        string Dependency = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/RLtools"));
+        string Dependency = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../../../Source/ThirdParty/RLTools"));
         PublicSystemIncludePaths.Add(Path.Combine(Dependency, "include"));
         PrivateDefinitions.AddRange(new string[] { "NOMINMAX", "RL_TOOLS_DEBUG" });
         RuntimeDependencies.Add("$(TargetOutputDir)/RLTools-LICENSE.txt", Path.Combine(Dependency, "LICENSE"), StagedFileType.NonUFS);

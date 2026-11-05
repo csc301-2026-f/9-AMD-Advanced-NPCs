@@ -336,7 +336,7 @@ The build, launch, packaging, and Unreal test scripts discover the installed eng
 | --- | --- |
 | `Source/TagLearningRuntime` | Native numeric learner and training worker |
 | `Source/CSC301Host/TagArena*` | Arena, input, and display |
-| `ThirdParty/RLtools` | Pinned dependency and license notice |
+| `../../Source/ThirdParty/RLTools` | Canonical pinned dependency and license notice |
 | `Tools/LearningTests` | Standalone native learning checks |
 | `Learning-Demo.md` | Detailed play, learning, build, and test guide |
 | `Evidence/FasterActor` | Current learning reports and recorded transitions |
