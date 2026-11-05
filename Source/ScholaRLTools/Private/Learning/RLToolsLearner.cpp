@@ -513,7 +513,7 @@ FLearner::~FLearner()
     Stop();
     std::lock_guard Lock(Impl->TrainingMutex);
 }
-std::unique_ptr<FLearner> FLearner::Create(const std::string& ProfileId, const FSettings& Settings, std::string& Error)
+bool FLearner::ValidateSettings(const std::string& ProfileId, const FSettings& Settings, std::string& Error)
 {
     auto Profiles = GetProfiles();
     auto Match = std::find_if(Profiles.begin(), Profiles.end(), [&](const FProfile& P) { return P.Id == ProfileId; });
@@ -531,8 +531,15 @@ std::unique_ptr<FLearner> FLearner::Create(const std::string& ProfileId, const F
         && (!Finite(Settings.ObservationMean, Match->Observations) || !Finite(Settings.ObservationStd, Match->Observations)
             || std::any_of(Settings.ObservationStd.begin(), Settings.ObservationStd.end(), [](float V) { return V <= 0; })))
     { Error = "Fixed observation normalization requires one finite mean and positive standard deviation per observation."; return {}; }
-    auto Impl = std::make_unique<FImpl>(*Match, Settings);
     Error.clear();
+    return true;
+}
+std::unique_ptr<FLearner> FLearner::Create(const std::string& ProfileId, const FSettings& Settings, std::string& Error)
+{
+    if (!ValidateSettings(ProfileId, Settings, Error)) return {};
+    auto Profiles = GetProfiles();
+    const auto Match = std::find_if(Profiles.begin(), Profiles.end(), [&](const FProfile& P) { return P.Id == ProfileId; });
+    auto Impl = std::make_unique<FImpl>(*Match, Settings);
     return std::unique_ptr<FLearner>(new FLearner(std::move(Impl)));
 }
 

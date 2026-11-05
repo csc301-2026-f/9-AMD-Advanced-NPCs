@@ -13,8 +13,8 @@ public class ScholaRLTools : ModuleRules
         bUseRTTI = false;
         CppStandard = CppStandardVersion.Cpp20;
         FPSemantics = FPSemanticsMode.Precise;
-        PublicDependencyModuleNames.Add("Core");
-        PrivateDependencyModuleNames.AddRange(new string[] { "CoreUObject", "Engine", "Schola", "ScholaInferenceUtils", "RLTools" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "Schola", "ScholaInferenceUtils" });
+        PrivateDependencyModuleNames.Add("RLTools");
         string RevisionFile = Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/RLTools/REVISION"));
         PrivateDefinitions.Add("SCHOLA_RLTOOLS_REVISION=\"" + File.ReadAllText(RevisionFile).Trim() + "\"");
         ExternalDependencies.Add(RevisionFile);

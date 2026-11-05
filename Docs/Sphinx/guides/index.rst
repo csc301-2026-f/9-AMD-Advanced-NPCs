@@ -14,6 +14,7 @@ Guides
    adaptive_decision_lifecycle
    native_online_learning_foundation
    native_rltools_learning
+   native_adaptive_policy
    running_from_cli
    lerobot_evaluation
    cli_dataclass_conventions

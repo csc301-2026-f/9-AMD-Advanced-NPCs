@@ -116,6 +116,8 @@ class FLearner
 public:
     ~FLearner();
     static std::vector<FProfile> GetProfiles();
+    // Validate without constructing numerical state; shared by Unreal and native construction.
+    static bool ValidateSettings(const std::string& ProfileId, const FSettings& Settings, std::string& Error);
     static std::unique_ptr<FLearner> Create(const std::string& ProfileId, const FSettings& Settings, std::string& Error);
     bool Decide(const std::vector<float>& Observation, std::uint64_t Agent, std::uint64_t Episode,
         bool Deterministic, FDecision& OutDecision);
