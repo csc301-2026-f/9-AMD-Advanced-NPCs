@@ -1,0 +1,16 @@
+bonus10                5k 0.32 | 10k 0.54 | 20k 0.56 | last3 0.59 | moves to 0.6:      19725,8175,7404 | wall/seed    33s
+bonus5                 5k 0.31 | 10k 0.39 | 20k 0.48 | last3 0.46 | moves to 0.6:        18775,-,12196 | wall/seed    34s
+bonus20                5k 0.32 | 10k 0.46 | 20k 0.28 | last3 0.32 | moves to 0.6:            -,-,11444 | wall/seed    34s
+rel                    5k 0.35 | 10k 0.39 | 20k 0.48 | last3 0.55 | moves to 0.6:        -,16351,19203 | wall/seed    38s
+h32                    5k 0.23 | 10k 0.45 | 20k 0.55 | last3 0.53 | moves to 0.6:     15963,6836,10623 | wall/seed    11s
+utd8                   5k 0.24 | 10k 0.43 | 20k 0.73 | last3 0.75 | moves to 0.6:     7251,10139,12572 | wall/seed   259s
+utd16                  5k 0.50 | 10k 0.70 | 20k 0.85 | last3 0.85 | moves to 0.6:       5629,6479,6644 | wall/seed   480s
+h32+utd8               5k 0.25 | 10k 0.39 | 20k 0.78 | last3 0.73 | moves to 0.6:    10725,16508,11904 | wall/seed    79s
+h32+utd16              5k 0.37 | 10k 0.59 | 20k 0.67 | last3 0.64 | moves to 0.6:      7117,8844,13434 | wall/seed   141s
+h32+utd8+rel           5k 0.28 | 10k 0.57 | 20k 0.82 | last3 0.81 | moves to 0.6:      14073,8346,9272 | wall/seed    78s
+h32+utd8+lr3e-3        5k 0.34 | 10k 0.59 | 20k 0.72 | last3 0.65 | moves to 0.6:      9977,6594,10637 | wall/seed    75s
+h32+utd8+tau.05        5k 0.25 | 10k 0.43 | 20k 0.54 | last3 0.63 | moves to 0.6:      7201,14467,7319 | wall/seed    71s
+h32+utd8+alpha.05      5k 0.19 | 10k 0.38 | 20k 0.71 | last3 0.58 | moves to 0.6:        12163,-,14287 | wall/seed    71s
+h32+utd8+warm100       5k 0.23 | 10k 0.34 | 20k 0.58 | last3 0.66 | moves to 0.6:    18140,15727,18750 | wall/seed    78s
+ALL8                   5k 0.31 | 10k 0.48 | 20k 0.62 | last3 0.59 | moves to 0.6:      6828,15317,8174 | wall/seed    74s
+ALL16                  5k 0.24 | 10k 0.32 | 20k 0.66 | last3 0.67 | moves to 0.6:     9542,11217,17280 | wall/seed   100s

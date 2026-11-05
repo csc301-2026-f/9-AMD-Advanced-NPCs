@@ -2,6 +2,8 @@
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
 #include "ChaseSession.h"
+#include "ChaseWorld.h"
+#include <cmath>
 #include <vector>
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -68,6 +70,33 @@ bool FChaseSessionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("playback/eval do not change training: steps"), (uint64)A.GetState().totalSteps, (uint64)B.GetState().totalSteps);
     TestEqual(TEXT("playback/eval do not change training: version"), (int32)A.GetState().policyVersion, (int32)B.GetState().policyVersion);
     TestEqual(TEXT("playback/eval do not change training: final distance"), A.GetState().stats.meanFinalDistance, B.GetState().stats.meanFinalDistance);
+
+    // Habit runners: deterministic per seed, stay on the board, never move faster than runner_speed.
+    for (RunnerPattern Habit : {RunnerPattern::RightTurn, RunnerPattern::Clockwise, RunnerPattern::Corner})
+    {
+        const ChaseConfig Config;
+        ChaseRng RngA(7), RngB(7);
+        ChaseWorld WorldA, WorldB;
+        WorldA.Reset(Config, Habit, RngA);
+        WorldB.Reset(Config, Habit, RngB);
+        bool bInside = true, bSameRun = true, bSpeedOk = true;
+        for (int Step = 0; Step < 300 && !WorldA.State().caught; ++Step)
+        {
+            float Observation[ChaseObservationSize], Action[ChaseActionSize];
+            WorldA.Observe(Observation);
+            GreedyChaseAction(Observation, Action);
+            const Vec2 Before = WorldA.State().runner.position;
+            WorldA.Step(Action);
+            WorldB.Step(Action);
+            const Vec2 After = WorldA.State().runner.position;
+            bInside &= After.x >= 0 && After.x <= Config.board_size && After.y >= 0 && After.y <= Config.board_size;
+            bSameRun &= After.x == WorldB.State().runner.position.x && After.y == WorldB.State().runner.position.y;
+            bSpeedOk &= std::hypot(After.x - Before.x, After.y - Before.y) <= Config.runner_speed + 1e-4f;
+        }
+        TestTrue(*FString::Printf(TEXT("%hs stays on the board"), PatternName(Habit)), bInside);
+        TestTrue(*FString::Printf(TEXT("%hs is deterministic"), PatternName(Habit)), bSameRun);
+        TestTrue(*FString::Printf(TEXT("%hs never exceeds runner_speed"), PatternName(Habit)), bSpeedOk);
+    }
 
     // Reset gives fresh weights and clears counters.
     Session.Reset();

@@ -56,6 +56,7 @@ struct ChaseSession::Impl {
         c.seed = learnerConfig.seed;
         c.updateEvery = learnerConfig.update_every;
         c.warmupExperiences = learnerConfig.warmup_experiences;
+        c.updatesPerExperience = learnerConfig.updates_per_move;
         c.queueCapacity = learnerConfig.queue_capacity;
         c.frozen = frozen;
         learner = std::make_unique<ChaseLearner>(c);
@@ -174,6 +175,7 @@ ChaseEvaluation ChaseSession::Evaluate(unsigned episodes) const {
     e.current = run(learned(*currentPolicy));
     if (e.hasSnapshot) e.snapshot = run(learned(*d.snapshot));
     e.greedy = run([](const float* observation, float* action, ChaseRng&) { GreedyChaseAction(observation, action); });
+    e.intercept = run([this_config = d.config](const float* observation, float* action, ChaseRng&) { InterceptChaseAction(observation, this_config, action); });
     e.random = run([](const float*, float* action, ChaseRng& rng) { for (unsigned i = 0; i < A; ++i) action[i] = rng.Uniform(-1, 1); });
     return e;
 }

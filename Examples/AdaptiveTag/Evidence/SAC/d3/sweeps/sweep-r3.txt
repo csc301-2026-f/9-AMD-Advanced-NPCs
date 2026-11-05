@@ -1,0 +1,2 @@
+utd16+rel              5k 0.30 | 10k 0.64 | 20k 0.83 | last3 0.88 | moves to 0.6:       5772,8100,9335 | wall/seed   466s
+utd32+h32              5k 0.16 | 10k 0.54 | 20k 0.80 | last3 0.72 | moves to 0.6:       5428,7881,9542 | wall/seed   264s

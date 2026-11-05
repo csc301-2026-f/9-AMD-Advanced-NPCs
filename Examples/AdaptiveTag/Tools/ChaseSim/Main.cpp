@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 // chase_sim: console front end for ChaseSession. Parses commands, calls the session, prints. No game or learning logic here.
-//   chase_sim.exe [--pattern straight|square|circle] [--seed N] [--script file.txt] [--name=value for any config key]
+//   chase_sim.exe [--pattern straight|square|circle|rightturn|clockwise|corner] [--seed N] [--script file.txt] [--name=value for any config key]
 #include "ChaseSession.h"
 #include <chrono>
 #include <cstdarg>
@@ -17,6 +17,8 @@
 #endif
 #include <io.h>
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 using namespace online_sac;
@@ -74,9 +76,9 @@ void Help() {
     Print("  help                         this list");
     Print("  config                       print every tunable value");
     Print("  set <name> <value>           change one value (world values restart the episode; learner values apply on reset)");
-    Print("  pattern <straight|square|circle>   change the runner pattern (keeps the learned weights)");
+    Print("  pattern <name>               (straight square circle rightturn clockwise corner) change the runner pattern (keeps the learned weights)");
     Print("  train <episodes>             learn while playing; a line every 10 episodes");
-    Print("  eval [n=50]                  fixed starts, no learning: CURRENT, SNAPSHOT, GREEDY, RANDOM");
+    Print("  eval [n=50]                  fixed starts, no learning: CURRENT, SNAPSHOT, GREEDY, INTERCEPT, RANDOM");
     Print("  snapshot                     keep the current policy for eval comparison");
     Print("  freeze | unfreeze            stop / resume learning (frozen: mean action, experiences ignored)");
     Print("  reset                        fresh weights, counters cleared (snapshot kept)");
@@ -106,7 +108,7 @@ void Set(App& app, const std::vector<std::string>& args) {
 void Pattern(App& app, const std::vector<std::string>& args) {
     RunnerPattern pattern;
     if (args.size() != 2 || !ParsePattern(args[1], pattern)) {
-        Error(std::string("unknown pattern '") + (args.size() > 1 ? args[1] : "") + "' (use straight, square or circle)");
+        Error(std::string("unknown pattern '") + (args.size() > 1 ? args[1] : "") + "' (use straight, square, circle, rightturn, clockwise or corner)");
         return;
     }
     app.session->SetPattern(pattern);
@@ -157,6 +159,7 @@ void Eval(App& app, const std::vector<std::string>& args) {
     if (e.hasSnapshot) row(Format("SNAPSHOT (v%u)", e.snapshotVersion), e.snapshot, e.snapshotVersion);
     else Print("  SNAPSHOT           (none taken)");
     row("GREEDY", e.greedy, 0);
+    row("INTERCEPT", e.intercept, 0);
     row("RANDOM", e.random, 0);
 }
 
@@ -289,6 +292,8 @@ int main(int argc, char** argv) {
         DWORD mode = 0;
         if (GetConsoleMode(out, &mode)) SetConsoleMode(out, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
+#else
+    app.interactiveTerminal = isatty(fileno(stdout)) != 0;
 #endif
     ChaseConfig config;
     ChaseLearnerConfig learner;
@@ -301,7 +306,7 @@ int main(int argc, char** argv) {
         if (equals != std::string::npos) { name = arg.substr(2, equals - 2); value = arg.substr(equals + 1); }
         else if (i + 1 < argc) { name = arg.substr(2); value = argv[++i]; }
         else { Error("missing value for '" + arg + "'"); return 2; }
-        if (name == "pattern") { if (!ParsePattern(value, pattern)) { Error("unknown pattern '" + value + "' (use straight, square or circle)"); return 2; } }
+        if (name == "pattern") { if (!ParsePattern(value, pattern)) { Error("unknown pattern '" + value + "' (use straight, square, circle, rightturn, clockwise or corner)"); return 2; } }
         else if (name == "script") script = value;
         else {
             const std::string error = SetConfigValue(config, learner, name, value);

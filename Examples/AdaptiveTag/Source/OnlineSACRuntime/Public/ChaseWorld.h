@@ -37,4 +37,7 @@ private:
 
 // Baseline: run straight at the runner's current position at full speed.
 ONLINESACRUNTIME_API void GreedyChaseAction(const float* observation, float* action);
+// Baseline: run to where the runner will be, assuming it keeps its current velocity (the earliest point the
+// chaser can reach at the same time). Falls back to greedy when no such point exists.
+ONLINESACRUNTIME_API void InterceptChaseAction(const float* observation, const ChaseConfig& config, float* action);
 }

@@ -48,7 +48,7 @@ struct ChaseEvaluation {
     RunnerPattern pattern = RunnerPattern::Straight;
     unsigned currentVersion = 0, snapshotVersion = 0;
     bool hasSnapshot = false;
-    ChaseEvalResult current, snapshot, greedy, random;
+    ChaseEvalResult current, snapshot, greedy, intercept, random;
 };
 struct ChaseTrajectory {
     RunnerPattern pattern = RunnerPattern::Straight;

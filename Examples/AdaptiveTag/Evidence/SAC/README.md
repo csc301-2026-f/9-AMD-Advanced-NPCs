@@ -122,3 +122,47 @@ width. The transcript, invariance and demo runs used the final build.
 
 CSV columns: `seed, step, training_pattern, bounce_*, circle_*` (catch rate, mean steps to catch,
 mean return on the 100 evaluation episodes), `train_return_last10, seconds`.
+
+## D3: the chaser adapting to a changing runner (chase v2, terminal only)
+Produced 2026-11-03 to 2026-11-05 on macOS (Apple silicon, CPU, `chase_sim`). Files in `d3/`.
+
+### Setup
+- Rules: board 100, runner and chaser speed 1, rounds of 200 steps, catch distance 2 (`d3/step2-baselines.txt`: greedy
+  chaser 0.64 on rightturn, 0.95 on corner; "stand still" catches 0-9%).
+- Habit runners (they flee when the chaser is within 40 units, always with the same habit): `rightturn` (veers right),
+  `clockwise` (slides clockwise along the walls), `corner` (runs to the farthest corner and waits).
+- Pass criteria, fixed before the run (3 seeds, 100 fixed start states): (1) at least 0.50 on rightturn before the switch;
+  (2) right after the switch to corner, at least 0.15 below greedy (0.95), i.e. at most 0.80; (3) back to at least 0.80 within
+  20,000 moves; (4) the frozen snapshot more than 0.20 below the learner at the end of the 20,000 moves; (5) all of these on all 3 seeds.
+
+### Learning speed (the AMD partner asked for minutes, not hours)
+The first adaptation run (`d3/adapt-slow/`, 1 update per move, bonus 50) was too slow: only seed 1 got back to 0.80 on corner,
+after 52,568 moves; seeds 2 and 3 were at 0.47 and 0.38 after 52,000 moves. At 60 frames per second 50,000 moves is about 14 minutes.
+Sweep (`d3/sweeps/`, `sweep.py`): each setting trained 3 seeds on rightturn, catch rate on 100 fixed starts at 5k / 10k / 20k moves.
+| Setting | 5k | 10k | 20k |
+|---|---|---|---|
+| original (1 update per move, catch bonus 50) | 0.29 | 0.28 | 0.34 |
+| catch bonus 10 | 0.32 | 0.54 | 0.56 |
+| 4 / 8 updates per move | 0.11 / 0.26 | 0.33 / 0.35 | 0.64 / 0.76 |
+| **16 updates per move + bonus 10 (chosen)** | **0.50** | **0.70** | **0.85** |
+| 16 updates + relative-position input | 0.30 | 0.64 | 0.83 |
+| 32 updates, 32-wide network | 0.16 | 0.54 | 0.80 |
+- Helped most: more gradient updates per move (the learner thread has spare time between frames) and a smaller catch bonus.
+- Also helped a little: learning rate 0.003, target update rate 0.05, smaller entropy weight, a 32-wide network (3x cheaper per update).
+- Did not help: lower learning rate, lower gamma, batch 256, replay size, warm-up length.
+- Combining many settings did not beat the best single choice (stacked settings landed at 0.6-0.8 at 20k). Differences under
+  about 0.1 are within noise (3 seeds, 100 test chases).
+- New defaults: `updates_per_move = 16`, `catch_bonus = 10`. Cost: about 85 moves per second on an idle laptop core pair
+  (30 episodes, about 4,600 moves, in 54 s). A real game at 60 fps would need about 1,000 updates per second; use fewer updates per move there.
+
+### Adaptation result with the new defaults (`d3/adapt-fast/`)
+| Seed | rightturn before | corner right after switch | moves to first >= 0.80 | corner catch at last check within 20k moves | snapshot |
+|---|---|---|---|---|---|
+| 1 | 0.74 | 0.32 | 8,378 | 0.51 | 0.32 |
+| 2 | 0.84 | 0.27 | 9,342 | 0.49 | 0.27 |
+| 3 | 0.92 | 0.37 | 14,463 | 1.00 | 0.37 |
+- Criteria 1, 2 and 3 pass on all 3 seeds. Recovery takes 8-14k moves, about 2.5-4 minutes at 60 fps.
+- Criterion 4 as written (at the 20,000-move mark) fails on seed 1: the learner was at 0.51 against the snapshot's 0.32,
+  a gap of 0.19 (needed more than 0.20). Seed 2 passes narrowly (0.22). The learner's catch rate is noisy (seed 1 went 0.55, 0.32, then 1.0);
+  by the end of the run (about 32,000-34,000 moves) the gaps are 0.67, 0.73 and 0.39. So the overall result is: adapts, but not yet stably.
+- Snapshot catch rate never changes (frozen policy), as expected.

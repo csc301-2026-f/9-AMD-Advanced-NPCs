@@ -26,11 +26,16 @@ std::vector<Field> Fields(ChaseConfig& w, ChaseLearnerConfig& l) {
         {"min_start_distance", &w.min_start_distance, nullptr, nullptr, false, "chaser spawns at least this far from the runner"},
         {"square_side", &w.square_side, nullptr, nullptr, false, "square pattern side, centred on the board"},
         {"circle_radius", &w.circle_radius, nullptr, nullptr, false, "circle pattern radius around the board centre"},
+        {"flee_radius", &w.flee_radius, nullptr, nullptr, false, "habit runners flee when the chaser is closer than this"},
+        {"flee_veer", &w.flee_veer, nullptr, nullptr, false, "rightturn: radians clockwise from straight-away while fleeing"},
+        {"habit_turn", &w.habit_turn, nullptr, nullptr, false, "rightturn: radians clockwise per step while the chaser is far"},
+        {"wall_margin", &w.wall_margin, nullptr, nullptr, false, "clockwise: distance from the wall the runner keeps"},
         {"catch_bonus", &w.catch_bonus, nullptr, nullptr, false, "reward on catch (reward = distance closed + bonus)"},
         {"stats_window", nullptr, &w.stats_window, nullptr, false, "episodes in the rolling training stats"},
         {"eval_seed", nullptr, &w.eval_seed, nullptr, false, "seed of the fixed evaluation start states"},
         {"seed", nullptr, &l.seed, nullptr, true, "learner + training start states seed (applies on reset)"},
         {"update_every", nullptr, &l.update_every, nullptr, true, "SAC update round every N experiences (applies on reset)"},
+        {"updates_per_move", nullptr, &l.updates_per_move, nullptr, true, "SAC gradient updates per experience; more learns from fewer moves (applies on reset)"},
         {"warmup_experiences", nullptr, &l.warmup_experiences, nullptr, true, "random actions, no updates until this many (applies on reset)"},
         {"queue_capacity", nullptr, &l.queue_capacity, nullptr, true, "experiences waiting for the learner thread (applies on reset)"},
         {"lockstep", nullptr, nullptr, &l.lockstep, true, "Step() waits for the learner round, reproducible (applies on reset)"},
@@ -77,11 +82,14 @@ const char* PatternName(RunnerPattern pattern) {
     case RunnerPattern::Straight: return "straight";
     case RunnerPattern::Square: return "square";
     case RunnerPattern::Circle: return "circle";
+    case RunnerPattern::RightTurn: return "rightturn";
+    case RunnerPattern::Clockwise: return "clockwise";
+    case RunnerPattern::Corner: return "corner";
     }
     return "?";
 }
 bool ParsePattern(const std::string& name, RunnerPattern& pattern) {
-    for (RunnerPattern p : {RunnerPattern::Straight, RunnerPattern::Square, RunnerPattern::Circle}) {
+    for (RunnerPattern p : {RunnerPattern::Straight, RunnerPattern::Square, RunnerPattern::Circle, RunnerPattern::RightTurn, RunnerPattern::Clockwise, RunnerPattern::Corner}) {
         if (name == PatternName(p)) { pattern = p; return true; }
     }
     return false;
@@ -132,9 +140,14 @@ std::string ValidateConfig(const ChaseConfig& w, const ChaseLearnerConfig& l) {
     if (!(w.min_start_distance > w.catch_distance && w.min_start_distance < w.board_size)) return "min_start_distance must be > catch_distance and < board_size";
     if (!(w.square_side > 0 && w.square_side <= w.board_size)) return Join("square_side must be > 0 and <= board_size (", w.board_size, ")");
     if (!(w.circle_radius > 0 && w.circle_radius <= w.board_size / 2)) return Join("circle_radius must be > 0 and <= board_size / 2 (", w.board_size / 2, ")");
+    if (!(w.flee_radius > 0 && w.flee_radius <= w.board_size)) return Join("flee_radius must be > 0 and <= board_size (", w.board_size, ")");
+    if (!(w.flee_veer >= 0 && w.flee_veer <= 1.5f)) return "flee_veer must be between 0 and 1.5 radians";
+    if (!(w.habit_turn >= 0 && w.habit_turn <= 0.5f)) return "habit_turn must be between 0 and 0.5 radians per step";
+    if (!(w.wall_margin >= 0 && w.wall_margin <= w.board_size / 4)) return Join("wall_margin must be between 0 and board_size / 4 (", w.board_size / 4, ")");
     if (!(w.catch_bonus >= 0 && w.catch_bonus <= 1e6f)) return "catch_bonus must be between 0 and 1000000";
     if (w.stats_window < 1 || w.stats_window > 100000) return "stats_window must be between 1 and 100000";
     if (l.update_every < 1 || l.update_every > 100000) return "update_every must be between 1 and 100000";
+    if (l.updates_per_move < 1 || l.updates_per_move > 1000) return "updates_per_move must be between 1 and 1000";
     if (l.warmup_experiences < 32) return "warmup_experiences must be at least 32 (the SAC batch size)";
     if (l.queue_capacity < 1 || l.queue_capacity > 10000000) return "queue_capacity must be between 1 and 10000000";
     if (l.lockstep && l.queue_capacity < l.update_every) return "queue_capacity must be >= update_every in lockstep mode";
