@@ -6,6 +6,8 @@
 #include "Policies/PolicyInterface.h"
 #include "AdaptiveNPCPolicy.generated.h"
 
+class UAdaptivePolicySnapshot;
+
 /**
  * Nonblocking adaptive decision lifecycle. Call all methods on the game thread.
  * Currently accepts Box observations and finite, bounded Box actions of configurable size.
@@ -78,6 +80,28 @@ public:
     UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
     bool GetInteractionDefinition(FInteractionDefinition& OutDefinition) const;
 
+    /** Copy this NPC's attribution state. This does not expose mutable learner state. */
+    UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
+    FAdaptiveSessionInfo GetSessionInfo() const;
+
+    UFUNCTION(BlueprintPure, Category = "Schola|Adaptive")
+    virtual FAdaptiveCapabilities GetCapabilities() const { return {}; }
+
+    /** Pause/resume training independently of action selection. Backends define acknowledgement. */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult SetLearningEnabled(bool bEnabled);
+
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult SetInferenceMode(EAdaptiveInferenceMode Mode);
+
+    /** Reset learned state, not merely this NPC's encounter. May affect a shared learner group. */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult ResetLearning(int32 Seed);
+
+    /** Capture immutable inference state. Failure preserves OutSnapshot for native callers. */
+    UFUNCTION(BlueprintCallable, Category = "Schola|Adaptive")
+    virtual FAdaptiveOperationResult CaptureSnapshot(UAdaptivePolicySnapshot*& OutSnapshot);
+
 protected:
     /** Native learner integration hooks, not Blueprint readiness switches.
      * A subclass calls StartSession after its learner is ready. Decision completions belong on the
@@ -97,6 +121,16 @@ protected:
      */
     virtual EAdaptiveSubmitResult DispatchExperience(const FAdaptiveExperience& Experience) { return EAdaptiveSubmitResult::NotReady; }
 
+    /** Called once when a Ready binding ends: Shutdown, successful Init, or destruction.
+     * Common identity and tickets are invalidated before this call. Release only this binding;
+     * a shared runtime stops only after its last binding is released. Failed Init never calls it.
+     * Partial initialization failures remain the subclass's responsibility.
+     */
+    virtual void ReleaseLearnerBinding(const FAdaptiveSessionInfo& PreviousSession) {}
+
+    /** Agent-local notification after advancing the episode. Preserve weights and replay. */
+    virtual void OnEpisodeReset(const FAdaptiveSessionInfo& PreviousSession) {}
+
     /** Monotonic local elapsed time. Overridden only by deterministic tests. */
     virtual double GetTimeSeconds() const;
 
@@ -105,6 +139,7 @@ protected:
     void PostDuplicate(bool bDuplicateForPIE) override;
 
 private:
+    void EndSession(const FString& Reason);
     void ResetRuntimeState();
     void ExpireDecision();
     void InvalidateDecision(const FString& Reason);

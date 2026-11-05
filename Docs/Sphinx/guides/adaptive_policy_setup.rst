@@ -96,6 +96,7 @@ values against a space. They do not validate the space definition itself. This
 policy checks definitions; decision requests and results also reuse existing
 point validation, with additional checks for finite values and explicit shapes.
 The shared ``SubmitExperience`` call validates the Ready session, session GUID,
+current agent and episode, nonnegative decision ID,
 policy version, finite reward, and both observations and the executed action
 against these same definitions. Valid records are passed to the subclass's
 ``DispatchExperience`` hook. The base hook returns NotReady; it cannot claim
