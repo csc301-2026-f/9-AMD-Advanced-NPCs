@@ -7,10 +7,12 @@
 #include "HAL/FileManager.h"
 #include "HAL/PlatformMisc.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/CommandLine.h"
 #include "Misc/DateTime.h"
 #include "Misc/EngineVersion.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/Parse.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 #include "SharedPolicyRoutingTestHelpers.h"
@@ -19,8 +21,8 @@ namespace SharedPolicyRoutingMatrixTest
 {
 	using namespace SharedPolicyRouting;
 
-	constexpr int32 WarmupRequests = 3;
-	constexpr int32 MeasuredRequests = 20;
+	constexpr int32 DefaultWarmupRequests = 3;
+	constexpr int32 DefaultMeasuredRequests = 20;
 	const int32 BatchSizes[] = {1, 16, 64, 256};
 	const int32 Expert0Percents[] = {100, 50, 10, 0};
 
@@ -155,6 +157,47 @@ bool FSharedPolicyRoutingMatrixTest::RunTest(const FString&)
 		return false;
 	}
 
+	int32 BatchFilter = INDEX_NONE;
+	int32 Expert0PercentFilter = INDEX_NONE;
+	int32 TrialIndex = 0;
+	int32 WarmupRequests = DefaultWarmupRequests;
+	int32 MeasuredRequests = DefaultMeasuredRequests;
+	const bool bHasBatchFilter = FParse::Value(FCommandLine::Get(), TEXT("SharedPolicyBatch="), BatchFilter);
+	const bool bHasExpertFilter = FParse::Value(
+		FCommandLine::Get(), TEXT("SharedPolicyExpert0Percent="), Expert0PercentFilter);
+	FParse::Value(FCommandLine::Get(), TEXT("SharedPolicyTrial="), TrialIndex);
+	FParse::Value(FCommandLine::Get(), TEXT("SharedPolicyWarmups="), WarmupRequests);
+	FParse::Value(FCommandLine::Get(), TEXT("SharedPolicySamples="), MeasuredRequests);
+	if (!TestEqual(TEXT("Batch and expert filters are supplied together"), bHasBatchFilter, bHasExpertFilter)
+		|| !TestTrue(TEXT("Filtered batch is positive"), !bHasBatchFilter || BatchFilter > 0)
+		|| !TestTrue(TEXT("Filtered expert share is 0..100"),
+			!bHasExpertFilter || (Expert0PercentFilter >= 0 && Expert0PercentFilter <= 100))
+		|| !TestTrue(TEXT("Trial index is non-negative"), TrialIndex >= 0)
+		|| !TestTrue(TEXT("Warm-up count is non-negative"), WarmupRequests >= 0)
+		|| !TestTrue(TEXT("Sample count is positive"), MeasuredRequests > 0))
+	{
+		return false;
+	}
+
+	TArray<int32> SelectedBatchSizes;
+	TArray<int32> SelectedExpert0Percents;
+	if (bHasBatchFilter)
+	{
+		SelectedBatchSizes.Add(BatchFilter);
+		SelectedExpert0Percents.Add(Expert0PercentFilter);
+	}
+	else
+	{
+		for (const int32 BatchSize : BatchSizes)
+		{
+			SelectedBatchSizes.Add(BatchSize);
+		}
+		for (const int32 Expert0Percent : Expert0Percents)
+		{
+			SelectedExpert0Percents.Add(Expert0Percent);
+		}
+	}
+
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("generated_utc"), FDateTime::UtcNow().ToIso8601());
 	Root->SetStringField(TEXT("engine_version"), FEngineVersion::Current().ToString());
@@ -163,22 +206,26 @@ bool FSharedPolicyRoutingMatrixTest::RunTest(const FString&)
 	Root->SetStringField(TEXT("runtime"), TEXT("NNERuntimeORTCpu"));
 	Root->SetNumberField(TEXT("warmup_requests"), WarmupRequests);
 	Root->SetNumberField(TEXT("measured_requests"), MeasuredRequests);
+	Root->SetNumberField(TEXT("trial_index"), TrialIndex);
+	Root->SetStringField(TEXT("mode"), bHasBatchFilter ? TEXT("isolated_workload") : TEXT("full_matrix"));
 	Root->SetStringField(
 		TEXT("interpretation"),
-		TEXT("Same-process workload matrix for instrumentation validation; not a final performance conclusion."));
+		bHasBatchFilter
+			? TEXT("One configured workload for an external fresh-process runner; not a final performance conclusion.")
+			: TEXT("Same-process workload matrix for instrumentation validation; not a final performance conclusion."));
 
 	TArray<TSharedPtr<FJsonValue>> Results;
 	bool bAllCorrect = true;
 	int32 WorkloadIndex = 0;
 	const FMeasurementConfig Config{WarmupRequests, MeasuredRequests};
-	for (const int32 BatchSize : BatchSizes)
+	for (const int32 BatchSize : SelectedBatchSizes)
 	{
-		for (const int32 Expert0Percent : Expert0Percents)
+		for (const int32 Expert0Percent : SelectedExpert0Percents)
 		{
 			const FWorkload Workload = MakeWorkload(BatchSize, Expert0Percent);
 			FMeasurementResult ResultC;
 			FMeasurementResult ResultD;
-			const bool bCRunsFirst = WorkloadIndex % 2 == 0;
+			const bool bCRunsFirst = (WorkloadIndex + TrialIndex) % 2 == 0;
 			bool bMeasured = true;
 			if (bCRunsFirst)
 			{
@@ -225,8 +272,11 @@ bool FSharedPolicyRoutingMatrixTest::RunTest(const FString&)
 	{
 		return false;
 	}
+	const FString ReportName = bHasBatchFilter
+		? FString::Printf(TEXT("isolated/cd-b%d-e%d-t%d.json"), BatchFilter, Expert0PercentFilter, TrialIndex)
+		: TEXT("cd-matrix.json");
 	const FString ReportPath = FPaths::Combine(
-		FPaths::ProjectSavedDir(), TEXT("Automation"), TEXT("SharedPolicy"), TEXT("cd-matrix.json"));
+		FPaths::ProjectSavedDir(), TEXT("Automation"), TEXT("SharedPolicy"), ReportName);
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(ReportPath), true);
 	if (!TestTrue(TEXT("Write C/D matrix report"), FFileHelper::SaveStringToFile(JsonText, *ReportPath)))
 	{
@@ -234,7 +284,9 @@ bool FSharedPolicyRoutingMatrixTest::RunTest(const FString&)
 		return false;
 	}
 	AddInfo(FString::Printf(TEXT("C/D workload matrix report: %s"), *ReportPath));
-	AddInfo(TEXT("Matrix timings are same-process exploratory evidence; no winner is asserted."));
+	AddInfo(bHasBatchFilter
+		? TEXT("This configured workload is intended for an external fresh-process runner; no winner is asserted.")
+		: TEXT("Matrix timings are same-process exploratory evidence; no winner is asserted."));
 	return bAllCorrect;
 }
 
