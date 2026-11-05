@@ -365,6 +365,8 @@ Scripts/record.sh     # records both modes and writes Saved/Recording/side-by-si
 
 On Windows, run `New-Item -ItemType Junction -Path Plugins/Schola -Target ../../..` once in `Examples/BackgroundNPCs`, then open `BackgroundNPCs.uproject`. Use `-Agents=`, `-DecisionHz=`, `-MaxFPS=`, `-Workers=`, and `-MaxBatch=` to change the workload; see the [example README](Examples/BackgroundNPCs/README.md).
 
+On Apple Silicon, install the Xcode Metal toolchain (`xcodebuild -downloadComponent MetalToolchain`), run `Resources/Build/mac_dependencies.sh` from the repository root, then run `Examples/BackgroundNPCs/Scripts/prepare.sh`. Build `BackgroundNPCsEditor` for `Mac` with `-NoUBA`. The Mac steps, including the macOS 14.0 deployment target, are in the [example README](Examples/BackgroundNPCs/README.md).
+
 **Validation commands:** the plugin's automation tests cover the scheduler, NNE backend, Actor stepper, and Mass bridge:
 
 ```bash

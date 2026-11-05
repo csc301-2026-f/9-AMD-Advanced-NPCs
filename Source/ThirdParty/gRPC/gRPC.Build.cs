@@ -56,6 +56,10 @@ public class gRPC : ModuleRules
         {
             AddLibrariesFromDirectory(libraryPath, "*.a", "Linux gRPC archives");
         }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            AddLibrariesFromDirectory(libraryPath, "*.a", "Mac gRPC archives");
+        }
         else
         {
             throw new Exception("Unsupported platform " + Target.Platform.ToString());

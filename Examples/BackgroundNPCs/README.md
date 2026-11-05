@@ -15,7 +15,43 @@ The HUD shows frame rate, frame time (mean and p99), game-thread inference time 
 
 ## Build and run
 
-Tested on Linux with Unreal Engine 5.8.3 (Vulkan). The Windows path has not been tested.
+Tested on Linux with Unreal Engine 5.8.3 (Vulkan) and on Apple Silicon with Unreal Engine 5.8 and Xcode 26. The Windows path has not been tested.
+
+### macOS (Apple Silicon)
+
+From a fresh checkout:
+
+1. Install Xcode and the Metal toolchain. Xcode 26 does not always include it until this command has been run:
+
+   ```bash
+   xcodebuild -downloadComponent MetalToolchain
+   ```
+
+2. Install CMake, Ninja, and the Xcode command-line tools. From the repository root, build the Mac gRPC static libraries. They are gitignored and are not in the checkout. The script targets macOS 14.0, which is the deployment target Unreal Engine 5.8 uses for Mac editor binaries:
+
+   ```bash
+   Resources/Build/mac_dependencies.sh
+   ```
+
+3. From this example, create the host plugin. The script copies `Schola.uplugin` and links only `Config`, `Content`, `Resources`, `Shaders`, and each `Source/<module>` with relative paths. It does not link the repository root.
+
+   ```bash
+   cd Examples/BackgroundNPCs
+   Scripts/prepare.sh
+   ```
+
+4. Build and open the editor with Unreal Build Accelerator disabled:
+
+   ```bash
+   export UE_ENGINE_ROOT=/path/to/UE_5.8
+   "$UE_ENGINE_ROOT/Engine/Build/BatchFiles/Mac/Build.sh" BackgroundNPCsEditor Mac Development \
+       -Project="$PWD/BackgroundNPCs.uproject" -NoHotReloadFromIDE -NoUBA
+   open "$UE_ENGINE_ROOT/Engine/Binaries/Mac/UnrealEditor.app" --args "$PWD/BackgroundNPCs.uproject"
+   ```
+
+`Plugins/Schola` is gitignored. Run `Scripts/prepare.sh` again after pulling source changes.
+
+### Linux
 
 ```bash
 export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8.3
@@ -59,4 +95,4 @@ The two modes run one after another in separate processes, so they don't compete
 | `Source/BackgroundNPCs/CrowdGameMode.*` | Game mode and HUD |
 | `Content/Models/crowd_policy.onnx` | Policy loaded from disk at runtime (staged as a non-UFS file) |
 | `Tools/` | Model generator and report summarizer |
-| `Scripts/` | Linux build, run, package, measurement, and recording scripts |
+| `Scripts/` | macOS plugin setup, plus Linux build, run, package, measurement, and recording scripts |
