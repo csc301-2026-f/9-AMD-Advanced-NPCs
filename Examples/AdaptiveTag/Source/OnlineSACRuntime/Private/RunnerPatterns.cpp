@@ -78,18 +78,23 @@ Vec2 CornerPoint(const ChaseConfig& config, int corner) {
 }
 float DistanceTo(Vec2 a, Vec2 b) { return std::hypot(a.x - b.x, a.y - b.y); }
 
-// Flees the chaser, but always veers to the right (clockwise). With the chaser far, curves right gently.
+// Only ever turns right (clockwise). Calm: a gentle right-hand curve. Chaser close: turns right as fast as flee_turn
+// allows until it faces away from the chaser; if "away" is to its left it keeps turning right, so it loops the long way round.
 void MoveRightTurn(const ChaseConfig& config, RunnerState& runner, const Vec2& chaser) {
     Vec2 heading = Unit(runner.velocity, {1, 0});
     if (DistanceTo(runner.position, chaser) < config.flee_radius) {
         const Vec2 away = Unit({runner.position.x - chaser.x, runner.position.y - chaser.y}, heading);
-        heading = RotateClockwise(away, config.flee_veer);
+        // Clockwise angle (0 to 2 pi) from the current heading to "away".
+        float needed = std::atan2(heading.x * away.y - heading.y * away.x, heading.x * away.x + heading.y * away.y);
+        needed = needed <= 0 ? -needed : TwoPi - needed;
+        heading = RotateClockwise(heading, std::fmin(needed, config.flee_turn));
     } else {
         heading = RotateClockwise(heading, config.habit_turn);
     }
     StepInside(config, runner, heading);
 }
-// Always goes clockwise along the walls (pulled to wall_margin from the wall); the chaser only nudges it away.
+// Always goes clockwise round the walls (pulled to wall_margin from the wall). With the chaser close it swerves
+// away from it (cutting inward round it) but never stops making clockwise progress.
 void MoveClockwise(const ChaseConfig& config, RunnerState& runner, const Vec2& chaser) {
     const float b = config.board_size, m = config.wall_margin;
     const Vec2 p = runner.position;
@@ -102,28 +107,36 @@ void MoveClockwise(const ChaseConfig& config, RunnerState& runner, const Vec2& c
     Vec2 heading{along.x + pull.x, along.y + pull.y};
     if (DistanceTo(p, chaser) < config.flee_radius) {
         const Vec2 away = Unit({p.x - chaser.x, p.y - chaser.y}, {0, 0});
-        heading = {heading.x + 0.7f * away.x, heading.y + 0.7f * away.y};  // 0.7 < 1: the clockwise part always wins along the wall
+        heading = {pull.x + along.x + 2.0f * away.x, pull.y + along.y + 2.0f * away.y};
+        const float progress = heading.x * along.x + heading.y * along.y;
+        const float length = std::hypot(heading.x, heading.y);
+        // Keep at least 30% of the movement clockwise along the wall, whatever the chaser does.
+        if (progress < 0.3f * length) { const float add = 0.3f * length - progress; heading = {heading.x + add * along.x, heading.y + add * along.y}; }
     }
     StepInside(config, runner, heading);
 }
-// Runs to a corner and waits there; when the chaser comes close, runs to the corner farthest from the chaser.
+// Runs to a corner and waits there. When the chaser comes close it leaves at once (or switches mid-run) for the other corner it can
+// reach with the biggest lead over the chaser (distance from the chaser minus distance from the runner).
 void MoveCorner(const ChaseConfig& config, RunnerState& runner, const Vec2& chaser) {
-    auto farthest = [&](int skip) {
-        int best = -1;
-        float bestDistance = -1;
-        for (int c = 0; c < 4; ++c) {
-            const float d = DistanceTo(CornerPoint(config, c), chaser);
-            if (c != skip && d > bestDistance) { bestDistance = d; best = c; }
-        }
-        return best;
+    auto lead = [&](int corner) { return DistanceTo(CornerPoint(config, corner), chaser) - DistanceTo(CornerPoint(config, corner), runner.position); };
+    auto best = [&](int skip) {
+        int bestCorner = -1;
+        for (int c = 0; c < 4; ++c) if (c != skip && (bestCorner < 0 || lead(c) > lead(bestCorner))) bestCorner = c;
+        return bestCorner;
     };
     int target = static_cast<int>(runner.phase);
-    if (runner.phase < 0) target = farthest(-1);
+    if (runner.phase < 0) target = best(-1);
+    else if (DistanceTo(runner.position, chaser) < config.flee_radius) {
+        // Never consider the corner it is standing in: staying always looks safest (its lead is its whole distance to the chaser).
+        int here = -1;
+        for (int c = 0; c < 4; ++c) if (DistanceTo(runner.position, CornerPoint(config, c)) <= 3.0f) here = c;
+        const int candidate = best(here);
+        if (target == here || lead(candidate) > lead(target) + 25.0f) target = candidate;  // it commits to a corner: 25 units of hysteresis, no dithering
+    }
     const Vec2 corner = CornerPoint(config, target);
     if (DistanceTo(runner.position, corner) <= config.runner_speed) {
         runner.position = corner;
         runner.velocity = {0, 0};
-        if (DistanceTo(runner.position, chaser) < config.flee_radius) target = farthest(target);
     } else {
         StepInside(config, runner, {corner.x - runner.position.x, corner.y - runner.position.y});
     }

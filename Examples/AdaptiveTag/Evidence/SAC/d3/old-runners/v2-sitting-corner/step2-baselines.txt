@@ -1,0 +1,52 @@
+chase_sim: pattern straight, seed 1, board 100, runner speed 1, chaser max speed 1. Type 'help'.
+> pattern square
+pattern = square (weights kept, policy v0)
+> eval 100
+eval on square: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.09                 95.7             52.9
+  SNAPSHOT           (none taken)
+  GREEDY                   0.62                100.2              2.1
+  INTERCEPT                1.00                 61.7              1.2
+  RANDOM                   0.14                106.0             41.2
+> pattern circle
+pattern = circle (weights kept, policy v0)
+> eval 100
+eval on circle: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.03                 60.3             52.2
+  SNAPSHOT           (none taken)
+  GREEDY                   0.23                 35.0              4.2
+  INTERCEPT                0.56                 40.0              3.2
+  RANDOM                   0.08                113.6             47.5
+> pattern rightturn
+pattern = rightturn (weights kept, policy v0)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.03                122.3             58.6
+  SNAPSHOT           (none taken)
+  GREEDY                   0.71                 82.8              1.8
+  INTERCEPT                0.80                 71.9              1.6
+  RANDOM                   0.03                134.7             52.0
+> pattern clockwise
+pattern = clockwise (weights kept, policy v0)
+> eval 100
+eval on clockwise: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.02                173.5             52.5
+  SNAPSHOT           (none taken)
+  GREEDY                   0.16                 83.6              5.0
+  INTERCEPT                0.93                 86.8              1.7
+  RANDOM                   0.00                  0.0             50.1
+> pattern corner
+pattern = corner (weights kept, policy v0)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.00                  0.0             96.5
+  SNAPSHOT           (none taken)
+  GREEDY                   1.00                 96.8              1.5
+  INTERCEPT                1.00                 97.1              1.6
+  RANDOM                   0.00                  0.0             96.6
+> quit

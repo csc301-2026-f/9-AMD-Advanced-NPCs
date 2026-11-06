@@ -1,0 +1,11 @@
+pattern square
+eval 100
+pattern circle
+eval 100
+pattern rightturn
+eval 100
+pattern clockwise
+eval 100
+pattern corner
+eval 100
+quit

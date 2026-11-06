@@ -35,7 +35,7 @@ void ChaseWorld::Observe(float* observation) const {
     observation[5] = Unit(state.chaserVelocity.y / config.chaser_max_speed);
     observation[6] = Unit(state.runner.velocity.x / config.runner_speed);
     observation[7] = Unit(state.runner.velocity.y / config.runner_speed);
-#ifdef ONLINE_SAC_RELATIVE_OBS
+#ifndef ONLINE_SAC_NO_RELATIVE_OBS
     observation[8] = Unit((state.runner.position.x - state.chaser.x) / b);
     observation[9] = Unit((state.runner.position.y - state.chaser.y) / b);
 #endif

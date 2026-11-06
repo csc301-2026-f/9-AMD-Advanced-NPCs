@@ -1,22 +1,23 @@
-# D3 demo: the SAC chaser adapting to a runner that changes habit. About 6 minutes. Run from Examples/AdaptiveTag:
+# D3 demo, part 2: the SAC chaser ADAPTING to a runner that changes habit. About 5 minutes on a laptop. Run from Examples/AdaptiveTag:
+# (Part 1, the runner reacting to the chaser, is demo-reactivity.script: run it first or just paste its commands.)
 #   Saved/ChaseSim/chase_sim --seed 1 --script Evidence/SAC/d3/demo.script
 # (build first with Tools/ChaseSim/Build-ChaseSim.sh). It leaves you at the chase> prompt at the end: try 'watch', 'train 30', 'eval 100', 'quit'.
 # Runner "rightturn" flees but always veers right. Runner "corner" flees to the farthest corner.
 pattern rightturn
 # 1. An untrained chaser (wanders aimlessly):
-watch 1 20
-# 2. Learn on rightturn (about 1.5 minutes):
+watch 1 60
+# 2. Learn on rightturn (about 1 minute):
 train 60
 eval 100
 # 3. The trained chaser:
-watch 1 20
+watch 1 60
 # 4. Keep a frozen copy of this policy for comparison:
 snapshot
 # 5. The runner changes habit. Both the learner and the snapshot now do worse (the dip):
 pattern corner
 eval 100
-watch 1 20
-# 6. Keep learning on corner (about 3 minutes). CURRENT should climb back; SNAPSHOT stays where it was:
+watch 1 60
+# 6. Keep learning on corner (about 2.5 minutes). CURRENT should climb back; SNAPSHOT stays where it was:
 train 30
 eval 100
 train 30
@@ -24,4 +25,4 @@ eval 100
 train 30
 eval 100
 # 7. The adapted chaser:
-watch 1 20
+watch 1 60

@@ -27,7 +27,7 @@ std::vector<Field> Fields(ChaseConfig& w, ChaseLearnerConfig& l) {
         {"square_side", &w.square_side, nullptr, nullptr, false, "square pattern side, centred on the board"},
         {"circle_radius", &w.circle_radius, nullptr, nullptr, false, "circle pattern radius around the board centre"},
         {"flee_radius", &w.flee_radius, nullptr, nullptr, false, "habit runners flee when the chaser is closer than this"},
-        {"flee_veer", &w.flee_veer, nullptr, nullptr, false, "rightturn: radians clockwise from straight-away while fleeing"},
+        {"flee_turn", &w.flee_turn, nullptr, nullptr, false, "rightturn: radians per step it turns right while fleeing (never left)"},
         {"habit_turn", &w.habit_turn, nullptr, nullptr, false, "rightturn: radians clockwise per step while the chaser is far"},
         {"wall_margin", &w.wall_margin, nullptr, nullptr, false, "clockwise: distance from the wall the runner keeps"},
         {"catch_bonus", &w.catch_bonus, nullptr, nullptr, false, "reward on catch (reward = distance closed + bonus)"},
@@ -141,7 +141,7 @@ std::string ValidateConfig(const ChaseConfig& w, const ChaseLearnerConfig& l) {
     if (!(w.square_side > 0 && w.square_side <= w.board_size)) return Join("square_side must be > 0 and <= board_size (", w.board_size, ")");
     if (!(w.circle_radius > 0 && w.circle_radius <= w.board_size / 2)) return Join("circle_radius must be > 0 and <= board_size / 2 (", w.board_size / 2, ")");
     if (!(w.flee_radius > 0 && w.flee_radius <= w.board_size)) return Join("flee_radius must be > 0 and <= board_size (", w.board_size, ")");
-    if (!(w.flee_veer >= 0 && w.flee_veer <= 1.5f)) return "flee_veer must be between 0 and 1.5 radians";
+    if (!(w.flee_turn >= 0.01f && w.flee_turn <= 0.5f)) return "flee_turn must be between 0.01 and 0.5 radians per step";
     if (!(w.habit_turn >= 0 && w.habit_turn <= 0.5f)) return "habit_turn must be between 0 and 0.5 radians per step";
     if (!(w.wall_margin >= 0 && w.wall_margin <= w.board_size / 4)) return Join("wall_margin must be between 0 and board_size / 4 (", w.board_size / 4, ")");
     if (!(w.catch_bonus >= 0 && w.catch_bonus <= 1e6f)) return "catch_bonus must be between 0 and 1000000";
