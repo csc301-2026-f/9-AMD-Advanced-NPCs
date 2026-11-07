@@ -57,6 +57,20 @@ Max Xu’s Background NPC work extends the D2 comparison into CampusCrowd, a cam
 
 CampusCrowd is merged into `main` through PR #25. It runs locally in Unreal Engine with build and package scripts in `Examples/CampusCrowd`. The demo adds queue sizing, missed-target reporting, and CAD validation evidence. Cross-platform validation and a trained policy remain open.
 
+## D3 highlight: SAC chase adaptation
+
+D2 could not show the SAC chaser adapting, because a frozen policy did just as well. D3 adds runners that react to the chaser and switch habits, learning that is about twice as fast (catch rate after 20,000 moves rose from 0.34 to 0.76), and a test of the learner against a frozen snapshot of itself. [Watch the demo video](https://drive.google.com/file/d/1J_AV8wG49tRTUB4X1vTzty05bYBZ5JJi/view?usp=sharing).
+
+Run it in a terminal on macOS or Linux (no Unreal needed), from `Examples/AdaptiveTag`:
+
+```sh
+sh Tools/ChaseSim/Build-ChaseSim.sh
+Saved/ChaseSim/chase_sim --script Evidence/SAC/d3/demo-reactivity.script
+Saved/ChaseSim/chase_sim --seed 1 --script Evidence/SAC/d3/demo.script
+```
+
+The first demo (about 40 s) shows the runners reacting. The second (about 5 min) trains on one runner, takes a snapshot, switches runner and recovers. On 3 seeds, every learner ends at 0.99–1.00 on the new runner while its frozen snapshot stays at 0.26–0.56. Two of the five pre-set pass criteria are missed on some seeds; see the [evidence and results](deliverables/D3/adaptive-npc-evidence.md#sac-chase-adaptation). A GitHub Actions workflow builds the simulator and runs smoke tests on every PR to `main`.
+
 ## Evaluate the D3 adaptive NPC integration
 
 The improvement since D2 is a reusable plugin integration rather than an example-owned learner. It follows Schola's Python integration model: the game defines the task, while RLtools constructs and trains the selected algorithm locally in C++. Independent learners are the default; compatible NPCs can explicitly share one learner within a world.
@@ -76,7 +90,7 @@ To use another shape, create an RLtools Configuration Asset, set its Schola defi
 
 **Non-functional requirements:** bounded queues and worker scheduling, validated decision attribution, explicit sharing compatibility, observable asynchronous operations and teardown tests address reliability and resource use. Blueprint controls and actionable configuration errors support the developer workflow. The [NFR evidence table](deliverables/D3/adaptive-npc-evidence.md#non-functional-requirements) links each concern to its checks. Scheduling is cooperative; no hard frame-time guarantee is claimed.
 
-**Delivery and CI/CD:** Schola is a source-distributed Unreal plugin, so the local build/test host is the repeatable evaluation path rather than a hosted URL. AMD has its own CI/CD checks; those checks are not integrated into this codebase yet, and we are working with the partner to set that up. The reported results ran locally, not in CI.
+**Delivery and CI/CD:** Schola is a source-distributed Unreal plugin, so the local build/test host is the repeatable evaluation path rather than a hosted URL. AMD has its own CI/CD checks; those checks are not integrated into this codebase yet, and we are working with the partner to set that up. The Unreal results ran locally, not in CI. The standalone chase simulator is the exception: a GitHub Actions workflow builds it and runs smoke tests on every PR to `main`.
 
 **Supported scope:** CPU feedforward SAC/TD3/PPO, Box observations and bounded continuous Box actions. The headless checks establish learning operations and integration, not rendering or useful gameplay adaptation. Automatic task collection, resumable checkpoints, performance evaluation at realistic NPC counts and separate-project packaging remain follow-up work. In-memory inference snapshots are implemented.
 
@@ -192,7 +206,7 @@ Run it without `--script` to type commands yourself: `help`, `config`, `eval 20`
 
 **Result:** on the circle pattern, 3 seeds, the chaser's catch rate rose from 8-22% to 100% after 300 training episodes (greedy pursuit: 40%, random: 18%).
 
-**Limitation:** adaptation to a changed pattern is not yet demonstrated, because the circle-trained policy already catches every square start. Schola integration is written but not yet validated.
+**D2 limitation:** adaptation to a changed pattern was not demonstrated, because the circle-trained policy already caught every square start. D3 addresses this with runners that react to the chaser; see the [D3 highlight](#d3-highlight-sac-chase-adaptation).
 
 **Evidence:** [SAC test results, baselines and learning curves](Examples/AdaptiveTag/Evidence/SAC/README.md).
 
@@ -202,9 +216,11 @@ The scripted runner can switch its preference without resetting the learner. Lat
 
 This is online reinforcement learning: the policy learns from fresh interactions as play continues. A fixed policy can perform well against one consistent runner, so the useful demonstration is adaptation after the runner changes its behavior.
 
+**D3 result:** in `chase_sim`, a chaser trained on the `rightturn` runner is switched to the `corner` runner. The learner recovers to 0.99–1.00 while a frozen snapshot of it stays at 0.26–0.56 ([results](deliverables/D3/adaptive-npc-evidence.md#sac-chase-adaptation)).
+
 ### Adaptive NPC: inspect and compare behavior
 
-The display shows action probabilities, recent experiences and rewards, training counts, and runtime statistics. **L** lets the tester freeze learning, and **B** selects a fixed comparison policy. These controls support inspection; a controlled learning-versus-frozen performance study remains future work.
+The display shows action probabilities, recent experiences and rewards, training counts, and runtime statistics. **L** lets the tester freeze learning, and **B** selects a fixed comparison policy. These controls support inspection; a controlled learning-versus-frozen comparison now exists in `chase_sim` (see the [D3 highlight](#d3-highlight-sac-chase-adaptation)); the same study in the Unreal game remains future work.
 
 ### Efficient background agents: batch inference across many agents
 
@@ -450,6 +466,8 @@ The adaptive prototype has repeatable build, test, and packaging scripts under `
 
 **D3 Background NPC quality evidence:** Five CAD regression tests passed locally on 5 November 2026. The [CampusCrowd NFR evidence](Examples/CampusCrowd/README.md#non-functional-requirements) covers performance budgets, bounded queues, stale-action handling, input validation, explicit errors, keyboard controls, and disabling the unused Android file server. The D3 editor build, 43 Unreal background/Mass tests, packaging, and packaged smoke test passed on UE 5.8.3/Linux. The standalone run delivered 59.98 FPS and 199,922 decisions/s for 20,000 agents, with zero dropped requests during capture. [Retained validation evidence](Examples/CampusCrowd/Evidence/d3-validation-2026-11-05/README.md). Peer review and independent-machine validation still need confirmation.
 
+**D3 GitHub Actions (chase simulator):** `.github/workflows/chase-sim-ci.yml` runs on PRs and pushes to `main` that change `Examples/AdaptiveTag`. It builds `chase_sim` with g++ and runs 7 smoke checks (`Tools/ChaseSim/ci-smoke.sh`), with a 5-minute timeout. There is no deploy step: the simulator is a local developer tool with nothing to host.
+
 Existing Schola development conventions are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Branching and pull requests:** Our team uses main as the shared integration branch. Members develop their assigned NPC paradigms and documentation on separate feature branches, then submit pull requests to incorporate completed work. PRs allow changes to be reviewed and merge conflicts to be resolved before integration.
@@ -466,7 +484,7 @@ The existing Schola codebase carries an MIT license in [LICENSE.txt](LICENSE.txt
 
 ## Remaining work and priorities
 
-Next steps for adaptive NPCs are automatic observation/action/reward collection through the Schola coordinator, learning-versus-frozen evaluation under the same behavior changes, resumable checkpoint persistence, and separate-project packaging. The native policy API and project configuration generation are implemented; see the [D3 reflection](deliverables/D3/product-evolution.md#4-reflection).
+Next steps for adaptive NPCs are automatic observation/action/reward collection through the Schola coordinator, shortening recovery in the chase adaptation test and repeating it in the Unreal game, resumable checkpoint persistence, and separate-project packaging. The native policy API and project configuration generation are implemented; see the [D3 reflection](deliverables/D3/product-evolution.md#4-reflection).
 
 For Shared Policy NPCs, compare C and D's model-storage and baseline-subtracted
 steady-state memory. If D shows no meaningful advantage, retain C and integrate
