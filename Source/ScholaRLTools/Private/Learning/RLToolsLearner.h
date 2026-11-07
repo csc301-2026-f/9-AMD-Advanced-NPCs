@@ -68,6 +68,47 @@ struct FStats
     bool LearningEnabled = true, Running = true, Training = false;
 };
 
+/** What a checkpoint file contains (spec section 9). The mode is recorded in the file; Load restores
+ * exactly what the file holds and nothing more.
+ * PolicyExport:  actor (+ PPO value function; for SAC this includes the entropy temperature) and the
+ *                policy version. Load keeps freshly initialized critics/optimizer state and an empty
+ *                replay, i.e. "start from pretrained weights".
+ * TrainingState: every network, target network, optimizer (incl. SAC entropy temperature), the training
+ *                RNG and update/version counters. The replay buffer / PPO rollout is NOT included:
+ *                after Load the learner refills it and warms up again. This is NOT a full resume.
+ * FullResume:    TrainingState plus the off-policy replay buffer contents, so training continues
+ *                where it stopped. PPO has no persistent replay; its pending rollout is discarded and
+ *                FullResume is equivalent to TrainingState for PPO (FCheckpointInfo::ReplaySize is 0).
+ * Preprocessing values are not stored; a fingerprint is, and must match the loading learner.
+ * After any successful load, SAC/TD3 skip InitialRandomSteps: the restored actor acts immediately.
+ */
+enum class ECheckpointMode : std::uint32_t { PolicyExport = 1, TrainingState = 2, FullResume = 3 };
+
+enum class ECheckpointResult
+{
+    Ok,
+    IoError,     // missing/unreadable/unwritable file
+    BadFormat,   // not a Schola RLtools checkpoint, truncated, corrupt, wrong checksum, unknown format version
+    Mismatch,    // valid file for a different profile/algorithm/dimensions/revision/preprocessing/structure
+    Unsupported, // valid request this build cannot satisfy
+    NotReady     // learner stopped
+};
+
+/** Copied metadata from a checkpoint header; available without loading any numerical state. */
+struct FCheckpointInfo
+{
+    std::uint32_t Format = 0;
+    ECheckpointMode Mode = ECheckpointMode::TrainingState;
+    std::string ProfileId, Revision;
+    EAlgorithm Algorithm = EAlgorithm::SAC;
+    unsigned Observations = 0, Actions = 0;
+    std::uint64_t Version = 0, Updates = 0, ReplaySize = 0;
+    std::uint64_t PayloadSize = 0;
+    bool PreprocessingIncluded = false;
+};
+
+const char* ToString(ECheckpointResult Result);
+
 class FPolicy;
 struct FDecisionContext;
 
@@ -132,6 +173,17 @@ public:
     FStats ReadStats() const;
     void SetLearningEnabled(bool Enabled);
     void Reset(unsigned Seed); // Worker-only replacement; old decisions are retired.
+    /** Worker-only, like Reset: waits for any active Train burst, never call on the game thread.
+     * Writes Path + ".tmp" and renames it over Path, so a failed save never leaves a partial file. */
+    ECheckpointResult SaveCheckpoint(const std::string& Path, ECheckpointMode Mode, std::string& Error);
+    /** Worker-only. Validates header, sizes (before allocating the payload), checksum, profile,
+     * revision, preprocessing and tar structure, then deserializes into a NEW replacement state.
+     * On any failure the live learner is unchanged and keeps running. On success the replacement is
+     * swapped in exactly like Reset: Generation increments, queued records and all outstanding
+     * decisions are retired, and Version becomes max(current + 1, saved) so it never goes backwards. */
+    ECheckpointResult LoadCheckpoint(const std::string& Path, std::string& Error, FCheckpointInfo* OutInfo = nullptr);
+    /** Reads and validates only the header (and file size); no numerical state is touched. */
+    static ECheckpointResult ReadCheckpointInfo(const std::string& Path, FCheckpointInfo& OutInfo, std::string& Error);
     void Stop();
 private:
     struct FImpl;

@@ -26,6 +26,7 @@
 #include <rl_tools/rl/algorithms/td3/loop/core/operations_generic.h>
 #include <rl_tools/rl/algorithms/ppo/loop/core/config.h>
 #include <rl_tools/rl/algorithms/ppo/loop/core/operations_generic.h>
+#include "RLToolsCheckpoint.h"
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -114,7 +115,27 @@ struct FAlgorithmState
     virtual unsigned Occupancy() const = 0;
     virtual bool IterationComplete() const { return true; }
     virtual std::shared_ptr<FPolicy> Snapshot() = 0;
+    // Caller holds TrainingMutex. Writes the groups selected by Mode (see ECheckpointMode) as an RLtools tar archive.
+    virtual std::vector<char> Serialize(ECheckpointMode Mode, const FStats& Stats) = 0;
+    // Only for a freshly constructed state and a payload already checked with Checkpoint::SameStructure
+    // against Serialize(Mode), so RLtools' aborting loader cannot fail. Restores optimizer counters into Stats.
+    virtual bool Deserialize(ECheckpointMode Mode, const char* Data, std::size_t Size, FStats& Stats) = 0;
 };
+using FCounters = rlt::Tensor<rlt::tensor::Specification<std::uint64_t, TI,
+    rlt::tensor::Shape<TI, Checkpoint::CounterCount>, false>>;
+static void WriteCounters(FDevice& Device, FCounters& Counters, const FStats& Stats)
+{
+    for (TI Index = 0; Index < Checkpoint::CounterCount; ++Index) rlt::set(Device, Counters, 0, Index);
+    rlt::set(Device, Counters, Stats.ActorUpdates, Checkpoint::ActorUpdates);
+    rlt::set(Device, Counters, Stats.CriticUpdates, Checkpoint::CriticUpdates);
+    rlt::set(Device, Counters, Stats.TargetUpdates, Checkpoint::TargetUpdates);
+}
+static void ReadCounters(FDevice& Device, FCounters& Counters, FStats& Stats)
+{
+    Stats.ActorUpdates = rlt::get(Device, Counters, Checkpoint::ActorUpdates);
+    Stats.CriticUpdates = rlt::get(Device, Counters, Checkpoint::CriticUpdates);
+    Stats.TargetUpdates = rlt::get(Device, Counters, Checkpoint::TargetUpdates);
+}
 
 template <unsigned O, unsigned A, unsigned H, unsigned B, unsigned R, typename TParameters>
 struct TSACParameters : rlt::rl::algorithms::sac::loop::core::DefaultParameters<FTypePolicy, TI,
@@ -292,13 +313,22 @@ struct TOffPolicyState : FAlgorithmState
     FDevice Device;
     std::unique_ptr<StateType> State = std::make_unique<StateType>();
     unsigned Count = 0;
-    explicit TOffPolicyState(const FSettings& Settings)
+    float LearningRate;
+    explicit TOffPolicyState(const FSettings& Settings) : LearningRate(Settings.LearningRate)
     {
         rlt::malloc(Device, *State);
         rlt::init(Device, *State, Settings.Seed);
-        SetLearningRate(Device, State->actor_critic.actor_optimizer, Settings.LearningRate);
-        for (auto& Optimizer : State->actor_critic.critic_optimizers) SetLearningRate(Device, Optimizer, Settings.LearningRate);
-        if constexpr(Algorithm == EAlgorithm::SAC) SetLearningRate(Device, State->actor_critic.alpha_optimizer, Settings.LearningRate);
+        // Unwritten replay rows are never sampled; zero them so FullResume files hold no stale heap bytes.
+        auto& Replay = rlt::get(State->off_policy_runner.replay_buffers, 0, 0);
+        rlt::set_all(Device, Replay.data, 0.0f);
+        rlt::set_all(Device, Replay.episode_start, 0);
+        ApplyLearningRate();
+    }
+    void ApplyLearningRate()
+    {
+        SetLearningRate(Device, State->actor_critic.actor_optimizer, LearningRate);
+        for (auto& Optimizer : State->actor_critic.critic_optimizers) SetLearningRate(Device, Optimizer, LearningRate);
+        if constexpr(Algorithm == EAlgorithm::SAC) SetLearningRate(Device, State->actor_critic.alpha_optimizer, LearningRate);
     }
     ~TOffPolicyState() override { rlt::free(Device, *State); }
     unsigned Occupancy() const override { return std::min(Count, R); }
@@ -372,6 +402,92 @@ struct TOffPolicyState : FAlgorithmState
     }
     std::shared_ptr<FPolicy> Snapshot() override
     { return std::make_shared<TPolicy<Actor, O, A>>(Device, State->actor_critic.actor); }
+    // The SAC entropy temperature (log_alpha) and its Adam moments live in the actor's sample_and_squash layer.
+    // TD3's td3_sampling output layer has no parameters (its RLtools save/load are no-ops).
+    std::vector<char> Serialize(ECheckpointMode Mode, const FStats& Stats) override
+    {
+        auto& AC = State->actor_critic;
+        Checkpoint::TWriter<FDevice> Writer(Device);
+        Writer.Group("actor", AC.actor);
+        if (Mode != ECheckpointMode::PolicyExport)
+        {
+            if constexpr(Algorithm == EAlgorithm::TD3) Writer.Group("actor_target", AC.actor_target);
+            Writer.Group("critic0", AC.critics[0]);
+            Writer.Group("critic1", AC.critics[1]);
+            Writer.Group("critic_target0", AC.critics_target[0]);
+            Writer.Group("critic_target1", AC.critics_target[1]);
+            Writer.Group("actor_optimizer", AC.actor_optimizer);
+            Writer.Group("critic_optimizer0", AC.critic_optimizers[0]);
+            Writer.Group("critic_optimizer1", AC.critic_optimizers[1]);
+            if constexpr(Algorithm == EAlgorithm::SAC) Writer.Group("alpha_optimizer", AC.alpha_optimizer);
+            Writer.Group("training", State->rng);
+            FCounters Counters;
+            WriteCounters(Device, Counters, Stats);
+            if (Mode == ECheckpointMode::FullResume)
+            {
+                // RLtools' replay_buffer/persist.h loads its strided column views as if they were dense (and
+                // aborts on the size check), so the dense backing matrix and cursor are persisted directly.
+                auto& Replay = rlt::get(State->off_policy_runner.replay_buffers, 0, 0);
+                Writer.Tensor("replay_data", Replay.data);
+                Writer.Tensor("replay_episode_start", Replay.episode_start);
+                rlt::set(Device, Counters, Count, Checkpoint::Stored);
+                rlt::set(Device, Counters, Replay.position, Checkpoint::Position);
+                rlt::set(Device, Counters, Replay.full ? 1 : 0, Checkpoint::Full);
+                rlt::set(Device, Counters, Replay.current_episode_start, Checkpoint::EpisodeStart);
+            }
+            Writer.Tensor("counters", Counters);
+        }
+        return Writer.Finish();
+    }
+    bool Deserialize(ECheckpointMode Mode, const char* Data, std::size_t Size, FStats& Stats) override
+    {
+        auto& AC = State->actor_critic;
+        Checkpoint::TReader<FDevice> Reader(Device, Data, Size);
+        bool Ok = Reader.Group("actor", AC.actor);
+        if (Mode == ECheckpointMode::PolicyExport)
+        {
+            // Pretrained weights only: the fresh actor optimizer starts from zero moments.
+            rlt::reset_optimizer_state(Device, AC.actor_optimizer, AC.actor);
+            rlt::zero_gradient(Device, AC.actor);
+            if constexpr(Algorithm == EAlgorithm::TD3) rlt::copy(Device, Device, AC.actor, AC.actor_target);
+            return Ok;
+        }
+        if constexpr(Algorithm == EAlgorithm::TD3) Ok = Ok && Reader.Group("actor_target", AC.actor_target);
+        Ok = Ok && Reader.Group("critic0", AC.critics[0]) && Reader.Group("critic1", AC.critics[1]);
+        Ok = Ok && Reader.Group("critic_target0", AC.critics_target[0]) && Reader.Group("critic_target1", AC.critics_target[1]);
+        Ok = Ok && Reader.Group("actor_optimizer", AC.actor_optimizer);
+        Ok = Ok && Reader.Group("critic_optimizer0", AC.critic_optimizers[0]) && Reader.Group("critic_optimizer1", AC.critic_optimizers[1]);
+        if constexpr(Algorithm == EAlgorithm::SAC) Ok = Ok && Reader.Group("alpha_optimizer", AC.alpha_optimizer);
+        Ok = Ok && Reader.Group("training", State->rng);
+        FCounters Counters;
+        if (Mode == ECheckpointMode::FullResume)
+        {
+            auto& Replay = rlt::get(State->off_policy_runner.replay_buffers, 0, 0);
+            Ok = Ok && Reader.Tensor("replay_data", Replay.data) && Reader.Tensor("replay_episode_start", Replay.episode_start);
+            Ok = Ok && Reader.Tensor("counters", Counters);
+            if (!Ok) return false;
+            const std::uint64_t Stored = rlt::get(Device, Counters, Checkpoint::Stored);
+            const std::uint64_t Position = rlt::get(Device, Counters, Checkpoint::Position);
+            const std::uint64_t Full = rlt::get(Device, Counters, Checkpoint::Full);
+            const std::uint64_t EpisodeStart = rlt::get(Device, Counters, Checkpoint::EpisodeStart);
+            // The cursor must be the one Store() would have produced, or sampling would read unwritten rows.
+            if (Stored > 0xffffffffull || Full > 1 || Position >= R || EpisodeStart >= R
+                || (Full == 1) != (Stored >= R) || Position != Stored % R) return false;
+            for (TI Index = 0; Index < (Full ? R : Position); ++Index)
+                if (rlt::get(Device, Replay.episode_start, Index) >= R) return false;
+            Replay.position = static_cast<TI>(Position);
+            Replay.full = Full == 1;
+            Replay.current_episode_start = static_cast<TI>(EpisodeStart);
+            Count = static_cast<unsigned>(Stored);
+            Stats.Stored = Stored;
+        }
+        else Ok = Ok && Reader.Tensor("counters", Counters);
+        if (!Ok) return false;
+        ReadCounters(Device, Counters, Stats);
+        // Runtime settings stay authoritative: the archive's Adam parameter block includes a learning rate.
+        ApplyLearningRate();
+        return true;
+    }
 };
 
 template <unsigned O, unsigned A, unsigned H, unsigned B, unsigned L, typename TParameters>
@@ -386,13 +502,18 @@ struct TPPOState : FAlgorithmState
     std::unique_ptr<StateType> State = std::make_unique<StateType>();
     std::vector<FExperience> Rollout;
     unsigned Epoch = 0, Epochs;
-    explicit TPPOState(const FSettings& Settings) : Epochs(Settings.PPOEpochs)
+    float LearningRate;
+    explicit TPPOState(const FSettings& Settings) : Epochs(Settings.PPOEpochs), LearningRate(Settings.LearningRate)
     {
         rlt::malloc(Device, *State);
         rlt::init(Device, *State, Settings.Seed);
-        SetLearningRate(Device, State->actor_optimizer, Settings.LearningRate);
-        SetLearningRate(Device, State->critic_optimizer, Settings.LearningRate);
+        ApplyLearningRate();
         Rollout.reserve(L);
+    }
+    void ApplyLearningRate()
+    {
+        SetLearningRate(Device, State->actor_optimizer, LearningRate);
+        SetLearningRate(Device, State->critic_optimizer, LearningRate);
     }
     ~TPPOState() override { rlt::free(Device, *State); }
     unsigned Occupancy() const override { return static_cast<unsigned>(Rollout.size()); }
@@ -446,6 +567,45 @@ struct TPPOState : FAlgorithmState
     }
     std::shared_ptr<FPolicy> Snapshot() override
     { return std::make_shared<TPPOPolicy<Actor, Critic, O, A>>(Device, State->ppo.actor, State->ppo.critic); }
+    // The rollout holds decision contexts of the previous generation and is never persisted:
+    // FullResume is identical to TrainingState for PPO.
+    std::vector<char> Serialize(ECheckpointMode Mode, const FStats& Stats) override
+    {
+        Checkpoint::TWriter<FDevice> Writer(Device);
+        Writer.Group("actor", State->ppo.actor);
+        Writer.Group("critic", State->ppo.critic);
+        if (Mode != ECheckpointMode::PolicyExport)
+        {
+            Writer.Group("actor_optimizer", State->actor_optimizer);
+            Writer.Group("critic_optimizer", State->critic_optimizer);
+            Writer.Group("training", State->rng);
+            FCounters Counters;
+            WriteCounters(Device, Counters, Stats);
+            Writer.Tensor("counters", Counters);
+        }
+        return Writer.Finish();
+    }
+    bool Deserialize(ECheckpointMode Mode, const char* Data, std::size_t Size, FStats& Stats) override
+    {
+        Checkpoint::TReader<FDevice> Reader(Device, Data, Size);
+        bool Ok = Reader.Group("actor", State->ppo.actor) && Reader.Group("critic", State->ppo.critic);
+        if (Mode == ECheckpointMode::PolicyExport)
+        {
+            rlt::reset_optimizer_state(Device, State->actor_optimizer, State->ppo.actor);
+            rlt::reset_optimizer_state(Device, State->critic_optimizer, State->ppo.critic);
+            rlt::zero_gradient(Device, State->ppo.actor);
+            rlt::zero_gradient(Device, State->ppo.critic);
+            return Ok;
+        }
+        Ok = Ok && Reader.Group("actor_optimizer", State->actor_optimizer) && Reader.Group("critic_optimizer", State->critic_optimizer);
+        Ok = Ok && Reader.Group("training", State->rng);
+        FCounters Counters;
+        Ok = Ok && Reader.Tensor("counters", Counters);
+        if (!Ok) return false;
+        ReadCounters(Device, Counters, Stats);
+        ApplyLearningRate();
+        return true;
+    }
 };
 
 // This registration include is the extension point for project-local generated configurations.
@@ -487,6 +647,8 @@ struct FLearner::FImpl
     std::unordered_map<std::uint64_t, std::uint64_t> AgentSequences;
     std::uint64_t RecordsSinceTrain = 0, UpdatesSincePublish = 0;
     bool PPOUpdating = false;
+    // Set by a successful LoadCheckpoint: the restored actor acts from the first decision.
+    bool SkipInitialRandom = false;
     std::atomic<bool> StopRequested{false};
     FImpl(const FProfile& InProfile, const FSettings& InSettings) : Profile(InProfile), Settings(InSettings)
     { State = MakeState(Profile, Settings); Publish(); }
@@ -590,11 +752,13 @@ bool FLearner::Decide(const std::vector<float>& Observation, std::uint64_t Agent
     const auto Policy = Impl->LoadPublished();
     const auto& Settings = Policy->Settings;
     auto Context = std::make_shared<FDecisionContext>();
+    bool SkipRandom = false;
     if (!Policy->Preprocess(Observation, Context->Observation)) return false;
     {
         std::lock_guard Lock(Impl->AdmissionMutex);
         if (!Impl->Stats.Running || Policy->GetGeneration() != Impl->Stats.Generation) return false;
         Context->Sequence = Impl->AgentSequences[Agent]++;
+        SkipRandom = Impl->SkipInitialRandom;
     }
     Context->Policy = Policy;
     Context->Agent = Agent;
@@ -606,7 +770,7 @@ bool FLearner::Decide(const std::vector<float>& Observation, std::uint64_t Agent
     std::mt19937 Rng(Seed);
     if (!Deterministic && Policy->GetProfile().Algorithm != EAlgorithm::PPO)
     {
-        if (Context->Sequence < Settings.InitialRandomSteps)
+        if (!SkipRandom && Context->Sequence < Settings.InitialRandomSteps)
             for (float& Value : Context->Action) Value = std::uniform_real_distribution<float>(-1, 1)(Rng);
         else if (Policy->GetProfile().Algorithm == EAlgorithm::TD3 && Settings.ExplorationNoise > 0)
             for (float& Value : Context->Action) Value += std::normal_distribution<float>(0, Settings.ExplorationNoise)(Rng);
@@ -784,6 +948,7 @@ void FLearner::Reset(unsigned Seed)
         I.Stats.Generation = Generation;
         I.RecordsSinceTrain = I.UpdatesSincePublish = 0;
         I.PPOUpdating = false;
+        I.SkipInitialRandom = false;
         I.AgentSequences.clear();
         RetiredPolicy = I.ExchangePublished(std::move(Policy));
     }
@@ -796,3 +961,4 @@ void FLearner::Stop()
     { std::lock_guard Lock(Impl->AdmissionMutex); Impl->Stats.Running = false; }
 }
 }
+#include "RLToolsCheckpoint.inl"
