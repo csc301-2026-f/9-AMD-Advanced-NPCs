@@ -61,9 +61,6 @@ Implemented field-specific validation errors for native learner runtime settings
 [benchmark design and reproduction guide](../../Prototypes/SharedPolicy/benchmarks/README.md),
 and [D3 slides](index.html#shared-policy-benchmark).
 
-**[Name]**, [Role]
-> [Specific contributions]
-
 ### Olivia Markow — Adaptive NPCs: SAC chaser adaptation and learning speed
 
 - Built three deterministic habit runners (rightturn, clockwise, corner) that react to the chaser, plus the harder chase v2 task (board 100, 200-step rounds, relative-position observation) and an INTERCEPT baseline.
@@ -73,7 +70,7 @@ and [D3 slides](index.html#shared-policy-benchmark).
 - Added the repository's first GitHub Actions workflow: builds chase_sim and runs smoke tests on PRs, with a 5-minute timeout.
 - Wrote the D3 adaptation section of the product evolution report and the SAC evidence README.
 
-**Evidence:** [PR #42](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/42), SAC D3 evidence.
+**Evidence:** [PR #42](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/42), [SAC D3 evidence](adaptive-npc-evidence.md#sac-chase-adaptation), [demo video](https://drive.google.com/file/d/1J_AV8wG49tRTUB4X1vTzty05bYBZ5JJi/view?usp=sharing)
 
 
 ### Clementine Yang — Shared Policy Unreal Integration

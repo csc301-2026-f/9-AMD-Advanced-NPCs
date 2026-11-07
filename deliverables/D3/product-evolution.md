@@ -24,8 +24,6 @@ the same division of responsibilities with RLtools running locally in C++.
 Success meant demonstrating this workflow through the actual Schola policy API,
 including asynchronous learning and configurations beyond our example shapes.
 
-<<<<<<< Updated upstream
-=======
 Reusable learning only matters if the NPC adapts. At D2 we could not show that:
 the SAC chaser learned, but a policy trained on the circle runner already caught
 every square start, so a frozen policy did just as well. Learning was also too
@@ -34,7 +32,6 @@ D2 chase setup needed about 28–55 minutes of play. The D2 review (Q2, item 3)
 and Chloe's D2 evaluation plan (test 9) flagged the same missing
 adaptive-versus-frozen comparison.
 
->>>>>>> Stashed changes
 ### Shared Policy NPCs (Hiu Yan (Jaela) Kwok, Clementine)
 
 D2 provided a Python ONNX prototype; its Unreal bindings and Stepper were not
@@ -123,8 +120,6 @@ and [#36 configuration generation](https://github.com/csc301-2026-f/9-AMD-Advanc
 The [minimal test host](../../Examples/NativeLearning/README.md) exercises the plugin
 without depending on the older examples' learner code.
 
-<<<<<<< Updated upstream
-=======
 #### Showing adaptation in the chase task
 
 **Harder task.** Chase v2 (board 100, 200-step rounds, catch distance 2) adds
@@ -158,7 +153,6 @@ The simulator runs in the terminal and calls RLtools SAC directly, not through
 the Schola policy. See the [chase adaptation
 evidence](adaptive-npc-evidence.md#sac-chase-adaptation).
 
->>>>>>> Stashed changes
 ### Shared Policy NPCs
 
 We built five candidates from the same seeded weights: all heads (A), runtime
