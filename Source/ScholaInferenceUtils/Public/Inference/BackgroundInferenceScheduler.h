@@ -120,6 +120,6 @@ public:
 	const FNPCBackgroundSchedulerSettings& GetSettings() const;
 
 private:
-	FNPCBackgroundScheduler() = default;
+	FNPCBackgroundScheduler();
 	TUniquePtr<FNPCBackgroundSchedulerImpl> Impl;
 };

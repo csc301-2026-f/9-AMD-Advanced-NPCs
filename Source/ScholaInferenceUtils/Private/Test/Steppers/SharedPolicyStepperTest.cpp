@@ -26,8 +26,8 @@ namespace SharedPolicyStepperTest
 
 		FFixture()
 		{
-			Policy->RegisterHead(Combat, EHeadAction::Combat);
-			Policy->RegisterHead(Support, EHeadAction::Support);
+			Policy->RegisterHead(Combat, static_cast<int32>(EHeadAction::Combat));
+			Policy->RegisterHead(Support, static_cast<int32>(EHeadAction::Support));
 		}
 
 		TArray<FSharedNPCBinding> MixedBindings() const
@@ -48,9 +48,9 @@ bool FSharedPolicyStepperTwoNpcTest::RunTest(const FString& Parameters)
 	Fixture.Stepper->Step();
 
 	TestEqual(TEXT("Guard received the Combat action"), Fixture.Guard->GetLastActionReceived(),
-		SharedPolicyStepperTest::EHeadAction::Combat);
+		static_cast<int32>(SharedPolicyStepperTest::EHeadAction::Combat));
 	TestEqual(TEXT("Medic received the Support action"), Fixture.Medic->GetLastActionReceived(),
-		SharedPolicyStepperTest::EHeadAction::Support);
+		static_cast<int32>(SharedPolicyStepperTest::EHeadAction::Support));
 	return true;
 }
 
@@ -86,9 +86,9 @@ bool FSharedPolicyStepperSharedHeadTest::RunTest(const FString& Parameters)
 	Fixture.Stepper->Step();
 
 	TestEqual(TEXT("Guard received Combat"), Fixture.Guard->GetLastActionReceived(),
-		SharedPolicyStepperTest::EHeadAction::Combat);
+		static_cast<int32>(SharedPolicyStepperTest::EHeadAction::Combat));
 	TestEqual(TEXT("Medic received Combat"), Fixture.Medic->GetLastActionReceived(),
-		SharedPolicyStepperTest::EHeadAction::Combat);
+		static_cast<int32>(SharedPolicyStepperTest::EHeadAction::Combat));
 	return true;
 }
 
@@ -96,6 +96,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSharedPolicyStepperInvalidHeadTest, "Schola.In
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FSharedPolicyStepperInvalidHeadTest::RunTest(const FString& Parameters)
 {
+	AddExpectedError(TEXT("uses unregistered head"), EAutomationExpectedErrorFlags::Contains, 1);
 	SharedPolicyStepperTest::FFixture Fixture;
 	const TArray<FSharedNPCBinding> Bindings = {FSharedNPCBinding(Fixture.Guard, TEXT("Unknown"))};
 	TestFalse(TEXT("Unknown head is rejected at Init"), Fixture.Stepper->Init(Bindings, Fixture.Policy));
@@ -108,6 +109,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSharedPolicyStepperDuplicateAgentTest,
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FSharedPolicyStepperDuplicateAgentTest::RunTest(const FString& Parameters)
 {
+	AddExpectedError(TEXT("an agent may have only one head"), EAutomationExpectedErrorFlags::Contains, 1);
 	SharedPolicyStepperTest::FFixture Fixture;
 	const TArray<FSharedNPCBinding> Bindings = {
 		FSharedNPCBinding(Fixture.Guard, Fixture.Combat), FSharedNPCBinding(Fixture.Guard, Fixture.Support)};
@@ -121,6 +123,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSharedPolicyStepperActionCountTest,
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FSharedPolicyStepperActionCountTest::RunTest(const FString& Parameters)
 {
+	AddExpectedError(TEXT("does not match number of agents"), EAutomationExpectedErrorFlags::Contains, 1);
 	SharedPolicyStepperTest::FFixture Fixture;
 	TestTrue(TEXT("Init succeeds"), Fixture.Stepper->Init(Fixture.MixedBindings(), Fixture.Policy));
 	Fixture.Policy->ForcedActionCount = 1;
@@ -138,6 +141,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSharedPolicyStepperThinkFailureTest,
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FSharedPolicyStepperThinkFailureTest::RunTest(const FString& Parameters)
 {
+	AddExpectedError(TEXT("Policy failed to think"), EAutomationExpectedErrorFlags::Contains, 1);
 	SharedPolicyStepperTest::FFixture Fixture;
 	TestTrue(TEXT("Init succeeds"), Fixture.Stepper->Init(Fixture.MixedBindings(), Fixture.Policy));
 	Fixture.Policy->bThinkSucceeds = false;
@@ -155,6 +159,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSharedPolicyStepperEmptyBindingsTest,
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FSharedPolicyStepperEmptyBindingsTest::RunTest(const FString& Parameters)
 {
+	AddExpectedError(TEXT("NPC bindings are empty"), EAutomationExpectedErrorFlags::Contains, 1);
 	SharedPolicyStepperTest::FFixture Fixture;
 	TestFalse(TEXT("Empty bindings are rejected"),
 		Fixture.Stepper->Init(TArray<FSharedNPCBinding>(), Fixture.Policy));
@@ -166,6 +171,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSharedPolicyStepperNullPolicyTest,
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FSharedPolicyStepperNullPolicyTest::RunTest(const FString& Parameters)
 {
+	AddExpectedError(TEXT("Initialized with no native ISharedPolicy"), EAutomationExpectedErrorFlags::Contains, 1);
 	SharedPolicyStepperTest::FFixture Fixture;
 	TestFalse(TEXT("Null policy is rejected"), Fixture.Stepper->Init(Fixture.MixedBindings(), nullptr));
 	return true;

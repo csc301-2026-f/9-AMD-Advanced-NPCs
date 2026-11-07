@@ -1,0 +1,13 @@
+{
+  "tests_run": 5,
+  "failures": 0,
+  "tests": [
+    "typed_binary_transform",
+    "legacy_literal_transform",
+    "concave_roof_boundary",
+    "vertical_window_hole",
+    "university_college_source_region"
+  ],
+  "source_region_faces_decoded": 19526,
+  "source_region_decode_errors": 0
+}

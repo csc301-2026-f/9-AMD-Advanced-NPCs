@@ -1,0 +1,9 @@
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Plugins/
+.vs/
+*.sln
+# Unreal generates local input defaults when the editor first opens.
+Config/DefaultInput.ini

@@ -1,0 +1,11 @@
+{
+  "source_hash_matches": true,
+  "geometry_finite_and_indices_valid": true,
+  "triangles": 689081,
+  "route_nodes": 4135,
+  "route_edges": 4129,
+  "decoded_source_regions": 19526,
+  "university_college_projected_roof_area_m2": 5407.86,
+  "all_routes_clear_of_cad_buildings_by_metres": 3.0,
+  "all_links_reciprocal_and_nonisolated": true
+}

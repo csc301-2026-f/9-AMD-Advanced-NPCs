@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Deliverable 3: native adaptive learning in Schola and the Advanced NPCs team's progress.">
+  <title>Schola Â· Deliverable 3</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="slideshow.js" defer></script>
+</head>
+<body>
+  <main id="deck" aria-label="Deliverable 3 presentation">
+    <div id="stage">
+      <!-- Edit slide content here. Duplicate a section to add a slide.
+           Give each section a unique id and update its title and speaker notes. -->
+      <section class="slide cover dark an-slide" id="title" aria-labelledby="title-heading" data-title="Adaptive NPCs: native learning" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
+        <div class="cover-content">
+          <div><p class="eyebrow">Adaptive NPCs for AMD Schola</p><h1 id="title-heading">Native online<br>learning<span class="accent">.</span></h1><p class="lead">SAC, TD3 and PPO inside Unreal</p><p class="an-cover-summary">Developers configure their NPC task through Schola.<br>RLtools learns from gameplay outcomes in C++.</p></div>
+          <div class="cover-mark" aria-hidden="true"><span>DELIVERABLE</span><strong>03</strong><span>PRODUCT EVOLUTION</span></div>
+        </div>
+        <div class="cover-meta"><span>Adaptive NPCs subteam</span><span>November 2026</span></div>
+        <aside class="speaker-notes" data-time="15 seconds">We are presenting the adaptive NPC strand. D2 established that learning could run inside Unreal. D3 makes that capability reusable through Schola, across three RLtools algorithms and developer-defined compiled configurations. The following Shared Policy slides belong to that subteam. Suggested timings in this section total about five minutes including the game handoff; shorten to the team's actual slot.</aside>
+      </section>
+
+      <section class="slide an-slide " id="baseline" aria-labelledby="baseline-heading" data-title="The D2 starting point" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Before D3</p>
+        <h2 id="baseline-heading">The D2 starting point</h2>
+        <p class="intro">We demonstrated native learning in small, task-specific prototypes.</p>
+        <div class="split ruled-columns"><div><h3>Learning worked in examples</h3><p>AdaptiveTag learned a route preference.<br>The SAC chase prototype learned interception.</p><p class="prompt">These remain useful gameplay demonstrations.</p></div><div><h3>Reuse still required learner code</h3><p>A new NPC task needed a general Schola integration, configurable algorithms and ownership beyond one example.</p><p class="prompt">D2 prototype behavior is the baseline, not D3 integration evidence.</p></div></div>
+        <p class="source-line">Baseline: <a href="../D2/iteration-02-review.md">D2 iteration review</a> and <a href="../../Examples/AdaptiveTag/Evidence/SAC/README.md">SAC prototype evidence</a></p>
+        <aside class="speaker-notes" data-time="20 seconds">The categorical tag learner and continuous SAC chase learner are different implementations. The SAC work already included a policy prototype; the missing capability was a reusable plugin backend across SAC, TD3 and PPO. We identified this gap by reviewing the D2 workflow against Schola's existing Python integrations. Do not claim D2 had no Schola-related code.</aside>
+      </section>
+
+      <section class="slide an-slide " id="gap" aria-labelledby="gap-heading" data-title="Reusable learning for a new NPC" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Gap and motivation</p>
+        <h2 id="gap-heading">Reusable learning for a new NPC</h2>
+        <p class="an-statement">A developer should define the task and choose the learner through Schola.</p>
+        <div class="split ruled-columns"><div><h3>The gap</h3><p>Example-specific implementations coupled a learning task to its learner and compiled dimensions.</p></div><div><h3>The developer need</h3><p>Choose observations, actions, rewards and episode conditions, then select SAC, TD3 or PPO without rewriting integration code.</p></div></div>
+        <div class="takeaway"><span>Acceptance</span><p>Complete the policy workflow and observe a newer published version.</p></div>
+        <aside class="speaker-notes" data-time="20 seconds">The intended developer is an Unreal developer using Schola. With the existing Python integration, Schola connects the task to SB3 or RLlib. We preserve that role while RLtools constructs and trains the algorithm inside Unreal. This is the central gap and our acceptance criterion, rather than a claim to expose every RLtools capability.</aside>
+      </section>
+
+      <section class="slide an-slide " id="improvement" aria-labelledby="improvement-heading" data-title="The Schola developer workflow" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Implemented in D3</p>
+        <h2 id="improvement-heading">The Schola developer workflow</h2>
+        <p class="intro">One Blueprint/C++ policy API operates all three native algorithms.</p>
+        <div class="three-columns workflow"><div><span class="step-number">01</span><h3>Configure the task</h3><p>Define Schola spaces, select SAC, TD3 or PPO, and choose supported settings.</p></div><div><span class="step-number">02</span><h3>Connect gameplay</h3><p>Initialize and wait for Ready. Request an action and submit its gameplay outcome.</p></div><div><span class="step-number">03</span><h3>Observe learning</h3><p>Inspect admission, completed updates and policy versions. Pause, reset or capture a snapshot.</p></div></div>
+        <div class="takeaway"><span>Custom shapes</span><p>Export a configuration asset and rebuild; no RLtools template editing.</p></div>
+        <aside class="speaker-notes" data-time="30 seconds">The configuration asset exports Config/ScholaRLTools.json. UnrealBuildTool generates project-local types on the next C++ build; packaged games do not compile types at runtime. Runtime settings and compiled parameters remain distinct. Initialization is locally validated before expensive construction finishes on a worker. Source: https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/35 and https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/36. Automatic observation/action/reward collection remains coordinator work; the caller drives this API today.</aside>
+      </section>
+
+      <section class="slide an-slide " id="architecture" aria-labelledby="architecture-heading" data-title="Task, integration and learner ownership" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Architecture and integration</p>
+        <h2 id="architecture-heading">Task, integration and learner ownership</h2>
+        <dl class="an-ownership"><div><dt>Game</dt><dd>Defines observations, action meaning, rewards and episode conditions.</dd></div><div><dt>Schola</dt><dd>Validates decisions, converts actions and manages the policy lifecycle.<br>A world service schedules background work and explicit learner sharing.</dd></div><div><dt>RLtools</dt><dd>Owns numerical updates, optimizers, replay/rollouts and published actors.</dd></div></dl>
+        <div class="takeaway"><span>Design trade-off</span><p>Compile supported configurations for native execution; new shapes require a rebuild.</p></div>
+        <aside class="speaker-notes" data-time="30 seconds">The adapter reuses the native learner rather than duplicating training. Independent learners are the default. Sharing requires an explicit compatible group in the same world. Learning pause and reset affect the shared learner; episode and inference controls remain per binding. Background workers own native data rather than accessing live UObjects. A difficult boundary was PPO action attribution: retain the original native decision and reuse its normalized action when the game executes the command unchanged, avoiding float round-trip rejection. Source: native_adaptive_policy.rst and PR #35.</aside>
+      </section>
+
+      <section class="slide an-slide " id="comparison" aria-labelledby="comparison-heading" data-title="What changed for developers" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Before and after</p>
+        <h2 id="comparison-heading">What changed for developers</h2>
+        <table class="comparison-table an-comparison"><caption class="sr-only">Adaptive NPC workflow before and after D3</caption><thead><tr><th scope="col">Capability</th><th scope="col">D2</th><th scope="col">D3</th><th scope="col">Evidence</th></tr></thead><tbody>
+          <tr><th scope="row">Reuse</th><td>Task-specific learners;<br>SAC policy prototype</td><td>Plugin policy API for<br>SAC, TD3 and PPO</td><td>PRs #31, #35<br>Policy tests</td></tr>
+          <tr><th scope="row">Configuration</th><td>Shapes embedded<br>in learner code</td><td>Asset export and build<br>for custom shapes</td><td>PR #36<br>9 tested profiles</td></tr>
+          <tr><th scope="row">Ownership</th><td>Example-specific<br>runtime management</td><td>World service, explicit<br>sharing and safe reset</td><td>Sharing and<br>teardown tests</td></tr>
+        </tbody></table>
+        <p class="source-line">A capability comparison. No gameplay speedup or catch-rate improvement is inferred from these checks.</p>
+        <aside class="speaker-notes" data-time="20 seconds">The improvement is reducing integration work for the next NPC task. Six shipped profiles cover two shapes per algorithm; three generated profiles prove the custom-shape path. These are tested examples, not a limit of nine configurations. We do not compare D2 catch rates with D3 API tests because those measure different things. Supporting PRs and exact commands are in adaptive-npc-evidence.md.</aside>
+      </section>
+
+      <section class="slide an-slide dark an-demo" id="demo" aria-labelledby="demo-heading" data-title="Live game demo" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Presentation handoff</p>
+        <h2 id="demo-heading">Live game demo</h2>
+        <p class="intro">Learning from gameplay outcomes</p>
+        <ol class="demo-steps"><li><span>The task</span><p>Show the NPC's observation, available action and reward.</p></li><li><span>The feedback</span><p>Run the game and show decisions producing scored outcomes.</p></li><li><span>The result</span><p>Inspect learning progress and explain any observed behavior change.</p></li></ol>
+        <div class="takeaway"><span>Watch for</span><p>The connection between an executed action, its outcome and later decisions.</p></div>
+        <aside class="speaker-notes" data-time="60 seconds">Switch to the team's prepared demo game. State its starting state and which implementation it uses before describing the result. If it is an older task-specific prototype, label it as such and use the next slide's new policy tests as the integration evidence. A version increment proves actor publication; it does not alone prove better NPC behavior. The team owns the game launch and rehearsal. If the game fails, show the already-built NativeLearning policy tests and saved results; describe that fallback as an API demonstration. Do not invent game controls or a recording link. Handoff budget: about one minute; adjust to the actual presentation slot.</aside>
+      </section>
+
+      <section class="slide an-slide " id="validation" aria-labelledby="validation-heading" data-title="Verified in Unreal Engine 5.8.4" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Engineering evidence</p>
+        <h2 id="validation-heading">Verified in Unreal Engine 5.8.4</h2>
+        <div class="an-metrics"><div><strong>40/40</strong><span>Unreal automation tests passed</span></div><div><strong>43</strong><span>Generator checks passed</span></div><div><strong>9</strong><span>Compiled profiles exercised</span></div></div>
+        <div class="split ruled-columns"><div><h3>Actual integration</h3><p>SAC, TD3 and PPO perform inference, train and publish through the policy and world service.</p></div><div><h3>Failure and lifecycle coverage</h3><p>Non-default bounds, unchanged PPO commands, retry, sharing, reset, snapshots and teardown with work in flight.</p></div></div>
+        <p class="source-line">Win64 Development Editor, headless. <a href="adaptive-npc-evidence.md">Reproduction and results</a>. Rendering, useful adaptation and packaged performance need separate evidence.</p>
+        <aside class="speaker-notes" data-time="25 seconds">The 40 tests comprise four generation, 16 policy/world, two native learner and 18 common adaptive API tests. All expected source registrations must appear in the script's checked results. Profiles are six shipped combinations plus generated SAC 6 observations/3 actions, TD3 7/4 and PPO 8/2. The generator checks use the exact C# code used by UnrealBuildTool. These are local runs, not CI. Existing C4305 conversion warnings in unchanged SB3/RLlib headers remain. The source revision and machine-readable results are linked from the evidence document.</aside>
+      </section>
+
+      <section class="slide an-slide " id="nfr" aria-labelledby="nfr-heading" data-title="Reliability and resource use" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Non-functional requirements</p>
+        <h2 id="nfr-heading">Reliability and resource use</h2>
+        <table class="comparison-table an-nfr"><caption class="sr-only">Non-functional requirements and supporting tests</caption><thead><tr><th scope="col">Concern</th><th scope="col">Implemented response</th><th scope="col">Evidence</th></tr></thead><tbody>
+          <tr><th scope="row">Gameplay responsiveness</th><td>Bounded background scheduling;<br>construction and reset on workers</td><td>Fair scheduling and<br>delayed-completion tests</td></tr>
+          <tr><th scope="row">Data integrity and isolation</th><td>Validated native decisions;<br>explicit compatible sharing</td><td>Attribution, retry and<br>shared-ownership tests</td></tr>
+          <tr><th scope="row">Reliable lifecycle</th><td>Generation checks, bounded retention<br>and independent snapshots</td><td>Reset, shutdown and<br>world-teardown tests</td></tr>
+        </tbody></table>
+        <div class="takeaway"><span>Execution limit</span><p>Budgets are cooperative. A numerical update cannot be preempted.</p></div>
+        <aside class="speaker-notes" data-time="25 seconds">These are the non-functional concerns appropriate to a native developer toolkit. Validation and bounded storage address malformed data and resource growth; shared compatibility and world separation protect state isolation. Blueprint settings, readable errors and documented commands support developer access. We do not claim an accessibility audit, an authentication system or a hard frame-time guarantee. Last-burst timing and occupancy are observable, but realistic NPC-count latency and memory evaluation remain D4 work. Exact test names appear in adaptive-npc-evidence.md.</aside>
+      </section>
+
+      <section class="slide an-slide " id="process" aria-labelledby="process-heading" data-title="Review, verification and partner CI/CD" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Engineering process</p>
+        <h2 id="process-heading">Review, verification and partner CI/CD</h2>
+        <div class="split ruled-columns"><div><h3>Repeatable local checks</h3><p>Peer-reviewed PRs separate the learner, policy/world service and configuration generation.</p><p>Documented scripts build the plugin, verify every selected test result and check the build generator.</p><p class="prompt">PRs #31, #35 and #36 have teammate approvals.</p></div><div><h3>Partner integration in progress</h3><p><strong>AMD has its own CI/CD checks.</strong></p><p>Those checks are not integrated into this codebase yet. We are working with the partner to get that setup.</p><p class="prompt">Current results are local. Automated repository checks remain pending.</p></div></div>
+        <div class="takeaway"><span>Lesson</span><p>Verify the integrated branch; a merged feature PR may still be absent from main.</p></div>
+        <aside class="speaker-notes" data-time="25 seconds">This is the dedicated process slide. The partner CI/CD status comes from the team's current coordination with AMD. We are not claiming that unconnected partner checks validate this repository, nor that documenting the gap alone satisfies every infrastructure mark. Our current alternative is reproducible local build/test scripts and retained results. We also found that the stacked policy/configuration PRs merged into their feature bases rather than main, so release integration must follow the actual commit ancestry. The immediate process priority is partner-approved checks and build/release automation for this codebase.</aside>
+      </section>
+
+      <section class="slide an-slide " id="d4" aria-labelledby="d4-heading" data-title="Remaining work toward D4" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+        <p class="eyebrow">Scope and acceptance</p>
+        <h2 id="d4-heading">Remaining work toward D4</h2>
+        <div class="three-columns next-steps"><div><span class="step-number">01</span><h3>Automatic gameplay collection</h3><p>Connect agents and existing environments to observations, actions, rewards and episode boundaries.</p></div><div><span class="step-number">02</span><h3>Adaptation and performance</h3><p>Compare learning with a frozen policy across seeds. Measure latency and memory at realistic NPC counts.</p></div><div><span class="step-number">03</span><h3>Persistence and delivery</h3><p>Add resumable checkpoints and validate a separate packaged project. Complete partner CI/CD integration.</p></div></div>
+        <div class="takeaway"><span>Current boundary</span><p>CPU feedforward policies, Box observations and bounded continuous actions.</p></div>
+        <aside class="speaker-notes" data-time="25 seconds">The adaptive subteam owns these follow-ups; CI/CD depends on coordination with AMD. Prioritize the automatic coordinator next, then task-level learning evidence and deployment validation. Acceptance should include a real loop with no manual experience wiring, controlled learning-versus-frozen runs, and restoration of training state in a fresh process. In-memory immutable inference snapshots already work; they are not resumable training checkpoints. Recurrent networks, running normalization, accelerated devices and other spaces are separate capabilities and must not appear as supported before implementation.</aside>
+      </section>
+
+      <section class="slide an-slide dark an-questions" id="questions" aria-labelledby="questions-heading" data-title="Adaptive NPCs: questions" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+
+        <h2 id="questions-heading">Adaptive NPCs: questions</h2>
+        <p class="an-statement">Schola defines the task.<br>RLtools learns inside Unreal.</p>
+        <p class="intro">The reusable policy API and custom configuration builds are implemented.<br>Automatic collection and production validation are the next steps.</p>
+        <div class="closing-links"><p><a href="product-evolution.md">Product evolution</a></p><p><a href="adaptive-npc-evidence.md">Workflow and evidence</a></p><p>Adaptive NPCs subteam</p></div>
+        <aside class="speaker-notes" data-time="Discussion">Use the overview to revisit architecture, evidence, NFRs or D4 scope. For algorithm questions: SAC and TD3 use replay; PPO uses on-policy rollouts and rejects modified commands or stale policy outcomes. For ownership questions: independent by default, explicit compatible sharing within a world. For configuration questions: developer-defined supported shapes compile during a C++ project build. Continue to the Shared Policy subteam after this section; their slides are preserved.</aside>
+      </section>
+
+      <section class="slide an-slide " id="references" aria-labelledby="references-heading" data-title="Adaptive NPCs: supporting material" data-section="Adaptive NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Adaptive NPCs / Deliverable 3</span></header>
+
+        <h2 id="references-heading">Adaptive NPCs: supporting material</h2>
+        <div class="split ruled-columns"><div><h3>Implementation and review</h3><ul class="reference-list"><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/30">#30 â€” Lifecycle and build foundations</a></li><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/31">#31 â€” Native SAC, TD3 and PPO</a></li><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/35">#35 â€” Policy and world service</a></li><li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/36">#36 â€” Project configuration generation</a></li></ul></div><div><h3>Evaluation and onboarding</h3><ul class="reference-list"><li><a href="adaptive-npc-evidence.md">Reproduce checks and inspect NFR evidence</a></li><li><a href="evidence/adaptive-unreal-summary.json">Machine-readable Unreal results</a></li><li><a href="../../Examples/NativeLearning/README.md">Minimal test host and workflow</a></li><li><a href="../../Docs/Sphinx/guides/native_adaptive_policy.rst">Policy settings, ownership and limits</a></li></ul></div></div>
+        <p class="source-line">Appendix. The live game has its own gameplay evidence; headless policy tests establish the reusable integration.</p>
+        <aside class="speaker-notes" data-time="Appendix">All linked artifacts are repository files or implementation PRs. The D3 report includes the before/after analysis and reflection. The evidence record distinguishes local tests, gameplay claims and the pending partner CI/CD integration. No private plan or conversation is required to understand the work.</aside>
+      </section>
+
+
+      <section class="slide" id="background-campus" aria-labelledby="background-campus-heading" data-title="Background NPCs: CampusCrowd" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">Max Xu</p>
+        <h2 id="background-campus-heading">Benchmarking agent swarms</h2>
+        <div class="split">
+          <div><p>Simulating large crowds: over 20,000 agents</p><h3>What I built</h3><p>A campus inspired demo of crowd behavior.</p><p>Shows how developers can use background inference in a large game/simulation scene.</p></div>
+          <figure style="margin: 0"><img class="slide-image" src="assets/campus-overview.png" alt="CampusCrowd overview with imported buildings, pedestrian routes, and performance HUD"><figcaption>Packaged build · 20,000 agents · 60 FPS</figcaption></figure>
+        </div>
+        <aside class="speaker-notes" data-time="45 seconds">I am the only Background NPC subteam member. D2 showed that batching could improve a comparison scene. Reviewing that scope exposed the next gap: showing how developers would use the API in a large environment. CampusCrowd adds real campus geometry and pedestrian routes. It demonstrates a production use case; it has not been validated as a production deployment.</aside>
+      </section>
+
+      <section class="slide" id="background-design" aria-labelledby="background-design-heading" data-title="Background NPCs: design and reliability" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">Integration and engineering</p>
+        <h2 id="background-design-heading">Batch decisions off the game thread</h2>
+        <div class="three-columns workflow">
+          <div><span class="step-number">01</span><h3>Gather</h3><p>Mass agents submit observations at a configured decision rate.</p></div>
+          <div><span class="step-number">02</span><h3>Run inference</h3><p>Workers evaluate batches. The game thread continues.</p></div>
+          <div><span class="step-number">03</span><h3>Apply</h3><p>Completed actions influence steering alongside routes and separation.</p></div>
+        </div>
+        <p class="source-line">Local validation: 5 CAD + 43 Unreal tests passed · build, package, and standalone smoke test passed.</p>
+        <aside class="speaker-notes" data-time="50 seconds">The D2 scheduler batches decisions on workers; D3 integrates it into the campus and improves queue sizing and reporting. Actions usually arrive about one frame later. The model is untrained, so this demonstrates integration and throughput. We use local tests and scripted packaging because provisioning our Unreal image does not fit the course’s short GitHub Actions jobs. Five CAD tests and 43 Unreal tests passed; three Unreal tests have recorded warnings. Packaging and the 20,000-agent standalone run passed. Input bounds, overload reporting, and disabling the unused Android file server address reliability and security. Independent-machine validation remains open.</aside>
+      </section>
+
+      <section class="slide" id="background-results" aria-labelledby="background-results-heading" data-title="Background NPCs: measured scale" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">Measured performance</p>
+        <h2 id="background-results-heading">50,000 students at 60 FPS</h2>
+        <table class="comparison-table"><thead><tr><th scope="col">Students</th><th scope="col">FPS</th><th scope="col">Decisions/s</th><th scope="col">Target/s</th></tr></thead><tbody>
+          <tr><th scope="row">20,000</th><td>60</td><td>200,000</td><td>200,000</td></tr>
+          <tr><th scope="row">50,000</th><td>60</td><td>499,000</td><td>500,000</td></tr>
+          <tr><th scope="row">100,000 · default limits</th><td>36</td><td>895,000</td><td>1,000,000</td></tr>
+          <tr><th scope="row">100,000 · raised limits</th><td>39</td><td>997,000</td><td>1,000,000</td></tr>
+        </tbody></table>
+        <p class="prompt">Ryzen 5 7600X · RX 7800 XT · 1600×900 · 60 FPS cap<br>10 decisions/s per student · 2 CPU workers · batch size 64 · rounded local results</p>
+        <aside class="speaker-notes" data-time="55 seconds">These are local CampusCrowd results, not a D2-to-D3 speedup comparison. At 100,000 students, the default submission cap admits fewer decisions than required and a backlog increases game-thread work. Raising the queue to 100,000 and rows per frame to 50,000 restores roughly one million decisions per second, but FPS stays below 60. Rendering also exceeds the 60 FPS budget at that scale. A separate 2,000-agent same-scene comparison reduced game-thread inference from 1.83 to 0.34 milliseconds per frame; both modes reached 60 FPS.</aside>
+      </section>
+
+      <section class="slide dark" id="background-demo" aria-labelledby="background-demo-heading" data-title="Background NPCs: 20,000 agents at 60 FPS" data-section="Background NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Background NPCs / Max Xu</span></header>
+        <p class="eyebrow">CampusCrowd demo · Max Xu</p>
+        <h2 id="background-demo-heading">20,000 agents. 200,000 decisions/s. 60 FPS.</h2>
+        <p class="intro"><a href="https://utoronto-my.sharepoint.com/:v:/g/personal/maxh_xu_mail_utoronto_ca/IQDEpcI8CITpT6vs0vv20yCwAU4lH9gFIKJzbEZhq47R4p8?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=R3tV6g" target="_blank" rel="noopener noreferrer">Watch the CampusCrowd demo video ↗</a></p>
+        <div class="takeaway"><span>D4 priority</span><p>Improve setup and controls. Reduce boilerplate for developers integrating the API.</p></div>
+        <aside class="speaker-notes" data-time="2 minutes 10 seconds">Use the prepared package from main. Click the viewport before using keyboard controls. Launch commands, controls, and retained validation reports are in the D3 README. Keep the model, crowd size, resolution, and decision rate fixed when toggling modes. Do not promise a specific synchronous FPS at 20,000 without rehearsal. Explain that asynchronous actions have latency. The 50,000-agent run is a separate scale demonstration. Open the linked video in a separate tab before presenting and test playback with the presentation account. Use it to show 20,000 agents making 200,000 decisions per second at 60 FPS, or as backup for the live demo. Keep playback within the demo time budget. D4 focuses on UX and avoiding boilerplate: clearer setup and controls, with reusable configuration for developers. This section has five minutes: 45 seconds for the gap, 50 for design, 55 for results, 130 for the demo and D4, and 20 for the transition or questions.</aside>
+      </section>
+
+      <section class="slide cover dark sp-slide sp-team-cover" id="shared-policy-team" aria-labelledby="shared-policy-team-heading" data-title="Shared Policy NPCs: team" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>CSC301 / Deliverable 03</span></header>
+        <div class="cover-content">
+          <div class="sp-reveal">
+            <p class="eyebrow">Advanced NPCs for AMD Schola</p>
+            <h1 id="shared-policy-team-heading">Shared Policy<br>team<span class="accent">.</span></h1>
+            <p class="lead">Shared Policy NPCs &middot; Deliverable 3</p>
+          </div>
+          <div class="cover-mark sp-team sp-reveal"><span>TEAM MEMBERS</span><ul><li>Clementine Yang</li><li>Hiu Yan (Jaela) Kwok</li></ul></div>
+        </div>
+        <aside class="speaker-notes" data-time="[Section intro time]">Introduce the Shared Policy team, Clementine Yang and Hiu Yan (Jaela) Kwok, before walking through our D2 to D3 progress, the macOS ARM64 build support, and the Unreal NNE compatibility testing.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-progress" aria-labelledby="shared-policy-progress-heading" data-title="Shared Policy NPCs: our progress" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs</span></header>
+        <p class="eyebrow">Shared Policy NPCs</p>
+        <h2 id="shared-policy-progress-heading">Our progress: D2 <span class="sp-arrow">&#8594;</span> D3</h2>
+        <ol class="sp-timeline">
+          <li class="sp-stage">
+            <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D2</span><span class="sp-stage-caption">Shared policy foundation</span></div>
+            <ul class="sp-points">
+              <li>Shared backbone with specialized heads</li>
+              <li>PyTorch-to-ONNX export</li>
+              <li>Python ONNX Runtime prototype</li>
+              <li>Per-NPC head bindings and Shared Policy Stepper</li>
+            </ul>
+          </li>
+          <li class="sp-stage is-current">
+            <div class="sp-marker"><span class="sp-dot" aria-hidden="true"></span><span class="sp-stage-name">D3</span><span class="sp-stage-caption">Evaluation &amp; engine validation</span></div>
+            <ul class="sp-points">
+              <li>Prototype evaluation of five architectures (A&ndash;E)</li>
+              <li>Unreal NNE compatibility and correctness validation for architectures A, C and D</li>
+              <li>Unreal C vs D performance benchmarking: 48 fresh-process trials across 16 workloads</li>
+              <li>macOS ARM64 build support</li>
+            </ul>
+          </li>
+        </ol>
+        <div class="takeaway sp-reveal"><span>Future work</span><p>Further evaluation of memory usage, model scalability, and AMD hardware performance.</p></div>
+        <aside class="speaker-notes" data-time="[Shared Policy progress time]">D2 established the shared-policy foundation: a shared backbone with specialized heads, PyTorch-to-ONNX export, a Python ONNX Runtime prototype, and Unreal per-NPC head bindings with the Shared Policy Stepper. Those Unreal pieces are not yet connected through a real NNE policy. In D3 the prototype evaluated five architectures, A through E. Unreal NNE compatibility and correctness validation covers A, C and D only. We also completed the Unreal C versus D performance benchmark, 48 fresh-process trials across 16 workloads, and added macOS ARM64 build support. Further evaluation of memory usage, model scalability, and AMD hardware performance remains future work. That includes memory and model storage, scaling to 4 and 8 experts, integration with trained policies and actual gameplay, and AMD hardware validation.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-benchmark" aria-labelledby="shared-policy-benchmark-heading" data-title="Shared Policy NPCs: architecture benchmark" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Individual contribution</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">My contribution &mdash; Hiu Yan (Jaela) Kwok</p><h2 id="shared-policy-benchmark-heading">Architecture benchmark</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #24</span><span class="sp-status">Open / D3 benchmark</span></a>
+        </div>
+        <div class="split sp-contribution">
+          <div class="sp-reveal">
+            <p class="sp-column-label">What I built</p>
+            <div class="statement-list">
+              <div><span class="item-number">01</span><div><h3>Controlled evaluation of five architectures (A&ndash;E)</h3></div></div>
+              <div><span class="item-number">02</span><div><h3>Correctness-gated routing and complete-request timing</h3></div></div>
+              <div><span class="item-number">03</span><div><h3>Isolated portable and Unreal workload matrices</h3></div></div>
+            </div>
+          </div>
+          <div class="sp-verify sp-reveal">
+            <p class="sp-column-label">What the evidence showed</p>
+            <ul class="sp-checks sp-benchmark-checks">
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p><strong>144 / 144</strong> portable trials completed with zero correctness failures</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p><strong>48 / 48</strong> isolated Unreal reports passed the correctness gate</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p><strong>C led 45 / 48</strong> paired p50 trials and all 16 workload medians</p></li>
+            </ul>
+          </div>
+        </div>
+        <p class="source-line">Pull request: <a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24" target="_blank" rel="noopener noreferrer">github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24</a> &middot; UE 5.8.4 &middot; macOS ARM64 &middot; NNERuntimeORTCpu</p>
+        <aside class="speaker-notes" data-time="[Contribution time]">My contribution was building the evaluation framework for selecting a Shared Policy inference architecture. I generated architectures A through E from identical seeded weights and required every candidate to reproduce Architecture A's selected actions before accepting performance evidence. The portable matrix completed 144 isolated trials with zero correctness failures. I then built a common Unreal gather, group, inference, and scatter path for C and D and ran 48 fresh-process reports across 16 workloads. Every report passed correctness. C had the lower p50 in 45 of 48 paired trials and the lower median p50 in all 16 workloads.</aside>
+      </section>
+
+      <section class="slide sp-slide sp-architecture-detail" id="shared-policy-architectures-abc" aria-labelledby="shared-policy-architectures-abc-heading" data-title="Shared Policy NPCs: architectures A to C" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Architecture comparison</span></header>
+        <p class="eyebrow">The design space</p>
+        <h2 id="shared-policy-architectures-abc-heading">From all-head execution to routed models</h2>
+        <figure class="sp-diagram-figure">
+          <div class="sp-diagram-window sp-diagram-top"><img src="assets/shared-policy-architectures.svg" alt="Architecture A runs every head after one shared backbone, B masks outputs but still runs every head, and C groups NPC rows and runs one complete model per active expert."></div>
+          <figcaption>All candidates use equivalent seeded backbone and head mathematics; only execution and routing differ.</figcaption>
+        </figure>
+        <div class="takeaway sp-reveal"><span>Role in the experiment</span><p><strong>A</strong> was the correctness oracle, <strong>B</strong> the masking control, and <strong>C</strong> the current selective baseline.</p></div>
+        <aside class="speaker-notes" data-time="[Architecture A-C time]">Architecture A runs one shared backbone and every head, then selects the required output. It is simple and makes a strong independent correctness oracle, but it computes unused heads. Architecture B adds a runtime role mask, but profiling confirmed that masking an output does not skip either head, so B is a negative control rather than an optimization. Architecture C groups NPCs by role and runs one complete backbone-plus-head model for every active expert. It avoids unused heads, but duplicates the backbone weights and can require up to K model calls.</aside>
+      </section>
+
+      <section class="slide sp-slide sp-architecture-detail" id="shared-policy-architectures-de" aria-labelledby="shared-policy-architectures-de-heading" data-title="Shared Policy NPCs: architectures D and E" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Architecture comparison</span></header>
+        <p class="eyebrow">Selective alternatives</p>
+        <h2 id="shared-policy-architectures-de-heading">Conditional execution vs. split models</h2>
+        <figure class="sp-diagram-figure">
+          <div class="sp-diagram-window sp-diagram-bottom"><img src="assets/shared-policy-architectures.svg" alt="Architecture D groups NPC rows and selects one expert branch inside a conditional ONNX model, while E runs one backbone before routing intermediate features to separate expert-head models."></div>
+          <figcaption>D keeps one conditional graph; E shares the backbone but introduces intermediate feature handoff and additional calls.</figcaption>
+        </figure>
+        <div class="takeaway sp-result-takeaway sp-reveal"><span>Measured conclusion</span><p><strong>C remains the latency baseline.</strong> D works in Unreal, but its conditional graph produced no latency win in this environment.<span class="sp-next-line"><strong>Next:</strong> Compare C/D memory and storage, then integrate the selected architecture with trained policies and role-assigned NPCs.</span></p></div>
+        <aside class="speaker-notes" data-time="[Architecture D-E time]">Architecture D groups rows like C, but uses one conditional ONNX graph and executes only the selected branch on each homogeneous call. Architecture E runs the shared backbone once, groups intermediate features, and calls only the active head models. AMD narrowed the repeated Unreal comparison to C versus D. Across 48 isolated reports, C had the lower p50 in 45 trials and all 16 workload medians. The median gaps were only 0.626 to 2.895 microseconds, so this is a scoped latency result, not a universal winner. D remains feasible and may still reduce model storage or runtime memory. The next step is to measure that separately; if it has no meaningful memory advantage, retain C and integrate it with a real trained policy and gameplay role assignments.</aside>
+      </section>
+      <section class="slide sp-slide" id="shared-policy-macos" aria-labelledby="shared-policy-macos-heading" data-title="Shared Policy NPCs: macOS ARM64 build support" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Individual contribution</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">My contribution &mdash; Clementine Yang</p><h2 id="shared-policy-macos-heading">macOS ARM64 build support</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #32</span><span class="sp-status">Open / Draft</span></a>
+        </div>
+        <div class="split sp-contribution">
+          <div class="sp-reveal">
+            <p class="sp-column-label">What I built</p>
+            <div class="statement-list">
+              <div><span class="item-number">01</span><div><h3>macOS ARM64 gRPC dependency build scripts</h3></div></div>
+              <div><span class="item-number">02</span><div><h3>Schola build configuration and plugin setup</h3></div></div>
+              <div><span class="item-number">03</span><div><h3>macOS documentation</h3></div></div>
+            </div>
+          </div>
+          <div class="sp-verify sp-reveal">
+            <p class="sp-column-label">How I verified it</p>
+            <ul class="sp-checks">
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p>Built the dependencies on Apple Silicon</p></li>
+              <li><span class="sp-check" aria-hidden="true">&#10003;</span><p>Compiled and linked <strong>BackgroundNPCsEditor</strong> with Unreal Engine 5.8 using <code>-NoUBA</code></p></li>
+            </ul>
+          </div>
+        </div>
+        <p class="source-line">Pull request: <a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32" target="_blank" rel="noopener noreferrer">github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32</a> &middot; open as a draft, not yet merged</p>
+        <aside class="speaker-notes" data-time="[Contribution time]">My contribution is macOS ARM64 build support, in PR #32. I wrote the gRPC dependency build scripts for macOS ARM64, set up the Schola build configuration and plugin, and documented the macOS workflow. I verified it by building the dependencies on Apple Silicon and compiling and linking BackgroundNPCsEditor with Unreal Engine 5.8 using the -NoUBA flag. The PR is still open as a draft.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-nne" aria-labelledby="shared-policy-nne-heading" data-title="Shared Policy NPCs: Unreal NNE compatibility testing" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Validation</span></header>
+        <div class="sp-title-row">
+          <div><p class="eyebrow">Engine validation</p><h2 id="shared-policy-nne-heading">Unreal NNE compatibility testing</h2></div>
+          <a class="sp-pr" href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33" target="_blank" rel="noopener noreferrer"><span class="sp-pr-number">PR #33</span><span class="sp-status">Merged</span></a>
+        </div>
+        <div class="three-columns sp-cards">
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">A</span>
+            <h3>All Heads</h3>
+            <ul class="sp-cases"><li>Both expert outputs</li><li>Batch sizes 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">C</span>
+            <h3>Separate Models</h3>
+            <ul class="sp-cases"><li>Batch 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-card-letter">D</span>
+            <h3>Conditional Execution</h3>
+            <ul class="sp-cases"><li>Both Boolean branches</li><li>Batch 1 and 2</li></ul>
+            <span class="sp-result"><span aria-hidden="true">&#10003;</span> Automation Test passed</span>
+          </article>
+        </div>
+        <dl class="sp-environment sp-reveal">
+          <div><dt>Result</dt><dd>3 / 3 Unreal Automation Tests passed</dd></div>
+          <div><dt>Runtime</dt><dd>NNERuntimeORTCpu</dd></div>
+          <div><dt>Engine &amp; platform</dt><dd>Unreal Engine 5.8 &middot; macOS ARM64</dd></div>
+          <div><dt>Reference</dt><dd>Python ONNX Runtime</dd></div>
+        </dl>
+        <aside class="speaker-notes" data-time="[NNE testing time]">PR #33 adds Unreal NNE compatibility tests for three of the five architectures. A runs all heads, tested for both expert outputs at batch sizes 1 and 2; C uses separate models, tested at batch sizes 1 and 2; D uses conditional execution, tested on both Boolean branches at batch sizes 1 and 2. All three Unreal Automation Tests passed using NNERuntimeORTCpu in Unreal Engine 5.8 on macOS ARM64, validated against Python ONNX Runtime reference outputs. PR #33 is merged.</aside>
+      </section>
+
+      <section class="slide sp-slide" id="shared-policy-my-next" aria-labelledby="shared-policy-my-next-heading" data-title="Shared Policy NPCs: my next step" data-section="Shared Policy NPCs">
+        <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / My next step</span></header>
+        <p class="eyebrow">D4 roadmap &middot; Clementine Yang</p>
+        <h2 id="shared-policy-my-next-heading">My next step</h2>
+        <p class="sp-roadmap-lead">From NNE validation to full Unreal integration. We have validated the inference architectures. Next, we will integrate them into the actual Shared Policy workflow.</p>
+        <div class="three-columns sp-roadmap">
+          <article class="sp-card sp-reveal">
+            <span class="sp-plan-number">01</span>
+            <h3>NNE Policy Integration</h3>
+            <p>Implement an NNE-backed <code>ISharedPolicy</code> to load ONNX models and support head-based inference.</p>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-plan-number">02</span>
+            <h3>Stepper Integration</h3>
+            <p>Connect NNE inference with <code>USharedPolicyStepper</code> to route observations and actions between NPCs and their assigned heads.</p>
+          </article>
+          <article class="sp-card sp-reveal">
+            <span class="sp-plan-number">03</span>
+            <h3>End-to-End Validation</h3>
+            <p>Test mixed-role NPCs in Unreal and build an interactive demonstration using real policy inference.</p>
+          </article>
+        </div>
+        <div class="sp-parallel sp-reveal">
+          <p class="sp-column-label">Parallel work</p>
+          <ul>
+            <li>C/D memory and storage evaluation</li>
+            <li>Integration with trained policies and gameplay role assignments</li>
+          </ul>
+        </div>
+        <aside class="speaker-notes" data-time="[My next step time]">This is planned D4 work, not completed results. The inference architectures are validated. Next we integrate them into the Shared Policy workflow: an NNE-backed ISharedPolicy that loads ONNX models and supports head-based inference, then USharedPolicyStepper to route observations and actions between NPCs and their assigned heads, then end-to-end validation of mixed-role NPCs in Unreal with an interactive demo using real policy inference. In parallel: C and D memory and storage evaluation, and integration with trained policies and gameplay role assignments.</aside>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="controls" aria-label="Presentation controls">
+    <div class="controls-left"><span class="deck-name">SCHOLA / D3</span><span id="section-name"></span></div>
+    <div class="slide-navigation"><button id="previous" type="button" aria-label="Previous slide" title="Previous slide (Left arrow)">&#8592;</button><output id="slide-count" aria-live="polite" aria-atomic="true"></output><button id="next" type="button" aria-label="Next slide" title="Next slide (Right arrow)">&#8594;</button></div>
+    <div class="controls-right"><button id="overview-button" type="button" title="Slide overview (O)">Overview</button><button id="notes-button" type="button" title="Speaker notes (N)" aria-pressed="false" aria-controls="notes-panel">Notes</button><button id="fullscreen" type="button" title="Fullscreen (F)">Fullscreen</button><button id="help-button" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button></div>
+    <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+  </footer>
+
+  <aside id="notes-panel" class="notes-panel" aria-labelledby="notes-heading" hidden><div class="panel-header"><h2 id="notes-heading">Speaker notes</h2><button id="close-notes" type="button" aria-label="Close speaker notes">Close</button></div><p id="notes-time"></p><p id="notes-text"></p><p class="notes-warning">Notes appear in this browser window and are visible if you share it.</p></aside>
+  <dialog id="overview-dialog" aria-labelledby="overview-heading"><div class="panel-header"><div><p class="dialog-kicker">SCHOLA / D3</p><h2 id="overview-heading">Slide overview</h2></div><button type="button" data-close-dialog>Close</button></div><nav id="slide-list" aria-label="Jump to slide"></nav></dialog>
+  <dialog id="help-dialog" aria-labelledby="help-heading"><div class="panel-header"><h2 id="help-heading">Keyboard shortcuts</h2><button type="button" data-close-dialog>Close</button></div><dl class="shortcuts"><dt>Right / Down / Space / Page Down</dt><dd>Next slide</dd><dt>Left / Up / Shift + Space / Page Up</dt><dd>Previous slide</dd><dt>Home / End</dt><dd>First / last slide</dd><dt>O</dt><dd>Slide overview</dd><dt>N</dt><dd>Toggle speaker notes</dd><dt>F</dt><dd>Toggle fullscreen</dd><dt>?</dt><dd>Show shortcuts</dd><dt>Escape</dt><dd>Close notes or dialog</dd></dl><p>Print from your browser to export all slides as a PDF.</p></dialog>
+  <p id="status" class="sr-only" role="status"></p>
+  <noscript><p class="no-script">JavaScript is off. All slides are shown below in order. Enable it for slideshow controls.</p></noscript>
+</body>
+</html>

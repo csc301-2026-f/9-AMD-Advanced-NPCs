@@ -51,7 +51,7 @@ All C++ dependencies for using Schola are bundled with the plugin under `/Source
 
 ### Building Third Party Dependencies
 
-Third party dependencies, specifically gRPC and Protobuf can be built using `Schola\Plugins\Schola\Resources\Build\windows_dependencies.bat` or `Schola\Plugins\Schola\Resources\Build\linux_dependencies.sh` depending on your OS. This will update the plugin ThirdParty folder to include copies of the dependencies including .lib/.a files, and copy protoc, and relevant plugins to the tools directory.
+Third party dependencies, specifically gRPC and Protobuf can be built using `Resources/Build/windows_dependencies.bat`, `Resources/Build/linux_dependencies.sh`, or `Resources/Build/mac_dependencies.sh` depending on your OS. The Windows and Linux scripts update `Source/ThirdParty/gRPC` with the shipped archives. The Mac script installs arm64 headers and static libraries under `Source/ThirdParty/gRPC/Mac/`; those generated files stay untracked.
 
 ### Generating gRPC/Protobuf Code
 

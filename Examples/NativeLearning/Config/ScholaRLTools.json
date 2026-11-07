@@ -1,0 +1,87 @@
+{
+	"schemaVersion": 1,
+	"profiles": [
+		{
+			"name": "guards-sac",
+			"source": "/Game/ScholaGeneration/guards-sac",
+			"algorithm": "SAC",
+			"observations": 6,
+			"actions": 3,
+			"network":
+			{
+				"actorHiddenWidth": 24,
+				"criticHiddenWidth": 16,
+				"actorLayers": 4,
+				"criticLayers": 3,
+				"actorActivation": "Tanh",
+				"criticActivation": "ReLU"
+			},
+			"batchSize": 8,
+			"replayCapacity": 256,
+			"parameters":
+			{
+				"discount": 0.97000002861022949,
+				"targetTau": 0.019999999552965164,
+				"actorInterval": 2,
+				"targetInterval": 3,
+				"entropyCoefficient": 0.30000001192092896,
+				"adaptiveEntropy": false
+			}
+		},
+		{
+			"name": "guards-td3",
+			"source": "/Game/ScholaGeneration/guards-td3",
+			"algorithm": "TD3",
+			"observations": 7,
+			"actions": 4,
+			"network":
+			{
+				"actorHiddenWidth": 16,
+				"criticHiddenWidth": 24,
+				"actorLayers": 3,
+				"criticLayers": 4,
+				"actorActivation": "ReLU",
+				"criticActivation": "Tanh"
+			},
+			"batchSize": 8,
+			"replayCapacity": 256,
+			"parameters":
+			{
+				"discount": 0.94999998807907104,
+				"targetTau": 0.0099999997764825821,
+				"actorInterval": 3,
+				"targetInterval": 4,
+				"targetActionNoise": 0.10000000149011612,
+				"targetActionNoiseClip": 0.25
+			}
+		},
+		{
+			"name": "guards-ppo",
+			"source": "/Game/ScholaGeneration/guards-ppo",
+			"algorithm": "PPO",
+			"observations": 8,
+			"actions": 2,
+			"network":
+			{
+				"actorHiddenWidth": 24,
+				"criticHiddenWidth": 16,
+				"actorLayers": 4,
+				"criticLayers": 3,
+				"actorActivation": "Tanh",
+				"criticActivation": "Tanh"
+			},
+			"batchSize": 8,
+			"rolloutLength": 32,
+			"parameters":
+			{
+				"discount": 0.98000001907348633,
+				"ppoClip": 0.15000000596046448,
+				"gae": 0.89999997615814209,
+				"ppoEntropyCoefficient": 0.019999999552965164,
+				"initialActionStd": 0.40000000596046448,
+				"normalizeAdvantage": false,
+				"learnActionStd": true
+			}
+		}
+	]
+}

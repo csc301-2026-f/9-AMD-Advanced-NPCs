@@ -102,13 +102,16 @@ stop the native learner, reset its weights or remove accepted experience.
 ``ResetEpisode`` cancels Pending/Ready actions and increments the episode ID.
 It retains the session and its readiness, rather than restarting learning.
 Gameplay captures the final observation and submits terminal experience before
-resetting. The SAC subclass supplies experience submission and its learner queue;
-the base ticket API does not submit experience.
+resetting through the shared ``SubmitExperience`` call. The native subclass
+admits validated records to its learner queue through ``DispatchExperience``.
 
 A successful base ``Init`` invalidates old actions and requires a new local
-session. An invalid replacement preserves the previously accepted setup and
-in-flight work. ``Shutdown`` is idempotent, invalidates the session, and prevents more
-requests until ``Init`` and a new session. Destruction also invalidates work.
+session and calls ``ReleaseLearnerBinding`` for the old Ready binding. An invalid
+replacement preserves the previously accepted setup and in-flight work.
+``Shutdown`` is idempotent, invalidates the session, releases its native binding,
+and prevents more requests until ``Init`` and a new session. Destruction uses the
+same release path. ``OnEpisodeReset`` notifies the backend after advancing an
+episode without releasing learned state. See :doc:`native_online_learning_foundation`.
 Decision IDs are never reused within the policy object's lifetime. Loaded or
 duplicated configuration does not inherit a live session or its tickets.
 

@@ -104,7 +104,7 @@ back to the sandbox's `Saved/TagLearning` folder and checked for freshness.
 ## Build and verify
 
 RLtools is pinned to `b32d9985c65a5e098a6bbf190fd994962d288b99` under
-`ThirdParty/RLtools`. Run `./Prepare-LearningDemo.ps1` if it is missing. Its MIT
+`../../Source/ThirdParty/RLTools`. Run `./Prepare-LearningDemo.ps1` if it is missing. Its MIT
 notice is retained and staged. No Python backend is required.
 
 ```powershell
