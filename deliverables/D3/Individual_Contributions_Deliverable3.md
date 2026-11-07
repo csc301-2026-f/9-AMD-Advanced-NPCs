@@ -41,23 +41,16 @@ Each entry records that member's D3 work. Subteams maintain their own entries.
 [benchmark design and reproduction guide](../../Prototypes/SharedPolicy/benchmarks/README.md),
 and [D3 slides](index.html#shared-policy-benchmark).
 
-**[Name]**, [Role]
-> [Specific contributions]
-
 ### Clementine Yang — Shared Policy Unreal Integration
 
 - **PR #32 – macOS ARM64 Support:** Added macOS build scripts and dependency configuration for Schola. Successfully built gRPC dependencies and compiled the BackgroundNPCsEditor project on Apple Silicon using Unreal Engine 5.8.
 
 - **PR #33 – Unreal NNE Testing:** Implemented Unreal Automation Tests for Shared Policy architectures A, C, and D using `NNERuntimeORTCpu`.
 
-- **Reference Testing:** Compared Unreal inference outputs against Python ONNX Runtime results, checking numerical accuracy and tensor shapes across different batch sizes.
+- Compared Unreal inference outputs against Python ONNX Runtime results, checking numerical accuracy and tensor shapes across different batch sizes.
 
-- **Documentation:** Added macOS setup instructions and documented the build and testing process.
-
-- **Collaboration:** Prepared the Shared Policy D3 report, demo materials and presentation slides. Coordinated with the team to deliver presentation and demo.
+- Added macOS setup instructions and documented the build and testing process. Prepared the Shared Policy D3 report, demo materials and presentation slides. Coordinated with the team to deliver presentation and demo.
   
-**[Name]**, [Role]
-> [Specific contributions]
 
 ### Prithvi Ajay
 
