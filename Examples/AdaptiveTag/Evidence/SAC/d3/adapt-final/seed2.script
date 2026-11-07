@@ -1,4 +1,4 @@
-log /private/tmp/claude-501/-Users-olivia-Documents-Code-UofT-CSC301-9-AMD-Advanced-NPCs/6472e318-ae0f-4973-902c-79b5d0f527a9/scratchpad/ad5/seed2.csv
+log Saved/ChaseSim/seed2.csv
 pattern rightturn
 eval 100
 train 30
