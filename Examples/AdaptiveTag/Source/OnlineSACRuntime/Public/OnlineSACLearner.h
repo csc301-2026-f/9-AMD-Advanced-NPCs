@@ -11,6 +11,7 @@ struct OnlineSACConfig {
     unsigned queueCapacity = 4096;
     unsigned updateEvery = 50;
     unsigned warmupExperiences = 1000;
+    unsigned updatesPerExperience = 1;  // gradient updates per stored experience (a round does pending * this)
     bool frozen = false;
 };
 enum class AddResult { Accepted, Rejected, Dropped, Frozen };

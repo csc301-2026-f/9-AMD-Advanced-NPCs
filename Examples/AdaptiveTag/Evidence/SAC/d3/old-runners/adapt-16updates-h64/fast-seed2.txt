@@ -1,0 +1,697 @@
+chase_sim: pattern straight, seed 2, board 100, runner speed 1, chaser max speed 1. Type 'help'.
+> # D3 adaptation, fast learner (updates_per_move 16, catch_bonus 10), seed 2: rightturn -> snapshot -> corner
+> log /private/tmp/claude-501/-Users-olivia-Documents-Code-UofT-CSC301-9-AMD-Advanced-NPCs/6472e318-ae0f-4973-902c-79b5d0f527a9/scratchpad/ad/fast-seed2.csv
+logging train and eval lines to /private/tmp/claude-501/-Users-olivia-Documents-Code-UofT-CSC301-9-AMD-Advanced-NPCs/6472e318-ae0f-4973-902c-79b5d0f527a9/scratchpad/ad/fast-seed2.csv
+> pattern rightturn
+pattern = rightturn (weights kept, policy v0)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.00                  0.0             62.2
+  SNAPSHOT           (none taken)
+  GREEDY                   0.64                118.8              2.6
+  INTERCEPT                0.79                124.5              2.3
+  RANDOM                   0.00                  0.0             60.5
+> train 30
+training 30 episodes on rightturn (learning on)
+episode    10 | steps    1980 | policy v981    | catch rate (last 10) 0.10 | avg steps to catch  180.0 | avg final dist  43.5
+episode    20 | steps    3815 | policy v2816   | catch rate (last 20) 0.25 | avg steps to catch  163.0 | avg final dist  32.2
+episode    30 | steps    5571 | policy v4572   | catch rate (last 20) 0.40 | avg steps to catch  148.9 | avg final dist  21.7
+trained 30 episodes in 122.4 s (policy v4572, 73152 SAC updates total)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v4572)          0.38                118.1             11.1
+  SNAPSHOT           (none taken)
+  GREEDY                   0.64                118.8              2.6
+  INTERCEPT                0.79                124.5              2.3
+  RANDOM                   0.00                  0.0             60.5
+> train 30
+training 30 episodes on rightturn (learning on)
+episode    40 | steps    7285 | policy v6286   | catch rate (last 20) 0.40 | avg steps to catch  133.8 | avg final dist  18.3
+episode    50 | steps    8979 | policy v7980   | catch rate (last 20) 0.40 | avg steps to catch  126.0 | avg final dist  14.1
+episode    60 | steps   10525 | policy v9526   | catch rate (last 20) 0.55 | avg steps to catch  130.9 | avg final dist  11.7
+trained 30 episodes in 150.3 s (policy v9526, 152416 SAC updates total)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v9526)          0.71                127.3              5.4
+  SNAPSHOT           (none taken)
+  GREEDY                   0.64                118.8              2.6
+  INTERCEPT                0.79                124.5              2.3
+  RANDOM                   0.00                  0.0             60.5
+> train 30
+training 30 episodes on rightturn (learning on)
+episode    70 | steps   12188 | policy v11189  | catch rate (last 20) 0.60 | avg steps to catch  134.1 | avg final dist  10.0
+episode    80 | steps   13331 | policy v12332  | catch rate (last 20) 0.75 | avg steps to catch  120.4 | avg final dist   5.9
+episode    90 | steps   14871 | policy v13872  | catch rate (last 20) 0.75 | avg steps to catch  112.2 | avg final dist   3.2
+trained 30 episodes in 104.0 s (policy v13872, 221952 SAC updates total)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v13872)         0.87                120.1              3.2
+  SNAPSHOT           (none taken)
+  GREEDY                   0.64                118.8              2.6
+  INTERCEPT                0.79                124.5              2.3
+  RANDOM                   0.00                  0.0             60.5
+> train 30
+training 30 episodes on rightturn (learning on)
+episode   100 | steps   16088 | policy v15089  | catch rate (last 20) 0.75 | avg steps to catch  117.1 | avg final dist   3.2
+episode   110 | steps   17300 | policy v16301  | catch rate (last 20) 1.00 | avg steps to catch  121.5 | avg final dist   1.4
+episode   120 | steps   18752 | policy v17753  | catch rate (last 20) 1.00 | avg steps to catch  133.2 | avg final dist   1.5
+trained 30 episodes in 91.6 s (policy v17753, 284048 SAC updates total)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v17753)         0.97                120.4              1.7
+  SNAPSHOT           (none taken)
+  GREEDY                   0.64                118.8              2.6
+  INTERCEPT                0.79                124.5              2.3
+  RANDOM                   0.00                  0.0             60.5
+> train 30
+training 30 episodes on rightturn (learning on)
+episode   130 | steps   20031 | policy v19032  | catch rate (last 20) 1.00 | avg steps to catch  136.6 | avg final dist   1.4
+episode   140 | steps   21410 | policy v20411  | catch rate (last 20) 0.90 | avg steps to catch  125.4 | avg final dist   3.1
+episode   150 | steps   22639 | policy v21640  | catch rate (last 20) 0.85 | avg steps to catch  118.1 | avg final dist   4.3
+trained 30 episodes in 72.4 s (policy v21640, 346240 SAC updates total)
+> eval 100
+eval on rightturn: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v21640)         0.84                122.0              2.4
+  SNAPSHOT           (none taken)
+  GREEDY                   0.64                118.8              2.6
+  INTERCEPT                0.79                124.5              2.3
+  RANDOM                   0.00                  0.0             60.5
+> snapshot
+snapshot taken: policy v21640
+> pattern corner
+pattern = corner (weights kept, policy v21640)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v21640)         0.27                108.1             12.4
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   155 | steps   23586 | policy v22587  | catch rate (last 20) 0.70 | avg steps to catch  118.8 | avg final dist   6.5
+trained 5 episodes in 16.6 s (policy v22587, 361392 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v22587)         0.12                112.8             13.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   160 | steps   24390 | policy v23391  | catch rate (last 20) 0.60 | avg steps to catch  115.0 | avg final dist   7.9
+trained 5 episodes in 14.1 s (policy v23391, 374256 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v23391)         0.52                123.9             11.4
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   165 | steps   25202 | policy v24203  | catch rate (last 20) 0.55 | avg steps to catch  108.1 | avg final dist   8.1
+trained 5 episodes in 14.0 s (policy v24203, 387248 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v24203)         0.35                111.2             18.4
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   170 | steps   25997 | policy v24998  | catch rate (last 20) 0.40 | avg steps to catch  119.8 | avg final dist  11.5
+trained 5 episodes in 13.5 s (policy v24998, 399968 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v24998)         0.13                102.5             18.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   175 | steps   26847 | policy v25848  | catch rate (last 20) 0.40 | avg steps to catch  107.6 | avg final dist  11.9
+trained 5 episodes in 14.9 s (policy v25848, 413568 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v25848)         0.20                 99.3             13.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   180 | steps   27476 | policy v26477  | catch rate (last 20) 0.50 | avg steps to catch  108.6 | avg final dist  10.5
+trained 5 episodes in 11.4 s (policy v26477, 423632 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v26477)         0.47                123.6              9.5
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   185 | steps   28355 | policy v27356  | catch rate (last 20) 0.45 | avg steps to catch  105.9 | avg final dist  11.2
+trained 5 episodes in 15.4 s (policy v27356, 437696 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v27356)         0.52                122.5              8.7
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   190 | steps   29127 | policy v28128  | catch rate (last 20) 0.50 | avg steps to catch  113.0 | avg final dist   8.8
+trained 5 episodes in 13.6 s (policy v28128, 450048 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v28128)         0.40                115.3             10.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   195 | steps   29916 | policy v28917  | catch rate (last 20) 0.55 | avg steps to catch  115.4 | avg final dist   7.2
+trained 5 episodes in 14.0 s (policy v28917, 462672 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v28917)         0.62                117.9              4.8
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   200 | steps   30661 | policy v29662  | catch rate (last 20) 0.50 | avg steps to catch  118.5 | avg final dist   8.6
+trained 5 episodes in 13.8 s (policy v29662, 474592 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v29662)         0.54                114.4              6.7
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   205 | steps   31462 | policy v30463  | catch rate (last 20) 0.50 | avg steps to catch  110.7 | avg final dist   8.7
+trained 5 episodes in 15.2 s (policy v30463, 487408 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v30463)         0.38                123.2             10.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   210 | steps   31981 | policy v30982  | catch rate (last 20) 0.55 | avg steps to catch   95.8 | avg final dist   8.6
+trained 5 episodes in 9.8 s (policy v30982, 495712 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v30982)         0.93                107.8              3.0
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   215 | steps   32695 | policy v31696  | catch rate (last 20) 0.60 | avg steps to catch   98.2 | avg final dist   8.9
+trained 5 episodes in 13.6 s (policy v31696, 507136 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v31696)         0.63                129.7              6.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   220 | steps   33385 | policy v32386  | catch rate (last 20) 0.65 | avg steps to catch  101.8 | avg final dist   7.7
+trained 5 episodes in 13.2 s (policy v32386, 518176 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v32386)         0.77                112.6              4.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   225 | steps   34079 | policy v33080  | catch rate (last 20) 0.75 | avg steps to catch  107.8 | avg final dist   6.4
+trained 5 episodes in 13.4 s (policy v33080, 529280 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v33080)         0.96                116.1              2.4
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   230 | steps   34745 | policy v33746  | catch rate (last 20) 0.75 | avg steps to catch  117.6 | avg final dist   6.5
+trained 5 episodes in 13.6 s (policy v33746, 539936 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v33746)         0.83                114.8              3.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   235 | steps   35600 | policy v34601  | catch rate (last 20) 0.70 | avg steps to catch  121.8 | avg final dist   7.0
+trained 5 episodes in 17.5 s (policy v34601, 553616 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v34601)         0.75                113.1              3.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   240 | steps   36210 | policy v35211  | catch rate (last 20) 0.75 | avg steps to catch  121.7 | avg final dist   6.3
+trained 5 episodes in 11.9 s (policy v35211, 563376 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v35211)         0.76                113.5              4.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   245 | steps   36844 | policy v35845  | catch rate (last 20) 0.75 | avg steps to catch  117.7 | avg final dist   5.8
+trained 5 episodes in 11.2 s (policy v35845, 573520 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v35845)         0.70                107.9              4.4
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   250 | steps   37679 | policy v36680  | catch rate (last 20) 0.65 | avg steps to catch  118.0 | avg final dist   7.6
+trained 5 episodes in 14.6 s (policy v36680, 586880 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v36680)         0.76                109.1              2.8
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   255 | steps   38242 | policy v37243  | catch rate (last 20) 0.75 | avg steps to catch  109.5 | avg final dist   5.6
+trained 5 episodes in 10.5 s (policy v37243, 595888 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v37243)         0.83                106.8              3.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   260 | steps   38890 | policy v37891  | catch rate (last 20) 0.70 | avg steps to catch  105.7 | avg final dist   6.3
+trained 5 episodes in 11.9 s (policy v37891, 606256 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v37891)         0.51                120.5              5.5
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   265 | steps   39503 | policy v38504  | catch rate (last 20) 0.75 | avg steps to catch  110.6 | avg final dist   5.9
+trained 5 episodes in 11.5 s (policy v38504, 616064 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v38504)         0.69                114.7              3.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   270 | steps   39990 | policy v38991  | catch rate (last 20) 0.90 | avg steps to catch  106.2 | avg final dist   3.2
+trained 5 episodes in 9.2 s (policy v38991, 623856 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v38991)         0.95                109.2              2.2
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   275 | steps   40486 | policy v39487  | catch rate (last 20) 0.95 | avg steps to catch  107.6 | avg final dist   2.3
+trained 5 episodes in 15.4 s (policy v39487, 631792 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v39487)         0.85                116.0              3.0
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   280 | steps   41250 | policy v40251  | catch rate (last 20) 0.90 | avg steps to catch  108.9 | avg final dist   2.5
+trained 5 episodes in 94.9 s (policy v40251, 644016 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v40251)         0.92                108.6              2.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   285 | steps   41865 | policy v40866  | catch rate (last 20) 0.85 | avg steps to catch  103.6 | avg final dist   3.2
+trained 5 episodes in 42.8 s (policy v40866, 653856 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v40866)         0.74                116.3              3.8
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   290 | steps   42499 | policy v41500  | catch rate (last 20) 0.80 | avg steps to catch  106.8 | avg final dist   3.9
+trained 5 episodes in 22.0 s (policy v41500, 664000 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v41500)         0.49                107.8              4.7
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   295 | steps   43074 | policy v42075  | catch rate (last 20) 0.80 | avg steps to catch  111.8 | avg final dist   3.9
+trained 5 episodes in 20.5 s (policy v42075, 673200 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v42075)         0.90                108.0              2.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   300 | steps   43605 | policy v42606  | catch rate (last 20) 0.90 | avg steps to catch  108.6 | avg final dist   3.0
+trained 5 episodes in 24.0 s (policy v42606, 681696 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v42606)         0.81                116.4              2.0
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   305 | steps   44281 | policy v43282  | catch rate (last 20) 0.90 | avg steps to catch  112.0 | avg final dist   2.9
+trained 5 episodes in 35.6 s (policy v43282, 692512 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v43282)         0.79                117.4              3.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   310 | steps   44957 | policy v43958  | catch rate (last 20) 0.90 | avg steps to catch  114.3 | avg final dist   3.0
+trained 5 episodes in 23.6 s (policy v43958, 703328 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v43958)         0.73                111.7              2.3
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   315 | steps   45495 | policy v44496  | catch rate (last 20) 0.90 | avg steps to catch  112.3 | avg final dist   2.9
+trained 5 episodes in 208.5 s (policy v44496, 711936 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v44496)         0.84                109.9              3.1
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   320 | steps   45984 | policy v44985  | catch rate (last 20) 0.90 | avg steps to catch  109.9 | avg final dist   2.9
+trained 5 episodes in 17.6 s (policy v44985, 719760 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v44985)         0.98                108.9              1.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   325 | steps   46577 | policy v45578  | catch rate (last 20) 0.95 | avg steps to catch  110.3 | avg final dist   2.3
+trained 5 episodes in 58.7 s (policy v45578, 729248 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v45578)         0.94                108.5              1.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   330 | steps   47050 | policy v46051  | catch rate (last 20) 1.00 | avg steps to catch  104.7 | avg final dist   1.6
+trained 5 episodes in 14.8 s (policy v46051, 736816 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v46051)         0.75                113.6              2.2
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   335 | steps   47583 | policy v46584  | catch rate (last 20) 1.00 | avg steps to catch  104.4 | avg final dist   1.6
+trained 5 episodes in 56.1 s (policy v46584, 745344 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v46584)         0.97                107.7              2.0
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   340 | steps   48175 | policy v47176  | catch rate (last 20) 1.00 | avg steps to catch  109.5 | avg final dist   1.6
+trained 5 episodes in 29.1 s (policy v47176, 754816 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v47176)         0.74                107.1              4.2
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   345 | steps   48857 | policy v47858  | catch rate (last 20) 0.95 | avg steps to catch  109.5 | avg final dist   2.2
+trained 5 episodes in 30.5 s (policy v47858, 765728 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v47858)         0.99                115.4              1.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   350 | steps   49384 | policy v48385  | catch rate (last 20) 0.95 | avg steps to catch  112.3 | avg final dist   2.1
+trained 5 episodes in 15.5 s (policy v48385, 774160 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v48385)         0.77                111.6              2.4
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   355 | steps   49892 | policy v48893  | catch rate (last 20) 0.95 | avg steps to catch  111.0 | avg final dist   2.1
+trained 5 episodes in 17.8 s (policy v48893, 782288 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v48893)         1.00                108.3              1.7
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   360 | steps   50426 | policy v49427  | catch rate (last 20) 0.95 | avg steps to catch  107.9 | avg final dist   2.1
+trained 5 episodes in 58.1 s (policy v49427, 790832 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v49427)         1.00                104.2              1.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   365 | steps   50980 | policy v49981  | catch rate (last 20) 1.00 | avg steps to catch  106.2 | avg final dist   1.4
+trained 5 episodes in 19.2 s (policy v49981, 799696 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v49981)         0.98                113.2              1.8
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   370 | steps   51569 | policy v50570  | catch rate (last 20) 1.00 | avg steps to catch  109.2 | avg final dist   1.5
+trained 5 episodes in 124.8 s (policy v50570, 809120 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v50570)         0.85                107.7              2.9
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   375 | steps   52039 | policy v51040  | catch rate (last 20) 1.00 | avg steps to catch  107.3 | avg final dist   1.5
+trained 5 episodes in 13.8 s (policy v51040, 816640 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v51040)         1.00                105.4              1.7
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   380 | steps   52587 | policy v51588  | catch rate (last 20) 1.00 | avg steps to catch  108.0 | avg final dist   1.6
+trained 5 episodes in 19.6 s (policy v51588, 825408 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v51588)         1.00                107.6              1.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   385 | steps   53156 | policy v52157  | catch rate (last 20) 1.00 | avg steps to catch  108.8 | avg final dist   1.7
+trained 5 episodes in 320.7 s (policy v52157, 834512 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v52157)         0.94                106.5              2.1
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   390 | steps   53680 | policy v52681  | catch rate (last 20) 1.00 | avg steps to catch  105.5 | avg final dist   1.7
+trained 5 episodes in 18.6 s (policy v52681, 842896 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v52681)         0.68                122.0              3.1
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   395 | steps   54209 | policy v53210  | catch rate (last 20) 1.00 | avg steps to catch  108.5 | avg final dist   1.6
+trained 5 episodes in 18.9 s (policy v53210, 851360 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v53210)         1.00                105.9              1.6
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> train 5
+training 5 episodes on corner (learning on)
+episode   400 | steps   54824 | policy v53825  | catch rate (last 20) 1.00 | avg steps to catch  111.8 | avg final dist   1.7
+trained 5 episodes in 24.9 s (policy v53825, 861200 SAC updates total)
+> eval 100
+eval on corner: 100 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v53825)         1.00                104.7              1.7
+  SNAPSHOT (v21640)        0.27                108.1             12.4
+  GREEDY                   0.95                 97.5              1.5
+  INTERCEPT                1.00                 89.1              1.2
+  RANDOM                   0.00                  0.0            107.4
+> quit

@@ -122,3 +122,58 @@ width. The transcript, invariance and demo runs used the final build.
 
 CSV columns: `seed, step, training_pattern, bounce_*, circle_*` (catch rate, mean steps to catch,
 mean return on the 100 evaluation episodes), `train_return_last10, seconds`.
+
+## D3: the chaser adapting to a changing runner (chase v2, terminal only)
+Produced 2026-11-03 to 2026-11-05 on macOS (Apple silicon, CPU, `chase_sim`). Files in `d3/`.
+
+### Setup
+- Rules: board 100, runner and chaser speed 1, rounds of 200 steps, catch distance 2.
+- Habit runners react to the chaser: when it is within `flee_radius` (40 units) they flee, each in its own way
+  (the runner's path depends on the chaser's position; the old straight/square/circle runners ignore the chaser):
+  - `rightturn`: only ever turns right. Calm: a gentle right-hand curve (0.02 rad/step). Chaser close: turns right at 0.06 rad/step until it faces away, looping the long way round if "away" is on its left.
+  - `clockwise`: goes clockwise round the walls. Chaser close: swerves away from it (cutting inward round it) but always keeps at least 30% of its movement clockwise.
+  - `corner`: runs to a corner and waits. Chaser close: switches at once, even mid-run, to the corner with the biggest lead (distance from the chaser minus distance from the runner).
+- An earlier version of the habits fled in a straight line to the nearest wall and then slid along it (a measured difference of only 0-1.7 units
+  between a standing and a chasing chaser for clockwise and corner). Results from that version are kept in `d3/old-runners/`.
+- Baselines on 100 fixed starts (`d3/step2-baselines.txt`, greedy / intercept chaser): rightturn 0.71 / 0.80, clockwise 0.16 / 0.93,
+  corner 1.00 / 1.00; square 0.62 / 1.00, circle 0.23 / 0.56.
+- Pass criteria, fixed before the first run (3 seeds, 100 fixed start states): (1) at least 0.50 on rightturn before the switch;
+  (2) right after the switch to corner, at most 0.80; (3) back to at least 0.80 within 20,000 moves; (4) the frozen snapshot more than 0.20
+  below the learner at the end of the 20,000 moves; (5) all of these on all 3 seeds. The criteria were not changed after any run.
+
+### Learning speed (the AMD partner asked for minutes, not hours)
+The first adaptation run (1 update per move, catch bonus 50; `d3/old-runners/adapt-slow/`) was too slow: only seed 1 got back to 0.80 on corner,
+after 52,568 moves. At 60 frames per second 50,000 moves is about 14 minutes.
+Sweep (`d3/sweeps/`, `sweep.py`, on the old rightturn): each setting trained 3 seeds, catch rate on 100 fixed starts at 5k / 10k / 20k moves.
+| Setting | 5k | 10k | 20k |
+|---|---|---|---|
+| original (1 update per move, catch bonus 50) | 0.29 | 0.28 | 0.34 |
+| catch bonus 10 | 0.32 | 0.54 | 0.56 |
+| 4 / 8 updates per move | 0.11 / 0.26 | 0.33 / 0.35 | 0.64 / 0.76 |
+| 16 updates per move + bonus 10 | 0.50 | 0.70 | 0.85 |
+| 16 updates + relative-position input | 0.30 | 0.64 | 0.83 |
+| 32 updates, 32-wide network | 0.16 | 0.54 | 0.80 |
+- Helped most: more gradient updates per move and a smaller catch bonus. Did not help: lower learning rate, lower gamma, batch 256, replay size, warm-up length.
+- Differences under about 0.1 are within noise (3 seeds, 100 test chases).
+- 16 updates per move ran at only about 85 moves/s in the terminal sim (`train 300` took about 9 minutes). Four candidate settings were run through the
+  full adaptation test on the old runners (`d3/old-runners/adapt-*`); 8 updates per move with a 64-wide network and the relative-position input was the only
+  one that passed every criterion at about 170 moves/s, so it is the default: `updates_per_move = 8`, `catch_bonus = 10`, 64-wide network, 10 observation values.
+
+### Adaptation result with the new habit runners (`d3/adapt-final/`)
+| Seed | rightturn before | corner right after switch | moves to first >= 0.80 | at the last check within 20k moves: learner / snapshot | at the end (about 28k moves): learner / snapshot |
+|---|---|---|---|---|---|
+| 1 | 0.96 | 0.13 | 3,401 | 1.00 / 0.13 | 1.00 / 0.13 |
+| 2 | 0.97 | 0.40 | 5,935 | 1.00 / 0.40 | 1.00 / 0.40 |
+| 3 | 0.96 | 0.60 | 4,939 | 0.83 / 0.60 | 0.78 / 0.60 |
+- All five criteria pass on all 3 seeds. Recovery takes 3-6k moves, about 1-2 minutes at 60 fps.
+- Caveats: seed 3's snapshot gap is only 0.23 (needed more than 0.20) and its learner dropped from 1.00 to 0.78 near the end, so the learner's catch rate is noisy
+  from one check to the next. Corner is easy for a scripted chaser (greedy 1.00), so the adaptation here is mostly "learn to catch a runner that bolts between corners".
+  3 seeds only. The snapshot's catch rate never changes (frozen policy); it equals the learner's right after the switch because no training has happened yet.
+- Not tested: inside Unreal, or a real game at 60 fps (8 updates per move is about 480 updates per second).
+
+### Watching it
+- `watch [episodes] [fps] [current|greedy|intercept|stand]` plays episodes as an ASCII board. The last argument picks the chaser:
+  the learned policy (default) or a scripted one, so the runner's reaction can be seen without training anything.
+  The status line shows the runner's mood: `ignores chaser` (straight/square/circle), `calm` or `FLEEING` (habit runners, chaser within `flee_radius`).
+- `d3/demo-reactivity.script` (about 40 s, no training) shows the old square runner ignoring the chaser and the three habit runners reacting to it.
+- `d3/demo.script` (about 5 minutes) trains on rightturn, switches to corner and shows the dip and the recovery.

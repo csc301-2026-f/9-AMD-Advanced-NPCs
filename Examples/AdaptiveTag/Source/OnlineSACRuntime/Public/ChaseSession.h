@@ -48,7 +48,7 @@ struct ChaseEvaluation {
     RunnerPattern pattern = RunnerPattern::Straight;
     unsigned currentVersion = 0, snapshotVersion = 0;
     bool hasSnapshot = false;
-    ChaseEvalResult current, snapshot, greedy, random;
+    ChaseEvalResult current, snapshot, greedy, intercept, random;
 };
 struct ChaseTrajectory {
     RunnerPattern pattern = RunnerPattern::Straight;
@@ -57,6 +57,9 @@ struct ChaseTrajectory {
     bool caught = false;
     unsigned steps = 0;
 };
+
+// Who drives the chaser in PlayEpisode: the learned policy, or a simple scripted chaser (shows how the runner reacts to it).
+enum class ChasePolicyKind { Current, Greedy, Intercept, Stand };
 
 class ONLINESACRUNTIME_API ChaseSession {
 public:
@@ -83,7 +86,7 @@ public:
     ChaseEvaluation Evaluate(unsigned episodes) const;
     // Plays one episode with the current policy (mean action) in a separate world; no learning, does not
     // change training. `index` picks the start state (deterministic per index).
-    ChaseTrajectory PlayEpisode(unsigned index) const;
+    ChaseTrajectory PlayEpisode(unsigned index, ChasePolicyKind kind = ChasePolicyKind::Current) const;
     // The last finished training episode (empty frames before the first one).
     const ChaseTrajectory& LastTrainingEpisode() const;
 

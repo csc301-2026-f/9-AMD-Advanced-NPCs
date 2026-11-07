@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 // How the runner moves. Plain C++: coordinates are board units with y pointing up, so "clockwise" is as seen
-// on a map with north at the top. The runner ignores the chaser.
+// on a map with north at the top. Straight, Square and Circle ignore the chaser; the habit patterns react to it.
+// All patterns are deterministic given the start state.
 #pragma once
 #include "ChaseConfig.h"
 #include <cstdint>
@@ -22,11 +23,11 @@ private:
 
 struct RunnerState {
     Vec2 position, velocity;  // velocity is per step; its length is runner_speed
-    float phase = 0;          // square: distance along the perimeter; circle: angle in radians; straight: unused
+    float phase = 0;          // square: distance along the perimeter; circle: angle in radians; corner: target corner 0-3 (-1 = none yet); others: unused
 };
 
 // A random point of the pattern (straight: random position and random heading).
 ONLINESACRUNTIME_API RunnerState StartRunner(RunnerPattern pattern, const ChaseConfig& config, ChaseRng& rng);
-// Moves the runner by one step.
-ONLINESACRUNTIME_API void MoveRunner(RunnerPattern pattern, const ChaseConfig& config, RunnerState& runner);
+// Moves the runner by one step. `chaser` is where the chaser is now (only the habit patterns look at it).
+ONLINESACRUNTIME_API void MoveRunner(RunnerPattern pattern, const ChaseConfig& config, RunnerState& runner, const Vec2& chaser);
 }

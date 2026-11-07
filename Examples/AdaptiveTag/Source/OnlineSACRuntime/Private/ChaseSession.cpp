@@ -56,6 +56,7 @@ struct ChaseSession::Impl {
         c.seed = learnerConfig.seed;
         c.updateEvery = learnerConfig.update_every;
         c.warmupExperiences = learnerConfig.warmup_experiences;
+        c.updatesPerExperience = learnerConfig.updates_per_move;
         c.queueCapacity = learnerConfig.queue_capacity;
         c.frozen = frozen;
         learner = std::make_unique<ChaseLearner>(c);
@@ -174,16 +175,21 @@ ChaseEvaluation ChaseSession::Evaluate(unsigned episodes) const {
     e.current = run(learned(*currentPolicy));
     if (e.hasSnapshot) e.snapshot = run(learned(*d.snapshot));
     e.greedy = run([](const float* observation, float* action, ChaseRng&) { GreedyChaseAction(observation, action); });
+    e.intercept = run([this_config = d.config](const float* observation, float* action, ChaseRng&) { InterceptChaseAction(observation, this_config, action); });
     e.random = run([](const float*, float* action, ChaseRng& rng) { for (unsigned i = 0; i < A; ++i) action[i] = rng.Uniform(-1, 1); });
     return e;
 }
 
-ChaseTrajectory ChaseSession::PlayEpisode(unsigned index) const {
+ChaseTrajectory ChaseSession::PlayEpisode(unsigned index, ChasePolicyKind kind) const {
     const Impl& d = *data;
     const std::shared_ptr<const ChaseLearner::Policy> policy = d.learner->CurrentPolicy();
     ChaseRng startRng(SeedFor(d.config.eval_seed, PlayFamily, index)), unused(0);
-    ChaseTrajectory t = RunEpisode(d.config, d.pattern, startRng, unused,
-        [&](const float* observation, float* action, ChaseRng&) { ChaseLearner::ActWith(*policy, observation, O, action, A); }, true);
+    const ChaseConfig config = d.config;
+    ChasePolicyFn drive = [&](const float* observation, float* action, ChaseRng&) { ChaseLearner::ActWith(*policy, observation, O, action, A); };
+    if (kind == ChasePolicyKind::Greedy) drive = [](const float* observation, float* action, ChaseRng&) { GreedyChaseAction(observation, action); };
+    if (kind == ChasePolicyKind::Intercept) drive = [config](const float* observation, float* action, ChaseRng&) { InterceptChaseAction(observation, config, action); };
+    if (kind == ChasePolicyKind::Stand) drive = [](const float*, float* action, ChaseRng&) { action[0] = action[1] = 0; };
+    ChaseTrajectory t = RunEpisode(d.config, d.pattern, startRng, unused, drive, true);
     t.policyVersion = ChaseLearner::VersionOf(*policy);
     return t;
 }

@@ -1,0 +1,27 @@
+# ci for the adaptive SAC chase sim: builds chase_sim and runs smoke tests
+name: chase-sim CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ["Examples/AdaptiveTag/**", ".github/workflows/chase-sim-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["Examples/AdaptiveTag/**", ".github/workflows/chase-sim-ci.yml"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5 # required by the course on every job
+    defaults:
+      run:
+        working-directory: Examples/AdaptiveTag
+    steps:
+      - uses: actions/checkout@v7 # same version the course example uses
+
+      # quality check: the build must compile cleanly with g++
+      - name: build chase_sim
+        run: CXX=g++ sh Tools/ChaseSim/Build-ChaseSim.sh Saved/ChaseSim
+
+      - name: run smoke tests
+        run: sh Tools/ChaseSim/ci-smoke.sh Saved/ChaseSim/chase_sim

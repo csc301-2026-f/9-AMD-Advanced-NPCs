@@ -87,6 +87,7 @@ struct BasicOnlineSACLearner<O>::Impl {
 
     explicit Impl(const OnlineSACConfig& value) : config(value) {
         if (config.updateEvery == 0) config.updateEvery = 1;
+        if (config.updatesPerExperience == 0) config.updatesPerExperience = 1;
         if (config.queueCapacity == 0) config.queueCapacity = 1;
         frozen = config.frozen;
         stats.frozen = config.frozen;
@@ -158,7 +159,7 @@ struct BasicOnlineSACLearner<O>::Impl {
                 stats.training = true;
             }
             const auto start = LearnerClock::now();
-            const uint64_t updates = (!frozen && storedTotal >= config.warmupExperiences) ? pending : 0;
+            const uint64_t updates = (!frozen && storedTotal >= config.warmupExperiences) ? pending * config.updatesPerExperience : 0;
             uint64_t done = 0;
             for (; done < updates && !stopFlag; ++done) Update();
             if (stopFlag) return;

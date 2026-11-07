@@ -1,0 +1,23 @@
+# D3 demo, part 1: the runner REACTS to the chaser. About 40 seconds, no training. Run from Examples/AdaptiveTag:
+#   Saved/ChaseSim/chase_sim --script Evidence/SAC/d3/demo-reactivity.script
+# Each watch uses a simple scripted chaser (greedy = runs straight at the runner; stand = does not move).
+# The status line under the board shows the runner's mood: "ignores chaser", "calm" (chaser far) or "FLEEING" (chaser within 40).
+# Old runners (square) ignore the chaser. New habit runners (rightturn, clockwise, corner) flee, each in its own habit.
+# The dots are the runner's recent trail: watch how it bends when the chaser gets close.
+
+# 1. OLD behaviour: the square runner follows its square no matter what the chaser does.
+pattern square
+watch 2 60 greedy
+# 2. NEW: rightturn. It can only turn right: a gentle right-hand curve while the chaser is far (calm), tighter right turns and loops when it is close.
+pattern rightturn
+watch 1 60 stand
+watch 2 60 greedy
+# 3. NEW: clockwise. It goes clockwise round the walls, but swerves inward round the chaser when it gets close.
+pattern clockwise
+watch 2 60 greedy
+# 4. NEW: corner. It sits in a corner until the chaser comes close, then bolts to the corner where it has the biggest lead.
+pattern corner
+watch 2 60 greedy
+# 5. A smarter chaser (intercept: aims where the runner will be) against rightturn, for contrast.
+pattern rightturn
+watch 1 60 intercept

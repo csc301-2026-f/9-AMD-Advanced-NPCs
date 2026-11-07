@@ -35,6 +35,10 @@ void ChaseWorld::Observe(float* observation) const {
     observation[5] = Unit(state.chaserVelocity.y / config.chaser_max_speed);
     observation[6] = Unit(state.runner.velocity.x / config.runner_speed);
     observation[7] = Unit(state.runner.velocity.y / config.runner_speed);
+#ifndef ONLINE_SAC_NO_RELATIVE_OBS
+    observation[8] = Unit((state.runner.position.x - state.chaser.x) / b);
+    observation[9] = Unit((state.runner.position.y - state.chaser.y) / b);
+#endif
 }
 
 ChaseStepOutcome ChaseWorld::Step(const float* action) {
@@ -46,7 +50,7 @@ ChaseStepOutcome ChaseWorld::Step(const float* action) {
     const Vec2 before = state.chaser;
     state.chaser = {Clamp(before.x + v.x, 0, config.board_size), Clamp(before.y + v.y, 0, config.board_size)};
     state.chaserVelocity = {state.chaser.x - before.x, state.chaser.y - before.y};
-    MoveRunner(pattern, config, state.runner);
+    MoveRunner(pattern, config, state.runner, state.chaser);
 
     const float previous = state.distance;
     state.distance = Distance(state.chaser, state.runner.position);
@@ -67,5 +71,30 @@ void GreedyChaseAction(const float* observation, float* action) {
     const float length = std::hypot(dx, dy);
     action[0] = length > 1e-6f ? dx / length : 0.0f;
     action[1] = length > 1e-6f ? dy / length : 0.0f;
+}
+
+void InterceptChaseAction(const float* observation, const ChaseConfig& config, float* action) {
+    const float b = config.board_size;
+    const float dx = (observation[2] - observation[0]) * b, dy = (observation[3] - observation[1]) * b;
+    const float vx = observation[6] * config.runner_speed, vy = observation[7] * config.runner_speed;
+    // Smallest t > 0 with |d + v t| = chaser_max_speed * t:  (v.v - s^2) t^2 + 2 (d.v) t + d.d = 0.
+    const float s = config.chaser_max_speed;
+    const float a = vx * vx + vy * vy - s * s, h = dx * vx + dy * vy, c = dx * dx + dy * dy;
+    float t = -1;
+    if (std::fabs(a) < 1e-6f) {
+        if (h < 0) t = -c / (2 * h);
+    } else {
+        const float disc = h * h - a * c;
+        if (disc >= 0) {
+            const float root = std::sqrt(disc), t1 = (-h - root) / a, t2 = (-h + root) / a;
+            t = std::fmin(t1 > 0 ? t1 : 1e30f, t2 > 0 ? t2 : 1e30f);
+            if (t > 1e29f) t = -1;
+        }
+    }
+    float tx = dx, ty = dy;
+    if (t > 0) { tx += vx * t; ty += vy * t; }
+    const float length = std::hypot(tx, ty);
+    action[0] = length > 1e-6f ? tx / length : 0.0f;
+    action[1] = length > 1e-6f ? ty / length : 0.0f;
 }
 }

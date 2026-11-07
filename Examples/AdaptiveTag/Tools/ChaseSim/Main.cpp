@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 // chase_sim: console front end for ChaseSession. Parses commands, calls the session, prints. No game or learning logic here.
-//   chase_sim.exe [--pattern straight|square|circle] [--seed N] [--script file.txt] [--name=value for any config key]
+//   chase_sim.exe [--pattern straight|square|circle|rightturn|clockwise|corner] [--seed N] [--script file.txt] [--name=value for any config key]
 #include "ChaseSession.h"
 #include <chrono>
 #include <cstdarg>
@@ -17,6 +17,8 @@
 #endif
 #include <io.h>
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 using namespace online_sac;
@@ -74,13 +76,14 @@ void Help() {
     Print("  help                         this list");
     Print("  config                       print every tunable value");
     Print("  set <name> <value>           change one value (world values restart the episode; learner values apply on reset)");
-    Print("  pattern <straight|square|circle>   change the runner pattern (keeps the learned weights)");
+    Print("  pattern <name>               (straight square circle rightturn clockwise corner) change the runner pattern (keeps the learned weights)");
     Print("  train <episodes>             learn while playing; a line every 10 episodes");
-    Print("  eval [n=50]                  fixed starts, no learning: CURRENT, SNAPSHOT, GREEDY, RANDOM");
+    Print("  eval [n=50]                  fixed starts, no learning: CURRENT, SNAPSHOT, GREEDY, INTERCEPT, RANDOM");
     Print("  snapshot                     keep the current policy for eval comparison");
     Print("  freeze | unfreeze            stop / resume learning (frozen: mean action, experiences ignored)");
     Print("  reset                        fresh weights, counters cleared (snapshot kept)");
-    Print("  watch [episodes=1] [fps=20]  play episodes with the current policy as an ASCII board (no learning)");
+    Print("  watch [episodes=1] [fps=20] [chaser]   play episodes as an ASCII board (no learning). chaser: current (default),");
+    Print("                               greedy, intercept or stand (a scripted chaser, to see how the runner reacts to it)");
     Print("  replay                       positions every 10 steps of the last training episode");
     Print("  log <file.csv> | log off     write every train and eval line to a CSV file");
     Print("  run <file.txt>               run a command script");
@@ -106,7 +109,7 @@ void Set(App& app, const std::vector<std::string>& args) {
 void Pattern(App& app, const std::vector<std::string>& args) {
     RunnerPattern pattern;
     if (args.size() != 2 || !ParsePattern(args[1], pattern)) {
-        Error(std::string("unknown pattern '") + (args.size() > 1 ? args[1] : "") + "' (use straight, square or circle)");
+        Error(std::string("unknown pattern '") + (args.size() > 1 ? args[1] : "") + "' (use straight, square, circle, rightturn, clockwise or corner)");
         return;
     }
     app.session->SetPattern(pattern);
@@ -157,6 +160,7 @@ void Eval(App& app, const std::vector<std::string>& args) {
     if (e.hasSnapshot) row(Format("SNAPSHOT (v%u)", e.snapshotVersion), e.snapshot, e.snapshotVersion);
     else Print("  SNAPSHOT           (none taken)");
     row("GREEDY", e.greedy, 0);
+    row("INTERCEPT", e.intercept, 0);
     row("RANDOM", e.random, 0);
 }
 
@@ -181,20 +185,29 @@ std::vector<std::string> Board(const ChaseTrajectory& t, size_t frame, const Cha
 
 void Watch(App& app, const std::vector<std::string>& args) {
     unsigned episodes, fps;
-    if (args.size() > 3) { Error("usage: watch [episodes=1] [fps=20]"); return; }
+    if (args.size() > 4) { Error("usage: watch [episodes=1] [fps=20] [current|greedy|intercept|stand]"); return; }
     if (!CountArg(args, 1, 1, 1, 100, "episodes", episodes) || !CountArg(args, 2, 20, 1, 1000, "fps", fps)) return;
+    ChasePolicyKind kind = ChasePolicyKind::Current;
+    const std::string chaser = args.size() > 3 ? args[3] : "current";
+    if (chaser == "greedy") kind = ChasePolicyKind::Greedy;
+    else if (chaser == "intercept") kind = ChasePolicyKind::Intercept;
+    else if (chaser == "stand") kind = ChasePolicyKind::Stand;
+    else if (chaser != "current") { Error("unknown chaser '" + chaser + "' (use current, greedy, intercept or stand)"); return; }
     // In a terminal every frame is redrawn in place; when output is redirected (scripts, transcripts) every 25th frame is printed.
     const unsigned every = app.interactiveTerminal ? 1 : 25;
     for (unsigned episode = 0; episode < episodes; ++episode) {
-        const ChaseTrajectory t = app.session->PlayEpisode(app.watchIndex++);
+        const ChaseTrajectory t = app.session->PlayEpisode(app.watchIndex++, kind);
         const ChaseConfig& config = app.session->Config();
         for (size_t frame = 0; frame < t.frames.size(); ++frame) {
             const bool lastFrame = frame + 1 == t.frames.size();
             if (frame % every != 0 && !lastFrame) continue;
             std::string text = app.interactiveTerminal ? "\x1b[H\x1b[2J" : "";
             for (const std::string& row : Board(t, frame, config)) text += row + "\n";
-            text += Format("watch %u/%u | %s | step %3zu/%u | distance %5.1f | policy v%u | C chaser, R runner%s",
-                episode + 1, episodes, PatternName(t.pattern), frame, config.max_episode_steps, t.frames[frame].distance, t.policyVersion,
+            const bool habit = t.pattern == RunnerPattern::RightTurn || t.pattern == RunnerPattern::Clockwise || t.pattern == RunnerPattern::Corner;
+            const char* mood = !habit ? "ignores chaser" : (t.frames[frame].distance < config.flee_radius ? "FLEEING" : "calm");
+            text += Format("watch %u/%u | %s runner (%s) | chaser: %s | step %3zu/%u | distance %5.1f | C chaser, R runner%s",
+                episode + 1, episodes, PatternName(t.pattern), mood, chaser == "current" ? Format("learned v%u", t.policyVersion).c_str() : chaser.c_str(),
+                frame, config.max_episode_steps, t.frames[frame].distance,
                 lastFrame ? (t.caught ? Format(" | CAUGHT at step %u", t.steps).c_str() : " | TIME-OUT") : "");
             Print(text);
             if (app.interactiveTerminal) std::this_thread::sleep_for(std::chrono::microseconds(1000000 / fps));
@@ -289,6 +302,8 @@ int main(int argc, char** argv) {
         DWORD mode = 0;
         if (GetConsoleMode(out, &mode)) SetConsoleMode(out, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
+#else
+    app.interactiveTerminal = isatty(fileno(stdout)) != 0;
 #endif
     ChaseConfig config;
     ChaseLearnerConfig learner;
@@ -301,7 +316,7 @@ int main(int argc, char** argv) {
         if (equals != std::string::npos) { name = arg.substr(2, equals - 2); value = arg.substr(equals + 1); }
         else if (i + 1 < argc) { name = arg.substr(2); value = argv[++i]; }
         else { Error("missing value for '" + arg + "'"); return 2; }
-        if (name == "pattern") { if (!ParsePattern(value, pattern)) { Error("unknown pattern '" + value + "' (use straight, square or circle)"); return 2; } }
+        if (name == "pattern") { if (!ParsePattern(value, pattern)) { Error("unknown pattern '" + value + "' (use straight, square, circle, rightturn, clockwise or corner)"); return 2; } }
         else if (name == "script") script = value;
         else {
             const std::string error = SetConfigValue(config, learner, name, value);
