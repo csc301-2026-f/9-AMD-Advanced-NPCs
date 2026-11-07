@@ -1,0 +1,7 @@
+# Same seed as watch-invariance-b.txt, with watch, replay and eval in between: the training lines must match.
+train 10
+watch 2 1000
+replay
+eval 10
+train 10
+quit

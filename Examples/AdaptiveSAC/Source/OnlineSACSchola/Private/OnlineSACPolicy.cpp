@@ -46,8 +46,7 @@ bool UOnlineSACPolicy::Init(const FInteractionDefinition& InDefinition)
     Config.warmupExperiences = static_cast<unsigned>(FMath::Max(WarmupExperiences, 1));
     Config.queueCapacity = static_cast<unsigned>(FMath::Max(QueueCapacity, 1));
     Learner = MakeUnique<online_sac::OnlineSACLearner>(Config);
-    LocalSessionId = FGuid::NewGuid();
-    if (!StartSession(LocalSessionId, 0, 0))
+    if (!StartSession(FGuid::NewGuid(), 0, 0))
     {
         LearnerError = GetLastError();
         StopLearner();
@@ -103,40 +102,38 @@ bool UOnlineSACPolicy::ToLearnerAction(const TInstancedStruct<FPoint>& Action, f
     return true;
 }
 
-EOnlineSACSubmitResult UOnlineSACPolicy::SubmitExperience(const FAdaptiveExperience& Experience)
+EAdaptiveSubmitResult UOnlineSACPolicy::SubmitExperience(const FAdaptiveExperience& Experience)
 {
     check(IsInGameThread());
-    if (!Learner || GetSessionState() != EAdaptiveSessionState::Ready)
+    const EAdaptiveSubmitResult Result = Super::SubmitExperience(Experience);
+    LearnerError = GetLastError();
+    return Result;
+}
+
+EAdaptiveSubmitResult UOnlineSACPolicy::DispatchExperience(const FAdaptiveExperience& Experience)
+{
+    if (!Learner)
     {
-        if (GetSessionState() == EAdaptiveSessionState::Stopped)
-        {
-            StopLearner();
-        }
-        LearnerError = TEXT("Experiences require a Ready session with a running learner.");
-        return EOnlineSACSubmitResult::NotReady;
+        return EAdaptiveSubmitResult::NotReady;
     }
     const TArray<float>* Observation = BoxValues(Experience.Observation);
     const TArray<float>* NextObservation = BoxValues(Experience.NextObservation);
     float Action[ActionSize];
-    if (Experience.SessionId != LocalSessionId || Experience.PolicyVersion < 0 || !Observation || !NextObservation
-        || !ToLearnerAction(Experience.ExecutedAction, Action))
+    if (!ToLearnerAction(Experience.ExecutedAction, Action))
     {
-        LearnerError = TEXT("Experience rejected: wrong session, negative policy version, non-Box points or an executed action outside the action space.");
-        return EOnlineSACSubmitResult::Rejected;
+        return EAdaptiveSubmitResult::Rejected;
     }
     switch (Learner->AddExperience(Observation->GetData(), static_cast<unsigned>(Observation->Num()), Action, ActionSize, Experience.Reward,
         NextObservation->GetData(), static_cast<unsigned>(NextObservation->Num()), Experience.bTerminated, Experience.bTruncated))
     {
     case online_sac::AddResult::Accepted:
-        return EOnlineSACSubmitResult::Accepted;
+        return EAdaptiveSubmitResult::Accepted;
     case online_sac::AddResult::Dropped:
-        LearnerError = TEXT("Experience dropped: the learner queue is full.");
-        return EOnlineSACSubmitResult::Dropped;
+        return EAdaptiveSubmitResult::Dropped;
     case online_sac::AddResult::Frozen:
-        return EOnlineSACSubmitResult::Frozen;
+        return EAdaptiveSubmitResult::Frozen;
     default:
-        LearnerError = TEXT("Experience rejected by the learner: wrong sizes or nonfinite values.");
-        return EOnlineSACSubmitResult::Rejected;
+        return EAdaptiveSubmitResult::Rejected;
     }
 }
 
@@ -175,11 +172,9 @@ void UOnlineSACPolicy::ShutdownLearner()
 {
     check(IsInGameThread());
     Shutdown();
-    StopLearner();
 }
 
-void UOnlineSACPolicy::BeginDestroy()
+void UOnlineSACPolicy::ReleaseLearnerBinding(const FAdaptiveSessionInfo& PreviousSession)
 {
     StopLearner();
-    Super::BeginDestroy();
 }

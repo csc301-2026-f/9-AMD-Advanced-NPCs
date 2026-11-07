@@ -1,8 +1,27 @@
-# Shared Policy ONNX Reference Prototype
+# Shared Policy Prototypes
 
-This directory contains an executable reference for the proposed Shared Policy
-NPC model contract. It uses deterministic weights so the architecture, tensor
-names, batching, outputs, and routing can be verified without training an agent.
+This directory contains two related pieces of work:
+
+- `legacy/`: the original small ONNX reference prototype;
+- `benchmarks/`: the new experiment comparing architectures A–E.
+
+Both use the same Python environment defined at this directory's top level.
+
+## Directory layout
+
+```text
+SharedPolicy/
+├── legacy/       # Original model, exporter, demo, and tests
+├── benchmarks/   # New A–E benchmark source, configuration, and tests
+├── pyproject.toml
+├── pytest.ini
+└── uv.lock
+```
+
+## Original reference prototype
+
+The `legacy/` prototype uses deterministic weights so its tensor names,
+batching, outputs, and routing can be verified without training an agent.
 
 ## Contract
 
@@ -37,7 +56,7 @@ Python 3.12 and [`uv`](https://docs.astral.sh/uv/) are required.
 cd Prototypes/SharedPolicy
 uv sync --python 3.12
 uv run pytest -q
-uv run python run_shared_policy_demo.py
+uv run python -m legacy.run_shared_policy_demo
 ```
 
 The final command regenerates the ignored `shared_policy.onnx` file, validates
@@ -79,7 +98,9 @@ Production Unreal integration requires a supported Unreal installation, a host
 
 ## Source map
 
-- `shared_policy.py`: deterministic PyTorch architecture and fixed weights.
-- `export_shared_policy.py`: named dynamic-batch ONNX export and validation.
-- `run_shared_policy_demo.py`: one-call ONNX Runtime execution and row routing.
-- `tests/`: shape, value, metadata, call-count, ordering, and failure tests.
+- `legacy/shared_policy.py`: deterministic PyTorch architecture and fixed weights.
+- `legacy/export_shared_policy.py`: named dynamic-batch ONNX export and validation.
+- `legacy/run_shared_policy_demo.py`: one-call ONNX Runtime execution and row routing.
+- `legacy/tests/`: tests for the original prototype.
+- `benchmarks/README.md`: experiment definitions and current implementation status.
+- `benchmarks/tests/`: tests for the new benchmark implementation.

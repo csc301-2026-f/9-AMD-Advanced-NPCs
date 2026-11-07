@@ -1,0 +1,687 @@
+chase_sim: pattern circle, seed 2, board 100, runner speed 1, chaser max speed 1. Type 'help'.
+> # 3-minute live demo. Start: chase_sim.exe --pattern circle --seed 2
+> # (type these by hand live; in a terminal, watch animates at the given fps)
+> config
+  board_size           = 100      # board is [0, board_size]^2 units, walls at the edges
+  max_episode_steps    = 300      # steps before an episode is truncated (1 step = 1 time unit)
+  runner_speed         = 1        # runner distance per step
+  chaser_max_speed     = 1        # chaser top speed per step (action vector capped to it)
+  catch_distance       = 3        # caught when distance <= this
+  min_start_distance   = 30       # chaser spawns at least this far from the runner
+  square_side          = 60       # square pattern side, centred on the board
+  circle_radius        = 30       # circle pattern radius around the board centre
+  catch_bonus          = 50       # reward on catch (reward = distance closed + bonus)
+  stats_window         = 20       # episodes in the rolling training stats
+  eval_seed            = 4242     # seed of the fixed evaluation start states
+  seed                 = 2        # learner + training start states seed (applies on reset)
+  update_every         = 1        # SAC update round every N experiences (applies on reset)
+  warmup_experiences   = 1000     # random actions, no updates until this many (applies on reset)
+  queue_capacity       = 4096     # experiences waiting for the learner thread (applies on reset)
+  lockstep             = true     # Step() waits for the learner round, reproducible (applies on reset)
+> eval 20
+eval on circle: 20 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)             0.25                126.4             38.9
+  SNAPSHOT           (none taken)
+  GREEDY                   0.35                 93.6              3.8
+  RANDOM                   0.25                144.4             29.2
+> watch 1 60
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|           R                                      |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                C                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step   0/300 | distance  44.8 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|          .R                                      |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|          ..                                      |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                C                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step  25/300 | distance  57.5 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                 ..R                              |
+|               ...                                |
+|             ..                                   |
+|           ..                                     |
+|          ..                                      |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                C                 |
+|                                ,                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step  50/300 | distance  59.3 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                 ..............R                  |
+|               ...                                |
+|             ..                                   |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                               C,                 |
+|                                ,                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step  75/300 | distance  50.3 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                        .........                 |
+|                                ...               |
+|                                   ..             |
+|                                     ..           |
+|                                      ..          |
+|                                       R          |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                              C                   |
+|                              ,,,                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 100/300 | distance  33.7 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                   ..             |
+|                                     ..           |
+|                                      ..          |
+|                                       .          |
+|                                       .          |
+|                                       .          |
+|                                       .          |
+|                                       .          |
+|                                      ..          |
+|                             C       R.           |
+|                             ,,                   |
+|                              ,                   |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 125/300 | distance  16.5 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                       .          |
+|                                       .          |
+|                            C         ..          |
+|                            ,,       ..           |
+|                             ,     ..             |
+|                                ...               |
+|                           R.....                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 150/300 | distance  16.5 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                            C                     |
+|                            ,,                    |
+|                                                  |
+|               R..              ...               |
+|                 ................                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 175/300 | distance  28.7 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|          R                                       |
+|          .                                       |
+|          .                 C                     |
+|          ..                ,                     |
+|           ..                                     |
+|             ..                                   |
+|              ....                                |
+|                 ......                           |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 200/300 | distance  36.9 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|             .R                                   |
+|           ..                                     |
+|           .                                      |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|          .                                       |
+|          .                 C                     |
+|          ..                                      |
+|           ..                                     |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 225/300 | distance  38.8 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                 ........R                        |
+|              ....                                |
+|             ..                                   |
+|           ..                                     |
+|           .                                      |
+|          .                                       |
+|                                                  |
+|                                                  |
+|                           C,                     |
+|                            ,                     |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 250/300 | distance  34.9 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                  ...............                 |
+|                                ....              |
+|                                   .R             |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                          C,,                     |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 275/300 | distance  29.3 | policy v0 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                              ...                 |
+|                                ....              |
+|                                   ..             |
+|                                     ..           |
+|                                      .           |
+|                                       .          |
+|                                       .          |
+|                         C,            .          |
+|                          ,,           R          |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 300/300 | distance  29.1 | policy v0 | C chaser, R runner | TIME-OUT
+> train 80
+training 80 episodes on circle (learning on)
+episode    10 | steps    2753 | policy v1754   | catch rate (last 10) 0.10 | avg steps to catch   53.0 | avg final dist  34.7
+episode    20 | steps    4741 | policy v3742   | catch rate (last 20) 0.25 | avg steps to catch   48.2 | avg final dist  23.2
+episode    30 | steps    6389 | policy v5390   | catch rate (last 20) 0.50 | avg steps to catch   63.6 | avg final dist  10.2
+episode    40 | steps    7962 | policy v6963   | catch rate (last 20) 0.60 | avg steps to catch   68.4 | avg final dist   7.6
+episode    50 | steps   10148 | policy v9149   | catch rate (last 20) 0.50 | avg steps to catch   75.9 | avg final dist   8.1
+episode    60 | steps   11641 | policy v10642  | catch rate (last 20) 0.60 | avg steps to catch  106.6 | avg final dist   7.4
+episode    70 | steps   13466 | policy v12467  | catch rate (last 20) 0.90 | avg steps to catch  151.0 | avg final dist   4.0
+episode    80 | steps   15483 | policy v14484  | catch rate (last 20) 0.85 | avg steps to catch  173.1 | avg final dist   4.0
+trained 80 episodes in 49.2 s (policy v14484, 14484 SAC updates total)
+> eval 20
+eval on circle: 20 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v14484)         1.00                135.1              2.7
+  SNAPSHOT           (none taken)
+  GREEDY                   0.35                 93.6              3.8
+  RANDOM                   0.25                144.4             29.2
+> watch 1 40
++--------------------------------------------------+
+|                                               C  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                              R                   |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step   0/300 | distance  39.6 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                           ,,,,,  |
+|                                         ,,,      |
+|                                       ,,,        |
+|                                      C           |
+|                                                  |
+|                              ...                 |
+|                                ....              |
+|                                   ..             |
+|                                     ..           |
+|                                      R           |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step  25/300 | distance  25.9 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                           ,      |
+|                                         ,,,      |
+|                                       ,,,        |
+|                                     ,,           |
+|                                   ,,,            |
+|                                 ,,               |
+|                               ,, ..              |
+|                             C,,   ..             |
+|                                     ..           |
+|                                      .           |
+|                                       .          |
+|                                       .          |
+|                                       .          |
+|                                       .          |
+|                                       .          |
+|                                      R.          |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step  50/300 | distance  36.3 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                 ,,               |
+|                               ,,                 |
+|                             ,,,                  |
+|                           ,,,                    |
+|                          ,,                      |
+|                         ,,                       |
+|                       ,,,                        |
+|                      C,               .          |
+|                                       .          |
+|                                       .          |
+|                                      ..          |
+|                                     ..           |
+|                                   ..             |
+|                                ....              |
+|                             R...                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step  75/300 | distance  30.4 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                          ,                       |
+|                         ,,                       |
+|                       ,,,                        |
+|                      ,,                          |
+|                     ,,                           |
+|                   ,,                             |
+|                  ,,                              |
+|                ,,                                |
+|                C                  .              |
+|                 R              ....              |
+|                 ................                 |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 100/300 | distance   7.4 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|          R                                       |
+|          .      C ,                              |
+|          ..     ,,,                              |
+|           ..   ,,                                |
+|             .. ,                                 |
+|               ...                                |
+|                 ........                         |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 125/300 | distance  15.3 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|             R                                    |
+|           ..                                     |
+|          ..       C                              |
+|          .       ,,                              |
+|          .       ,                               |
+|          .      ,,                               |
+|          .      ,                                |
+|          .      ,                                |
+|          ..     ,                                |
+|           ..    ,                                |
+|             .                                    |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 150/300 | distance  14.6 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                        ,C                        |
+|                 ......R,                         |
+|               ...    ,,                          |
+|             ..      ,,                           |
+|           ..       ,,                            |
+|          ..       ,                              |
+|          .       ,,                              |
+|          .       ,                               |
+|                 ,,                               |
+|                 ,                                |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 175/300 | distance   3.6 | policy v14484 | C chaser, R runner
++--------------------------------------------------+
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                        ,C                        |
+|                 .......R                         |
+|               ...    ,,                          |
+|             ..      ,,                           |
+|           ..       ,,                            |
+|          ..       ,                              |
+|          .       ,,                              |
+|                  ,                               |
+|                 ,,                               |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
+|                                                  |
++--------------------------------------------------+
+watch 1/1 | circle | step 177/300 | distance   2.9 | policy v14484 | C chaser, R runner | CAUGHT at step 177
+> snapshot
+snapshot taken: policy v14484
+> pattern square
+pattern = square (weights kept, policy v14484)
+> eval 20
+eval on square: 20 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v14484)         1.00                150.1              2.7
+  SNAPSHOT (v14484)        1.00                150.1              2.7
+  GREEDY                   1.00                146.3              2.8
+  RANDOM                   0.05                128.0             53.1
+> train 20
+training 20 episodes on square (learning on)
+episode    90 | steps   17185 | policy v16186  | catch rate (last 20) 0.80 | avg steps to catch  157.4 | avg final dist   5.0
+episode   100 | steps   19291 | policy v18292  | catch rate (last 20) 0.75 | avg steps to catch  153.9 | avg final dist   6.7
+trained 20 episodes in 12.9 s (policy v18292, 18292 SAC updates total)
+> eval 20
+eval on square: 20 fixed start states (eval_seed 4242), deterministic, no learning
+  policy             catch rate   avg steps to catch   avg final dist
+  CURRENT (v18292)         0.95                141.5              2.8
+  SNAPSHOT (v14484)        1.00                150.1              2.7
+  GREEDY                   1.00                146.3              2.8
+  RANDOM                   0.05                128.0             53.1
+> quit

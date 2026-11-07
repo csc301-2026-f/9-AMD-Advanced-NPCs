@@ -1,0 +1,6 @@
+# Check 2 (learning on circle), seed 3.
+log learning-seed3.csv
+eval 50
+train 300
+eval 50
+quit

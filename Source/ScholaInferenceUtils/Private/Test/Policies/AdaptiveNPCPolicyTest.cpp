@@ -46,7 +46,7 @@ bool FAdaptivePolicyInitializationTest::RunTest(const FString& Parameters)
     Input.ActionSpaceDefn.GetMutable<FBoxSpace>().Shape = {1, 2};
     TestTrue(TEXT("Valid multidimensional Box definitions accepted"), Policy->Init(Input));
     TestTrue(TEXT("Local definition initialized"), Policy->IsInitialized());
-    TestTrue(TEXT("Initialization does not claim remote readiness"), Policy->GetSessionState() == EAdaptiveSessionState::Initialized);
+    TestTrue(TEXT("Base initialization does not claim learner readiness"), Policy->GetSessionState() == EAdaptiveSessionState::Initialized);
     TestFalse(TEXT("No inference work dispatched"), Policy->IsInferenceBusy());
     TestTrue(TEXT("Successful initialization clears errors"), Policy->GetLastError().IsEmpty());
 
@@ -179,9 +179,20 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAdaptivePolicyBlueprintTest, "Schola.Inference
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FAdaptivePolicyBlueprintTest::RunTest(const FString& Parameters)
 {
+    // Removing an unused state must not renumber values already exposed to Blueprint.
+    const UEnum* SessionStates = StaticEnum<EAdaptiveSessionState>();
+    TestEqual(TEXT("Uninitialized retains its reflected value"), SessionStates->GetValueByNameString(TEXT("Uninitialized")), int64(0));
+    TestEqual(TEXT("Initialized retains its reflected value"), SessionStates->GetValueByNameString(TEXT("Initialized")), int64(1));
+    TestEqual(TEXT("Ready retains its reflected value"), SessionStates->GetValueByNameString(TEXT("Ready")), int64(3));
+    TestEqual(TEXT("Failed retains its reflected value"), SessionStates->GetValueByNameString(TEXT("Failed")), int64(4));
+    TestEqual(TEXT("Stopped retains its reflected value"), SessionStates->GetValueByNameString(TEXT("Stopped")), int64(5));
+    TestEqual(TEXT("Unused connection state is no longer exposed"), SessionStates->GetValueByNameString(TEXT("Connecting")), int64(INDEX_NONE));
+
     for (auto* Record : {FAdaptiveDecision::StaticStruct(), FAdaptiveExperience::StaticStruct()})
     {
+#if WITH_METADATA
         TestTrue(TEXT("Record type is available to Blueprint"), Record->HasMetaData(TEXT("BlueprintType")));
+#endif
         for (TFieldIterator<FProperty> Property(Record); Property; ++Property)
         {
             TestTrue(Property->GetName(), Property->HasAnyPropertyFlags(CPF_BlueprintVisible));

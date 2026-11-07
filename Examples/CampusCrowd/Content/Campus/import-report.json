@@ -1,0 +1,41 @@
+{
+  "source": "50H_NORTH.dwg",
+  "source_sha256": "3d2bb1c9cf26f13852c771f0fbedfdacd8d09301918048e869c4088db2285c49",
+  "units": "Unreal centimetres",
+  "cad_origin_m": [
+    313210.0,
+    4835890.0
+  ],
+  "cad_crop_m": [
+    -650.0,
+    -700.0,
+    650.0,
+    700.0
+  ],
+  "transform": "X=(CAD Easting-313210)*100; Y=-(CAD Northing-4835890)*100; Z=CAD Z*100",
+  "extent": 85000,
+  "building_count": 340,
+  "cad_mesh_counts": {
+    "Curbs": 69,
+    "Parks": 142,
+    "Massings": 128529
+  },
+  "entity_audit": {
+    "source_regions": 19526,
+    "region_planar_faces": 19526,
+    "region_inner_loops": 0,
+    "region_triangles": 65066,
+    "decoded_regions": 19526
+  },
+  "tree_count": 106,
+  "route_nodes": 4135,
+  "triangles": {
+    "ground": 2,
+    "Curbs": 5004,
+    "Parks": 3319,
+    "walls": 418553,
+    "roofs": 260295,
+    "trunks": 1272,
+    "leaves": 636
+  }
+}

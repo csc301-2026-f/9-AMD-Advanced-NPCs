@@ -1,0 +1,4 @@
+# nested script (run from transcript.txt)
+pattern straight
+eval 5
+pattern circle

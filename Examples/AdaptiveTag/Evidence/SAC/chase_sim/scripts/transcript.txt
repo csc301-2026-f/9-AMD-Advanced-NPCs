@@ -1,0 +1,40 @@
+# chase_sim transcript: every command once, plus bad inputs. Run from Evidence/SAC/chase_sim:
+#   chase_sim.exe --pattern circle --seed 1 --script scripts/transcript.txt > transcript.txt
+help
+config
+set catch_distance 4
+set catch_distance -1
+set circle_radius 80
+set board_size abc
+set no_such_key 5
+set update_every 2
+set update_every 1
+set catch_distance 3
+pattern square
+pattern zigzag
+pattern circle
+log transcript-log.csv
+eval 10
+train 20
+eval 10
+snapshot
+freeze
+train 10
+unfreeze
+watch 1 50
+replay
+eval 10
+reset
+eval 10
+run scripts/transcript-nested.txt
+run no_such_file.txt
+train
+train abc
+train -5
+eval 0
+eval 10 20
+watch 1 0
+fly away
+snapshot now
+log off
+quit

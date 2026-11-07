@@ -1,0 +1,52 @@
+chase_sim: pattern circle, seed 3, board 100, runner speed 1, chaser max speed 1. Type 'help'.
+> # Check 2 (learning on circle), seed 3.
+> log learning-seed3.csv
+logging train and eval lines to learning-seed3.csv
+> eval 50
+eval on circle: 50 fixed start states (eval_seed 4242), deterministic, no learning
+  policy           catch rate   avg steps to catch   avg final dist
+  CURRENT (v0)           0.16                149.8             44.8
+  SNAPSHOT         (none taken)
+  GREEDY                 0.40                 89.5              3.5
+  RANDOM                 0.18                149.3             35.6
+> train 300
+training 300 episodes on circle (learning on)
+episode    10 | steps    2834 | policy v1835   | catch rate (last 10) 0.20 | avg steps to catch  217.0 | avg final dist  26.1
+episode    20 | steps    5331 | policy v4332   | catch rate (last 20) 0.20 | avg steps to catch  132.8 | avg final dist  21.6
+episode    30 | steps    7547 | policy v6548   | catch rate (last 20) 0.25 | avg steps to catch   42.6 | avg final dist  14.7
+episode    40 | steps   10004 | policy v9005   | catch rate (last 20) 0.35 | avg steps to catch  110.4 | avg final dist  11.3
+episode    50 | steps   11395 | policy v10396  | catch rate (last 20) 0.55 | avg steps to catch  104.4 | avg final dist   7.7
+episode    60 | steps   13204 | policy v12205  | catch rate (last 20) 0.65 | avg steps to catch   84.6 | avg final dist   6.4
+episode    70 | steps   14621 | policy v13622  | catch rate (last 20) 0.75 | avg steps to catch  115.1 | avg final dist   6.0
+episode    80 | steps   16378 | policy v15379  | catch rate (last 20) 0.80 | avg steps to catch  123.4 | avg final dist   5.4
+episode    90 | steps   19252 | policy v18253  | catch rate (last 20) 0.45 | avg steps to catch  147.9 | avg final dist   8.8
+episode   100 | steps   20657 | policy v19658  | catch rate (last 20) 0.50 | avg steps to catch  127.9 | avg final dist   8.0
+episode   110 | steps   21998 | policy v20999  | catch rate (last 20) 0.80 | avg steps to catch   96.6 | avg final dist   4.4
+episode   120 | steps   23227 | policy v22228  | catch rate (last 20) 0.85 | avg steps to catch   98.2 | avg final dist   3.8
+episode   130 | steps   24604 | policy v23605  | catch rate (last 20) 0.95 | avg steps to catch  121.4 | avg final dist   3.2
+episode   140 | steps   25937 | policy v24938  | catch rate (last 20) 0.95 | avg steps to catch  126.8 | avg final dist   3.6
+episode   150 | steps   27301 | policy v26302  | catch rate (last 20) 0.85 | avg steps to catch  105.7 | avg final dist   3.8
+episode   160 | steps   28111 | policy v27112  | catch rate (last 20) 0.90 | avg steps to catch   87.4 | avg final dist   2.9
+episode   170 | steps   29712 | policy v28713  | catch rate (last 20) 0.90 | avg steps to catch  100.6 | avg final dist   3.9
+episode   180 | steps   30850 | policy v29851  | catch rate (last 20) 0.90 | avg steps to catch  118.8 | avg final dist   4.0
+episode   190 | steps   31850 | policy v30851  | catch rate (last 20) 1.00 | avg steps to catch  106.9 | avg final dist   2.7
+episode   200 | steps   32690 | policy v31691  | catch rate (last 20) 1.00 | avg steps to catch   92.0 | avg final dist   2.7
+episode   210 | steps   33522 | policy v32523  | catch rate (last 20) 1.00 | avg steps to catch   83.6 | avg final dist   2.7
+episode   220 | steps   34352 | policy v33353  | catch rate (last 20) 1.00 | avg steps to catch   83.1 | avg final dist   2.7
+episode   230 | steps   35286 | policy v34287  | catch rate (last 20) 1.00 | avg steps to catch   88.2 | avg final dist   2.6
+episode   240 | steps   36421 | policy v35422  | catch rate (last 20) 1.00 | avg steps to catch  103.5 | avg final dist   2.6
+episode   250 | steps   37791 | policy v36792  | catch rate (last 20) 1.00 | avg steps to catch  125.2 | avg final dist   2.7
+episode   260 | steps   38917 | policy v37918  | catch rate (last 20) 1.00 | avg steps to catch  124.8 | avg final dist   2.7
+episode   270 | steps   39991 | policy v38992  | catch rate (last 20) 1.00 | avg steps to catch  110.0 | avg final dist   2.7
+episode   280 | steps   40671 | policy v39672  | catch rate (last 20) 1.00 | avg steps to catch   87.7 | avg final dist   2.7
+episode   290 | steps   41569 | policy v40570  | catch rate (last 20) 1.00 | avg steps to catch   78.9 | avg final dist   2.7
+episode   300 | steps   42244 | policy v41245  | catch rate (last 20) 1.00 | avg steps to catch   78.7 | avg final dist   2.7
+trained 300 episodes in 175.7 s (policy v41245, 41245 SAC updates total)
+> eval 50
+eval on circle: 50 fixed start states (eval_seed 4242), deterministic, no learning
+  policy           catch rate   avg steps to catch   avg final dist
+  CURRENT (v41245)        1.00                 58.9              2.7
+  SNAPSHOT         (none taken)
+  GREEDY                 0.40                 89.5              3.5
+  RANDOM                 0.18                149.3             35.6
+> quit

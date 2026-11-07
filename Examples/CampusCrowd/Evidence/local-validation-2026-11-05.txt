@@ -1,0 +1,17 @@
+CampusCrowd local validation — 2026-11-05
+Base commit: 58b0ccb (working tree includes D3 documentation and Android file-server config changes)
+
+Command:
+uv run --offline --no-project --with ezdxf==1.4.5 --with shapely==2.2.0 python -m unittest discover -s Examples/CampusCrowd/Tools/tests -v
+
+Passed:
+- test_concave_roof_does_not_fill_its_notch
+- test_legacy_transform_encoding
+- test_new_binary_transform_encoding
+- test_university_college_source_region
+- test_vertical_face_preserves_window_hole
+
+Result: 5 tests, 0 failures, 0 errors.
+Additional checks: bash -n passed for every CampusCrowd shell script; slideshow IDs, heading references, and local links valid; Android file server disabled and token absent from current config.
+
+Follow-up validation: the Unreal installation was located at /home/future/Downloads/UnrealEngine-5.8.3. Editor build, 43 background/Mass tests, packaging, a timed 20,000-agent packaged run, and controls/normal-close checks passed. See d3-validation-2026-11-05/README.md for retained reports. Full CAD source validation, SharePoint playback, and PR review status were not verified.

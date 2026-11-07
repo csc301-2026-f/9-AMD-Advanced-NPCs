@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180" role="img" aria-labelledby="title desc">
+  <title id="title">Shared policy inference architectures A through E</title>
+  <desc id="desc">Five architecture flows comparing all-head, masked, separate-model, conditional ONNX, and split-backbone inference.</desc>
+  <defs>
+    <style>
+      .title { font: 700 38px Arial, sans-serif; fill: #17233d; }
+      .subtitle { font: 400 20px Arial, sans-serif; fill: #5e6b82; }
+      .id { font: 700 34px Arial, sans-serif; fill: white; text-anchor: middle; dominant-baseline: middle; }
+      .row-title { font: 700 23px Arial, sans-serif; fill: #17233d; }
+      .box-text { font: 600 17px Arial, sans-serif; fill: #24324a; text-anchor: middle; dominant-baseline: middle; }
+      .note { font: 400 16px Arial, sans-serif; fill: #5e6b82; }
+      .arrow { stroke: #64748b; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .panel { fill: #f7f9fc; stroke: #ccd5e3; stroke-width: 2; }
+      .box { fill: white; stroke: #8da2c0; stroke-width: 2; rx: 10; }
+      .shared { fill: #dcebff; stroke: #2f6fed; }
+      .head { fill: #e7f6ed; stroke: #3d8062; }
+      .route { fill: #fff3d6; stroke: #b47b00; }
+      .model { fill: #eee9ff; stroke: #7258b5; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1180" fill="white"/>
+  <text x="80" y="65" class="title">Shared Policy Inference Architectures</text>
+  <text x="80" y="100" class="subtitle">All candidates use equivalent backbone and expert-head mathematics; their execution and routing differ.</text>
+
+  <rect x="60" y="140" width="1480" height="180" rx="18" class="panel"/>
+  <rect x="60" y="140" width="90" height="180" rx="18" fill="#2f6fed"/>
+  <text x="105" y="230" class="id">A</text>
+  <text x="180" y="178" class="row-title">Shared backbone with all heads</text>
+  <rect x="180" y="205" width="170" height="66" class="box"/><text x="265" y="238" class="box-text">Mixed batch</text>
+  <path d="M350 238 H415" class="arrow"/>
+  <rect x="420" y="205" width="220" height="66" class="box shared"/><text x="530" y="238" class="box-text">Shared backbone</text>
+  <path d="M640 238 H705" class="arrow"/>
+  <rect x="710" y="190" width="220" height="48" class="box head"/><text x="820" y="214" class="box-text">Expert 0 head</text>
+  <rect x="710" y="248" width="220" height="48" class="box head"/><text x="820" y="272" class="box-text">Expert 1 head</text>
+  <path d="M930 214 H1000" class="arrow"/><path d="M930 272 H1000" class="arrow"/>
+  <rect x="1005" y="205" width="200" height="66" class="box route"/><text x="1105" y="238" class="box-text">Select output</text>
+  <text x="1240" y="225" class="note">One model call</text><text x="1240" y="250" class="note">Both heads execute</text>
+
+  <rect x="60" y="340" width="1480" height="180" rx="18" class="panel"/>
+  <rect x="60" y="340" width="90" height="180" rx="18" fill="#4779d9"/>
+  <text x="105" y="430" class="id">B</text>
+  <text x="180" y="378" class="row-title">All heads with a fixed 1/0 output mask</text>
+  <rect x="180" y="405" width="170" height="66" class="box"/><text x="265" y="428" class="box-text">Mixed batch</text><text x="265" y="450" class="box-text">+ role mask</text>
+  <path d="M350 438 H415" class="arrow"/>
+  <rect x="420" y="405" width="220" height="66" class="box shared"/><text x="530" y="438" class="box-text">Shared backbone</text>
+  <path d="M640 438 H705" class="arrow"/>
+  <rect x="710" y="390" width="220" height="48" class="box head"/><text x="820" y="414" class="box-text">Expert 0 head</text>
+  <rect x="710" y="448" width="220" height="48" class="box head"/><text x="820" y="472" class="box-text">Expert 1 head</text>
+  <path d="M930 414 H1000" class="arrow"/><path d="M930 472 H1000" class="arrow"/>
+  <rect x="1005" y="405" width="200" height="66" class="box route"/><text x="1105" y="428" class="box-text">Mask outputs</text><text x="1105" y="450" class="box-text">and sum</text>
+  <text x="1240" y="425" class="note">One model call</text><text x="1240" y="450" class="note">Both heads still execute</text>
+
+  <rect x="60" y="540" width="1480" height="180" rx="18" class="panel"/>
+  <rect x="60" y="540" width="90" height="180" rx="18" fill="#5c7fc2"/>
+  <text x="105" y="630" class="id">C</text>
+  <text x="180" y="578" class="row-title">Separate complete model per expert</text>
+  <rect x="180" y="605" width="170" height="66" class="box"/><text x="265" y="638" class="box-text">Mixed batch</text>
+  <path d="M350 638 H415" class="arrow"/>
+  <rect x="420" y="605" width="220" height="66" class="box route"/><text x="530" y="628" class="box-text">Group rows</text><text x="530" y="650" class="box-text">by expert</text>
+  <path d="M640 638 H705" class="arrow"/>
+  <rect x="710" y="590" width="250" height="48" class="box model"/><text x="835" y="614" class="box-text">Full expert 0 model</text>
+  <rect x="710" y="648" width="250" height="48" class="box model"/><text x="835" y="672" class="box-text">Full expert 1 model</text>
+  <path d="M960 614 H1030" class="arrow"/><path d="M960 672 H1030" class="arrow"/>
+  <rect x="1035" y="605" width="190" height="66" class="box route"/><text x="1130" y="628" class="box-text">Restore</text><text x="1130" y="650" class="box-text">row order</text>
+  <text x="1260" y="625" class="note">Up to K calls</text><text x="1260" y="650" class="note">Backbone weights duplicated</text>
+
+  <rect x="60" y="740" width="1480" height="180" rx="18" class="panel"/>
+  <rect x="60" y="740" width="90" height="180" rx="18" fill="#397f8b"/>
+  <text x="105" y="830" class="id">D</text>
+  <text x="180" y="778" class="row-title">One conditional ONNX model</text>
+  <rect x="180" y="805" width="160" height="66" class="box"/><text x="260" y="838" class="box-text">Mixed batch</text>
+  <path d="M340 838 H385" class="arrow"/>
+  <rect x="390" y="805" width="190" height="66" class="box route"/><text x="485" y="828" class="box-text">Group rows</text><text x="485" y="850" class="box-text">by expert</text>
+  <path d="M580 838 H625" class="arrow"/>
+  <rect x="630" y="805" width="210" height="66" class="box shared"/><text x="735" y="838" class="box-text">Shared backbone</text>
+  <path d="M840 838 H885" class="arrow"/>
+  <rect x="890" y="805" width="150" height="66" class="box route"/><text x="965" y="838" class="box-text">ONNX If</text>
+  <path d="M1040 838 H1085" class="arrow"/>
+  <rect x="1090" y="805" width="190" height="66" class="box head"/><text x="1185" y="828" class="box-text">Selected</text><text x="1185" y="850" class="box-text">expert head</text>
+  <text x="1320" y="825" class="note">K calls</text><text x="1320" y="850" class="note">One branch per call</text>
+
+  <rect x="60" y="940" width="1480" height="180" rx="18" class="panel"/>
+  <rect x="60" y="940" width="90" height="180" rx="18" fill="#3d8062"/>
+  <text x="105" y="1030" class="id">E</text>
+  <text x="180" y="978" class="row-title">Backbone and heads exported separately</text>
+  <rect x="180" y="1005" width="160" height="66" class="box"/><text x="260" y="1038" class="box-text">Mixed batch</text>
+  <path d="M340 1038 H385" class="arrow"/>
+  <rect x="390" y="1005" width="200" height="66" class="box shared"/><text x="490" y="1038" class="box-text">Backbone model</text>
+  <path d="M590 1038 H635" class="arrow"/>
+  <rect x="640" y="1005" width="190" height="66" class="box route"/><text x="735" y="1028" class="box-text">Group features</text><text x="735" y="1050" class="box-text">by expert</text>
+  <path d="M830 1038 H875" class="arrow"/>
+  <rect x="880" y="990" width="220" height="48" class="box head"/><text x="990" y="1014" class="box-text">Expert 0 head model</text>
+  <rect x="880" y="1048" width="220" height="48" class="box head"/><text x="990" y="1072" class="box-text">Expert 1 head model</text>
+  <path d="M1100 1014 H1160" class="arrow"/><path d="M1100 1072 H1160" class="arrow"/>
+  <rect x="1165" y="1005" width="170" height="66" class="box route"/><text x="1250" y="1028" class="box-text">Restore</text><text x="1250" y="1050" class="box-text">row order</text>
+  <text x="1370" y="1025" class="note">1 + K calls</text><text x="1370" y="1050" class="note">Intermediate features</text>
+</svg>

@@ -1,0 +1,1005 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "archlinux",
+			"instance": "01A1ADB1F24A7AC897938E2025DCC442",
+			"instanceName": "archlinux-360777",
+			"platform": "LinuxEditor",
+			"oSVersion": "Arch Linux 7.2.14-arch1-1",
+			"model": "Default",
+			"gPU": "AMD PCI-id: 1002-164e (1462-7e26)",
+			"cPUModel": "AMD Ryzen 5 7600X 6-Core Processor",
+			"rAMInGB": 31,
+			"renderMode": "SM5",
+			"rHI": "",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-21.51.42",
+	"succeeded": 40,
+	"succeededWithWarnings": 3,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 3.508915901184082,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "NoAllocationAfterWarmup",
+			"fullTestPath": "Schola.Inference.Background.Codec.NoAllocationAfterWarmup",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.007878962904214859,
+			"dateTime": "2026.11.05-21.51.38",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RoundTrips",
+			"fullTestPath": "Schola.Inference.Background.Codec.RoundTrips",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0080971624702215195,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReferenceMix",
+			"fullTestPath": "Schola.Inference.Background.Cohorts.ReferenceMix",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0079665016382932663,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "BatchEquivalence",
+			"fullTestPath": "Schola.Inference.Background.NNE.BatchEquivalence",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.087833255529403687,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogScholaNNE: Root observation tensor 'obs' not found; binding tensor 0 (Input)",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.39"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogScholaNNE: Root action tensor 'action' not found; binding tensor 0 (Output)",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.39"
+				}
+			],
+			"warnings": 2,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ContextsNeverShared",
+			"fullTestPath": "Schola.Inference.Background.NNE.ContextsNeverShared",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0077544031664729118,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RejectsRecurrentModels",
+			"fullTestPath": "Schola.Inference.Background.NNE.RejectsRecurrentModels",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0074941040948033333,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AsyncDoesNotWaitForSync",
+			"fullTestPath": "Schola.Inference.Background.Policy.AsyncDoesNotWaitForSync",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.10185054689645767,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LegacyFieldsOverrideBackgroundSettings",
+			"fullTestPath": "Schola.Inference.Background.Policy.LegacyFieldsOverrideBackgroundSettings",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0083990702405571938,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PendingRowCapCountsRows",
+			"fullTestPath": "Schola.Inference.Background.Policy.PendingRowCapCountsRows",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0081091420724987984,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "Reconfigure100WithInFlightWork",
+			"fullTestPath": "Schola.Inference.Background.Policy.Reconfigure100WithInFlightWork",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.34422346949577332,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReconfigureWhileBucketIsShared",
+			"fullTestPath": "Schola.Inference.Background.Policy.ReconfigureWhileBucketIsShared",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0080571621656417847,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogScholaInferenceUtils: Synchronous Background inference blocks the game thread; use SubmitBackground or BackgroundStepper for deferred delivery",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SharedBuckets",
+			"fullTestPath": "Schola.Inference.Background.Policy.SharedBuckets",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0073873349465429783,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "StatusesAndTransaction",
+			"fullTestPath": "Schola.Inference.Background.Policy.StatusesAndTransaction",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0055664298124611378,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UnsharedBucketWithProvider",
+			"fullTestPath": "Schola.Inference.Background.Policy.UnsharedBucketWithProvider",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0096476161852478981,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AdmissionBounds",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.AdmissionBounds",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0076651731505990028,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AssemblyWaitFillsPartialBatch",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.AssemblyWaitFillsPartialBatch",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.22239406406879425,
+			"dateTime": "2026.11.05-21.51.39",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ConsumeRetainsLargestWarmBuffers",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.ConsumeRetainsLargestWarmBuffers",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.008190961554646492,
+			"dateTime": "2026.11.05-21.51.40",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "EagerBatchesGrowUnderLoad",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.EagerBatchesGrowUnderLoad",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0081990323960781097,
+			"dateTime": "2026.11.05-21.51.40",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LegacyLaneMappings",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.LegacyLaneMappings",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0077723031863570213,
+			"dateTime": "2026.11.05-21.51.40",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PollingDoesNotRetainNotifications",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.PollingDoesNotRetainNotifications",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0073840147815644741,
+			"dateTime": "2026.11.05-21.51.40",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RandomizedFaultInjection",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.RandomizedFaultInjection",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 1.8720666170120239,
+			"dateTime": "2026.11.05-21.51.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SharedQueue: completed=94030 failed=961 expired=21 cancelled=4988 busy=0 calls=99700 fill=0.20",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.40"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Contiguous: completed=92764 failed=890 expired=1345 cancelled=5001 busy=62256 calls=83322 fill=0.24",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.40"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BatchRoundRobin: completed=92814 failed=918 expired=1220 cancelled=5048 busy=41294 calls=87854 fill=0.23",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.40"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "RowRoundRobin: completed=89336 failed=3153 expired=2576 cancelled=4935 busy=88624 calls=183075 fill=0.11",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "KeyAffinity: completed=90129 failed=2570 expired=2345 cancelled=4956 busy=86571 calls=179693 fill=0.11",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "WorkStealing: completed=94039 failed=963 expired=17 cancelled=4981 busy=0 calls=99582 fill=0.20",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LeastLoaded: completed=93915 failed=978 expired=193 cancelled=4914 busy=2813 calls=96298 fill=0.21",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.41"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ShutdownWithWorkInFlight",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.ShutdownWithWorkInFlight",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0083083612844347954,
+			"dateTime": "2026.11.05-21.51.41",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "completed=2 cancelled=48",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.41"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SteadyStateNoAllocation",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.SteadyStateNoAllocation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.44843459129333496,
+			"dateTime": "2026.11.05-21.51.41",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SharedQueue: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Contiguous: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BatchRoundRobin: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "RowRoundRobin: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "KeyAffinity: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "WorkStealing: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LeastLoaded: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "StrategiesCorrect",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.StrategiesCorrect",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.11023074388504028,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SharedQueue: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Contiguous: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BatchRoundRobin: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "RowRoundRobin: calls=516 fill=0.99 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "KeyAffinity: calls=516 fill=0.99 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "WorkStealing: calls=511 fill=1.00 stolen=99 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LeastLoaded: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "TerminalStatuses",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.TerminalStatuses",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0078062331303954124,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WorkerPriority",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.WorkerPriority",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0082440311089158058,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AutoTickAndTeardown",
+			"fullTestPath": "Schola.Inference.Background.Stepper.AutoTickAndTeardown",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0090098688378930092,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DelayedFrames",
+			"fullTestPath": "Schola.Inference.Background.Stepper.DelayedFrames",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0078350827097892761,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LifetimeAndAge",
+			"fullTestPath": "Schola.Inference.Background.Stepper.LifetimeAndAge",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0085718696936964989,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "MutationInsideAgentCallback",
+			"fullTestPath": "Schola.Inference.Background.Stepper.MutationInsideAgentCallback",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0078715728595852852,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReapplyHeldAction",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ReapplyHeldAction",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0079799722880125046,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ResetInsideAgentCallback",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ResetInsideAgentCallback",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.03870980441570282,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReversedCompletion",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ReversedCompletion",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0085322903469204903,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ScheduledDeadlineIncludesBusyDeferral",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ScheduledDeadlineIncludesBusyDeferral",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0077353231608867645,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UrgentBeforeFirstTickPreservesPhase",
+			"fullTestPath": "Schola.Inference.Background.Stepper.UrgentBeforeFirstTickPreservesPhase",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0080551113933324814,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "HistogramQuantiles",
+			"fullTestPath": "Schola.Inference.Background.Telemetry.HistogramQuantiles",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0078101828694343567,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LifetimeRoutingAndMigration",
+			"fullTestPath": "Schola.Mass.Bridge.LifetimeRoutingAndMigration",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0083236806094646454,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogMass: InternalAppendFragmentsAndTagsToArchetypeCompositionDescriptor: ScholaInferenceBucketFragment is not a valid fragment nor tag type. Ignoring.",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogMass: InternalAppendFragmentsAndTagsToArchetypeCompositionDescriptor: ScholaInferenceBucketFragment is not a valid fragment nor tag type. Ignoring.",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.51.42"
+				}
+			],
+			"warnings": 2,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UrgentDecisionResumesPeriodicPhase",
+			"fullTestPath": "Schola.Mass.Bridge.UrgentDecisionResumesPeriodicPhase",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0078192530199885368,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UrgentInitializationPreservesUniformLayout",
+			"fullTestPath": "Schola.Mass.Bridge.UrgentInitializationPreservesUniformLayout",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0078379232436418533,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "OldestAdmissionAcrossBuckets",
+			"fullTestPath": "Schola.Mass.Gather.OldestAdmissionAcrossBuckets",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.010108974762260914,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SequentialEqualsParallel",
+			"fullTestPath": "Schola.Mass.Gather.SequentialEqualsParallel",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0093821873888373375,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DestroyAndFragmentRemovalReleaseSlots",
+			"fullTestPath": "Schola.Mass.Observer.DestroyAndFragmentRemovalReleaseSlots",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0071107358671724796,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DecideNowMarksOnlySignalledEntities",
+			"fullTestPath": "Schola.Mass.Signal.DecideNowMarksOnlySignalledEntities",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB1F24A7AC897938E2025DCC442"
+			],
+			"duration": 0.0092606581747531891,
+			"dateTime": "2026.11.05-21.51.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

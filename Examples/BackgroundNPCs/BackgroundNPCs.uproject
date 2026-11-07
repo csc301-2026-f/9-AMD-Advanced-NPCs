@@ -1,0 +1,27 @@
+{
+    "FileVersion": 3,
+    "EngineAssociation": "5.8",
+    "Category": "Development",
+    "Description": "Side-by-side comparison of Mass crowd inference with and without Schola's background NPC API.",
+    "Modules": [
+        {
+            "Name": "BackgroundNPCs",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [
+        {
+            "Name": "Schola",
+            "Enabled": true
+        },
+        {
+            "Name": "NNERuntimeORT",
+            "Enabled": true
+        },
+        {
+            "Name": "NNERuntimeBasicCpu",
+            "Enabled": true
+        }
+    ]
+}

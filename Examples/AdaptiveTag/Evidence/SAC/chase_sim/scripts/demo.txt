@@ -1,0 +1,14 @@
+# 3-minute live demo. Start: chase_sim.exe --pattern circle --seed 2
+# (type these by hand live; in a terminal, watch animates at the given fps)
+config
+eval 20
+watch 1 60
+train 80
+eval 20
+watch 1 40
+snapshot
+pattern square
+eval 20
+train 20
+eval 20
+quit

@@ -78,7 +78,7 @@ Generated output belongs in ignored directories. Source control contains authore
 | `Content/TagArena/` | Tracked arena map and materials |
 | `Source/CSC301Host/` | Game rules, input, collision and HUD |
 | `Source/TagLearningRuntime/` | Numeric actor-critic and background training worker |
-| `ThirdParty/RLtools/` | Unmodified pinned headers, revision and MIT license |
+| `../../Source/ThirdParty/RLTools/` | Canonical unmodified pinned headers, revision and MIT license |
 | `Tools/LearningTests/` | Four-seed learning and lifecycle checks |
 | `Tools/CreateTagArena.py` | Optional editor authoring utility, unnecessary for build or play |
 | `Evidence/FasterActor/` | Recorded 0.006-rate experiment results |
@@ -91,4 +91,4 @@ The categorical actor-critic is custom sandbox code built with RLtools networks,
 
 This demonstrates native training during play in a small one-step task. Schola integration, learned navigation, saved models, larger workloads, and controlled performance comparisons remain future work.
 
-Project code follows the repository's [MIT license](../../LICENSE.txt). RLtools retains its own [MIT notice](ThirdParty/RLtools/LICENSE), which the Unreal build stages with the game.
+Project code follows the repository's [MIT license](../../LICENSE.txt). RLtools retains its own [MIT notice](../../Source/ThirdParty/RLTools/LICENSE), which the Unreal build stages with the game.

@@ -1,0 +1,11 @@
+chase_sim: pattern circle, seed 5, board 100, runner speed 1, chaser max speed 1. Type 'help'.
+> # Same seed as watch-invariance-a.txt, training only.
+> train 10
+training 10 episodes on circle (learning on)
+episode    10 | steps    3000 | policy v2001   | catch rate (last 10) 0.00 | avg steps to catch    0.0 | avg final dist  35.1
+trained 10 episodes in 6.7 s (policy v2001, 2001 SAC updates total)
+> train 10
+training 10 episodes on circle (learning on)
+episode    20 | steps    5800 | policy v4801   | catch rate (last 20) 0.05 | avg steps to catch  100.0 | avg final dist  24.6
+trained 10 episodes in 9.7 s (policy v4801, 4801 SAC updates total)
+> quit

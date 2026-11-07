@@ -1,0 +1,16 @@
+{
+  "file": "campus-crowd-background-20s.mp4",
+  "width": 1920,
+  "height": 1080,
+  "fps": "60/1",
+  "duration_seconds": 20.0,
+  "codec": "h264",
+  "source": "Live Unreal Engine 5.8.3 gameplay, captured from its X11 window",
+  "agents": 20000,
+  "target_decision_hz_per_agent": 10,
+  "max_batch": 64,
+  "workers": 2,
+  "max_game_fps": 60,
+  "mode": "background",
+  "camera": "20-second flight from 22 m over the front lawn, across Queen's Park, to an overview of the whole campus model; real-time playback. Distant students are enlarged to stay at least 3 px wide"
+}

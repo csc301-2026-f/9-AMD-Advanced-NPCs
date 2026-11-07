@@ -51,6 +51,11 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "ScholaRLTools",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "ScholaImitation",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

@@ -12,6 +12,10 @@ Guides
    adaptive_online_learning_contract
    adaptive_policy_setup
    adaptive_decision_lifecycle
+   native_online_learning_foundation
+   native_rltools_learning
+   native_adaptive_policy
+   rltools_configuration_generation
    running_from_cli
    lerobot_evaluation
    cli_dataclass_conventions

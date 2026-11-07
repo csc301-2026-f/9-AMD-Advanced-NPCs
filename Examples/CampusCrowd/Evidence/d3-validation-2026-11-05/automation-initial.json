@@ -1,0 +1,1275 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "archlinux",
+			"instance": "01A1ADB0F7AC7AE6ABE55720F09520D0",
+			"instanceName": "archlinux-357205",
+			"platform": "LinuxEditor",
+			"oSVersion": "Arch Linux 7.2.14-arch1-1",
+			"model": "Default",
+			"gPU": "AMD PCI-id: 1002-164e (1462-7e26)",
+			"cPUModel": "AMD Ryzen 5 7600X 6-Core Processor",
+			"rAMInGB": 31,
+			"renderMode": "SM5",
+			"rHI": "",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-21.50.43",
+	"succeeded": 21,
+	"succeededWithWarnings": 22,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 3.4729483127593994,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "NoAllocationAfterWarmup",
+			"fullTestPath": "Schola.Inference.Background.Codec.NoAllocationAfterWarmup",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0079739615321159363,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RoundTrips",
+			"fullTestPath": "Schola.Inference.Background.Codec.RoundTrips",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0083825709298253059,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReferenceMix",
+			"fullTestPath": "Schola.Inference.Background.Cohorts.ReferenceMix",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0082239620387554169,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "BatchEquivalence",
+			"fullTestPath": "Schola.Inference.Background.NNE.BatchEquivalence",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.11528869718313217,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogScholaNNE: Root observation tensor 'obs' not found; binding tensor 0 (Input)",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogScholaNNE: Root action tensor 'action' not found; binding tensor 0 (Output)",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 3,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ContextsNeverShared",
+			"fullTestPath": "Schola.Inference.Background.NNE.ContextsNeverShared",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.008321060799062252,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RejectsRecurrentModels",
+			"fullTestPath": "Schola.Inference.Background.NNE.RejectsRecurrentModels",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0081345709040760994,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AsyncDoesNotWaitForSync",
+			"fullTestPath": "Schola.Inference.Background.Policy.AsyncDoesNotWaitForSync",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.10197580605745316,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LegacyFieldsOverrideBackgroundSettings",
+			"fullTestPath": "Schola.Inference.Background.Policy.LegacyFieldsOverrideBackgroundSettings",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0083197308704257011,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PendingRowCapCountsRows",
+			"fullTestPath": "Schola.Inference.Background.Policy.PendingRowCapCountsRows",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0082919606938958168,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.39"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "Reconfigure100WithInFlightWork",
+			"fullTestPath": "Schola.Inference.Background.Policy.Reconfigure100WithInFlightWork",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.32805472612380981,
+			"dateTime": "2026.11.05-21.50.39",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReconfigureWhileBucketIsShared",
+			"fullTestPath": "Schola.Inference.Background.Policy.ReconfigureWhileBucketIsShared",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0091767776757478714,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogScholaInferenceUtils: Synchronous Background inference blocks the game thread; use SubmitBackground or BackgroundStepper for deferred delivery",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 2,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SharedBuckets",
+			"fullTestPath": "Schola.Inference.Background.Policy.SharedBuckets",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0078169731423258781,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "StatusesAndTransaction",
+			"fullTestPath": "Schola.Inference.Background.Policy.StatusesAndTransaction",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0065473471768200397,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UnsharedBucketWithProvider",
+			"fullTestPath": "Schola.Inference.Background.Policy.UnsharedBucketWithProvider",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0094510074704885483,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AdmissionBounds",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.AdmissionBounds",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0078950626775622368,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AssemblyWaitFillsPartialBatch",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.AssemblyWaitFillsPartialBatch",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.22345267236232758,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ConsumeRetainsLargestWarmBuffers",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.ConsumeRetainsLargestWarmBuffers",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.008124692365527153,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "EagerBatchesGrowUnderLoad",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.EagerBatchesGrowUnderLoad",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0083235409110784531,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LegacyLaneMappings",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.LegacyLaneMappings",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0082829007878899574,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PollingDoesNotRetainNotifications",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.PollingDoesNotRetainNotifications",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0083686206489801407,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RandomizedFaultInjection",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.RandomizedFaultInjection",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 1.8120512962341309,
+			"dateTime": "2026.11.05-21.50.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SharedQueue: completed=94008 failed=980 expired=24 cancelled=4988 busy=0 calls=99600 fill=0.20",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Contiguous: completed=92711 failed=904 expired=1400 cancelled=4985 busy=57284 calls=83842 fill=0.24",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.40"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BatchRoundRobin: completed=92816 failed=959 expired=1199 cancelled=5026 busy=41617 calls=87401 fill=0.23",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "RowRoundRobin: completed=89430 failed=3111 expired=2476 cancelled=4983 busy=85060 calls=180346 fill=0.11",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "KeyAffinity: completed=89933 failed=2650 expired=2450 cancelled=4967 busy=82586 calls=182352 fill=0.11",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "WorkStealing: completed=94032 failed=961 expired=26 cancelled=4981 busy=0 calls=99627 fill=0.20",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.41"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LeastLoaded: completed=93820 failed=983 expired=237 cancelled=4960 busy=4549 calls=95928 fill=0.21",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogInit: Querying IsUsingWayland before SDL is initialized",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ShutdownWithWorkInFlight",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.ShutdownWithWorkInFlight",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0080246720463037491,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "completed=2 cancelled=48",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SteadyStateNoAllocation",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.SteadyStateNoAllocation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.45666778087615967,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SharedQueue: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Contiguous: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BatchRoundRobin: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "RowRoundRobin: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "KeyAffinity: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "WorkStealing: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LeastLoaded: growth events during warm-up=163 rows=307200",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "StrategiesCorrect",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.StrategiesCorrect",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.10923103988170624,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SharedQueue: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Contiguous: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BatchRoundRobin: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "RowRoundRobin: calls=516 fill=0.99 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "KeyAffinity: calls=515 fill=0.99 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "WorkStealing: calls=511 fill=1.00 stolen=99 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LeastLoaded: calls=511 fill=1.00 stolen=0 busyRejects=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.42"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "TerminalStatuses",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.TerminalStatuses",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0076539930887520313,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WorkerPriority",
+			"fullTestPath": "Schola.Inference.Background.Scheduler.WorkerPriority",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0073402738198637962,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AutoTickAndTeardown",
+			"fullTestPath": "Schola.Inference.Background.Stepper.AutoTickAndTeardown",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0096239866688847542,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DelayedFrames",
+			"fullTestPath": "Schola.Inference.Background.Stepper.DelayedFrames",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0082972310483455658,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LifetimeAndAge",
+			"fullTestPath": "Schola.Inference.Background.Stepper.LifetimeAndAge",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0083199711516499519,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "MutationInsideAgentCallback",
+			"fullTestPath": "Schola.Inference.Background.Stepper.MutationInsideAgentCallback",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.007960151880979538,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReapplyHeldAction",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ReapplyHeldAction",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0078282132744789124,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ResetInsideAgentCallback",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ResetInsideAgentCallback",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.038643136620521545,
+			"dateTime": "2026.11.05-21.50.42",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ReversedCompletion",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ReversedCompletion",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0076835229992866516,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ScheduledDeadlineIncludesBusyDeferral",
+			"fullTestPath": "Schola.Inference.Background.Stepper.ScheduledDeadlineIncludesBusyDeferral",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0086931204423308372,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UrgentBeforeFirstTickPreservesPhase",
+			"fullTestPath": "Schola.Inference.Background.Stepper.UrgentBeforeFirstTickPreservesPhase",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.007809183094650507,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "HistogramQuantiles",
+			"fullTestPath": "Schola.Inference.Background.Telemetry.HistogramQuantiles",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0079604620113968849,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LifetimeRoutingAndMigration",
+			"fullTestPath": "Schola.Mass.Bridge.LifetimeRoutingAndMigration",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.008413311094045639,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogMass: InternalAppendFragmentsAndTagsToArchetypeCompositionDescriptor: ScholaInferenceBucketFragment is not a valid fragment nor tag type. Ignoring.",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.43"
+				},
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogMass: InternalAppendFragmentsAndTagsToArchetypeCompositionDescriptor: ScholaInferenceBucketFragment is not a valid fragment nor tag type. Ignoring.",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-21.50.43"
+				}
+			],
+			"warnings": 2,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UrgentDecisionResumesPeriodicPhase",
+			"fullTestPath": "Schola.Mass.Bridge.UrgentDecisionResumesPeriodicPhase",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0083418907597661018,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "UrgentInitializationPreservesUniformLayout",
+			"fullTestPath": "Schola.Mass.Bridge.UrgentInitializationPreservesUniformLayout",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.008025292307138443,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "OldestAdmissionAcrossBuckets",
+			"fullTestPath": "Schola.Mass.Gather.OldestAdmissionAcrossBuckets",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0096052167937159538,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SequentialEqualsParallel",
+			"fullTestPath": "Schola.Mass.Gather.SequentialEqualsParallel",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0098126055672764778,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DestroyAndFragmentRemovalReleaseSlots",
+			"fullTestPath": "Schola.Mass.Observer.DestroyAndFragmentRemovalReleaseSlots",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0072975149378180504,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DecideNowMarksOnlySignalledEntities",
+			"fullTestPath": "Schola.Mass.Signal.DecideNowMarksOnlySignalledEntities",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"01A1ADB0F7AC7AE6ABE55720F09520D0"
+			],
+			"duration": 0.0072580850683152676,
+			"dateTime": "2026.11.05-21.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

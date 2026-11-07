@@ -9,8 +9,9 @@
 - Fixed pipelined-stepper oversubscription and stale callbacks, addressed UE 5.8 build issues, and added backend, codec, scheduler, and adapter tests, including 100,000 fault-injection requests per dispatch strategy.
 - Wrote the literature review and experiment plans; built Python/C++ benchmarks comparing batching, worker dispatch, Actor/Mass processing, and CPU/GPU execution.
 - Ran automation, lifecycle/memory diagnostics, and replicated benchmarks. Local reference runs sustained 31,000 decisions/s on each adapter with zero Busy rejections or expired requests; documented unresolved Actor pool growth and inconclusive rendered-performance results.
+- Built the `Examples/BackgroundNPCs` comparison project. It runs the same 20,000-agent Mass crowd with per-agent synchronous inference and with the background API, with a live statistics HUD and measurement/recording scripts. Measured 10.4 FPS without the API vs. the 60 FPS cap with it, at the same ~200,000 decisions/s. Wrote the README's background-agents use case and the background NPC sections of the iteration review.
 
-**Evidence:** [Merged PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6). Research, benchmark scripts, and results are retained in local commit `66b25b3` on `local/tempstuff-66b25b3` and are not yet published on `main`.
+**Evidence:** [Merged PR #6](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/6), [comparison example](../../Examples/BackgroundNPCs/README.md), [side-by-side recording](evidence/background-npc-side-by-side.mp4), and [measurements](evidence/background-npc-comparison.md). Research, benchmark scripts, and results are retained in local commit `66b25b3` on `local/tempstuff-66b25b3` and are not yet published on `main`.
 
 ## Jace
 
@@ -41,3 +42,78 @@ The current result is a native Unreal + RLtools proof of concept. Integration wi
 **Evidence:**
 - [PR #7 — Per-NPC Head Bindings](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7)
 - [PR #13 — Shared Policy Stepper](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13)
+
+## Chloe
+
+**Role:** Adaptive NPCs: checkpoint saving and loading, timing tests, and the evaluation plan for the online SAC learner.
+
+- **Checkpoint save and load (FR-11):** Added `SaveCheckpoint` and `LoadCheckpoint` to `OnlineSACLearner`. A checkpoint stores the actor, both critics and target critics, Adam state and the training RNG. Files are checked for size, checksum and structure before loading, so a bad file is refused and the running model is left unchanged instead of crashing.
+- **Checkpoint tests (test 7):** Added 10 native checks: bit-identical actor outputs after a round trip, version handling, and refusal of truncated, corrupted, renamed and missing files. All pass, and the existing learner lifecycle checks still pass.
+- **Timing test (test 8):** Added a native timing harness. A decision takes about 0.006 ms against a 0.1 ms target, and a 50-step training round takes 79 ms against a 5,000 ms budget.
+- **Evaluation plan (test 9):** Showed that the current circle pattern cannot demonstrate adaptation, because a policy trained on bouncing targets already catches it 100% of the time with no further training. Proposed a harder second pattern and a fixed adaptive-vs-frozen protocol.
+- **Spec:** Wrote the Person D spec for the learner thread, experience queue, snapshots, frozen mode, saving format and tests 6 to 9.
+
+All tests ran natively on macOS with clang, not yet inside Unreal.
+
+**Evidence:** [branch `feature/adaptive-sac-checkpoint`](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/tree/feature/adaptive-sac-checkpoint) (commits `56c01b5`, `8cbe90b`), with test output in `Examples/AdaptiveTag/Evidence/SAC/native-checkpoint/` and `native-timing/`.
+
+## Hiu Yan (Jaela) Kwok
+
+**Role:** Shared Policy investigation, planning, and ONNX reference prototype
+
+- Investigated Schola’s existing inference path, including `Think`, `BatchedThink`, model ownership, buffers, bindings, and the distinction between API-level batching and tensor-batched execution.
+- Authored the Shared Policy project guide defining the proposed scope, tensor and routing contracts, failure behaviour, architecture, responsibility split, six-week delivery plan, acceptance criteria, risks, and questions for AMD.
+- Implemented a deterministic PyTorch reference model containing a shared layer and two named outputs for Combat and Support actions.
+- Added dynamic-batch ONNX export, model validation, and a two-NPC ONNX Runtime example that executes one model call and preserves per-NPC routing order.
+- Added 11 Python tests covering tensor shapes, metadata, exact outputs, routing order, runtime call count, malformed observations, and invalid model contracts.
+- Documented the prototype’s setup, verified behaviour, and limitations, including that it does not yet prove Unreal NNE integration or a performance improvement.
+- Prepared the Shared Policy D2 presentation materials covering the project objective, planning work, prototype evidence, AMD feedback, architecture alternatives, and revised next steps.
+
+**Evidence:**
+
+- [PR #5 — Shared Policy ONNX reference prototype](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5)
+- [Prototype source and instructions](../../Prototypes/SharedPolicy/README.md)
+- [Shared Policy project guide](https://docs.google.com/document/d/1QPLZo8vqCXEwkyKr5YaowDqcifTEvgNM/edit)
+- [Shared Policy D2 presentation](https://docs.google.com/presentation/d/1oCS74S7zQehjbKYZ9ql0jUwtF_QFhtFMUqCipEH-tRk/edit)
+
+## Prithvi
+
+**Role:** Implemented the initial Event-based NPC inference prototype, enabling NPC decisions to be triggered by gameplay events.
+
+Event Stepper Implementation: Developed UEventStepper using Schola's existing IStepper interface to support triggered NPC inference.
+Inference Pipeline Integration: Implemented TriggerInference() to execute the existing workflow **(Observe → BatchedThink → Act)**, reusing Schola's agent and policy interfaces.
+Unreal Engine Integration: Integrated the Event Stepper into an Unreal Engine test project and exposed the triggering functionality for use with Blueprints.
+
+**Evidence:**
+- [Header File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Public/Steppers/EventStepper.h), [Implementation File](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/feature/event/Source/ScholaInferenceUtils/Private/Steppers/EventStepper.cpp)
+- [Event Diagram](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-blueprint.png)
+- [Stepper Initialization](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-initialization.png), [Event-triggered Inference Execution](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/e3bff40/deliverables/D2/evidence/event-npc-inference-execution.png)
+## Olivia Markow
+
+**Role:** Online learning: in-engine SAC learner, chase task and interactive simulator.
+
+- Compared ways to train inside Unreal with no Python (Unreal NNE, Learning Agents, LibTorch, ONNX Runtime training, mlpack, hand-written C++, RLtools) and chose RLtools' SAC.
+- Built the `OnlineSACRuntime` module: a chase environment and RLtools' own SAC loop, with pass criteria fixed from baselines before training. Unreal automation tests passed on 3 seeds (catch rate 0.86 to 0.99).
+- Built `OnlineSACLearner`, a push-style learner with a validated experience queue, a background learner thread, versioned actor snapshots and a frozen mode. Lifecycle tests rejected 8 of 8 invalid experiences and ran about 1.6 million concurrent `Act` calls across 191 snapshot swaps with no invalid action.
+- Built `chase_sim`, an interactive console simulator on an engine-neutral `ChaseSession` core: equal-speed chaser and runner, straight, square and circle runner patterns, live training, snapshots, frozen mode, watch and replay, and one config file for every setting. An Unreal automation test runs the same core.
+- Wrote `UOnlineSACPolicy` and the `AdaptiveSAC` host to connect the learner to Schola's `UAdaptiveNPCPolicy` without Python. The recorded results do not yet include this part.
+- Result: after 300 circle episodes the chaser catches 100% of the evaluation starts on 3 seeds, up from 8% to 22% (greedy pursuit 40%, random 18%). Adaptation to a changed pattern is not yet shown: the circle-trained policy already catches every square start.
+
+**Evidence:** 
+
+- [PR #16 - Adaptive SAC Learner and Interactive Chase Demo](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16)
+- [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing)
+- [SAC test results, baselines and learning curves](../../Examples/AdaptiveTag/Evidence/SAC/README.md)
+
+## Jason
+
+**Role**: Online learning: Implemented and evaluated a native learning-versus-frozen policy comparison for Adaptive Tag.
+
+- Extended the existing C++ tests with paired adaptive and frozen learners across four seeds, using matching pretraining and runner sequences.
+- Added checks for matching initial policies and unchanged frozen-policy probabilities, versions, and update counts.
+- Recorded 2,048 post-switch outcomes in CSV files. Continued learning achieved a 63.1% catch rate versus 24.8% for frozen policies in the native route-choice simulation.
+- Documented the experiment, results, limitations, and reproduction steps.
+  
+**Evidence:**
+  
+- [PR #23 — Matched learning-versus-frozen policy experiment](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/23).

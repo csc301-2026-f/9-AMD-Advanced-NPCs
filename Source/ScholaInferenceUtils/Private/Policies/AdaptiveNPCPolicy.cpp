@@ -96,24 +96,32 @@ bool ValidateBoxDefinition(const TInstancedStruct<FSpace>& Definition, bool bAct
 }
 }
 
+bool UAdaptiveNPCPolicy::ValidateSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error) const
+{
+    return ValidateBoxSpaceDefinition(Definition, bActionSpace, Error);
+}
+
+bool UAdaptiveNPCPolicy::ValidateBoxSpaceDefinition(const TInstancedStruct<FSpace>& Definition, bool bActionSpace, FString& Error)
+{
+    return ValidateBoxDefinition(Definition, bActionSpace, Error);
+}
+
+bool UAdaptiveNPCPolicy::ValidatePoint(const TInstancedStruct<FPoint>& Point, const TInstancedStruct<FSpace>& Definition, FString& Error) const
+{
+    return ValidateBoxPoint(Point, Definition, Error);
+}
+
 bool UAdaptiveNPCPolicy::Init(const FInteractionDefinition& InDefinition)
 {
     check(IsInGameThread());
     FString Error;
-    if (!ValidateBoxDefinition(InDefinition.ObsSpaceDefn, false, Error)
-        || !ValidateBoxDefinition(InDefinition.ActionSpaceDefn, true, Error))
+    if (!ValidateSpaceDefinition(InDefinition.ObsSpaceDefn, false, Error)
+        || !ValidateSpaceDefinition(InDefinition.ActionSpaceDefn, true, Error))
     {
-        LastError = MoveTemp(Error);
-        if (!bInitialized)
-        {
-            SessionState = EAdaptiveSessionState::Failed;
-        }
-        return false;
+        return RejectInitialization(Error);
     }
 
-    InvalidateDecision(TEXT("Policy reinitialized."));
-    SessionId.Invalidate();
-    AgentId = EpisodeId = INDEX_NONE;
+    EndSession(TEXT("Policy reinitialized."));
     InteractionDefinition = InDefinition;
     bInitialized = true;
     SessionState = EAdaptiveSessionState::Initialized;
@@ -129,6 +137,130 @@ bool UAdaptiveNPCPolicy::GetInteractionDefinition(FInteractionDefinition& OutDef
     }
     OutDefinition = InteractionDefinition;
     return true;
+}
+
+bool UAdaptiveNPCPolicy::RejectInitialization(const FString& Error)
+{
+    LastError = Error;
+    if (!bInitialized) SessionState = EAdaptiveSessionState::Failed;
+    return false;
+}
+
+void UAdaptiveNPCPolicy::FailInitialization(const FString& Error)
+{
+    check(IsInGameThread());
+    if (SessionState == EAdaptiveSessionState::Initialized)
+    {
+        SessionState = EAdaptiveSessionState::Failed;
+        LastError = Error;
+    }
+}
+
+void UAdaptiveNPCPolicy::SuspendSession()
+{
+    check(IsInGameThread());
+    InvalidateDecision(TEXT("Learner reconstruction invalidated this action."));
+    SessionId.Invalidate();
+    AgentId = EpisodeId = INDEX_NONE;
+    SessionState = EAdaptiveSessionState::Initialized;
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::RecordOperation(EAdaptiveOperationStatus Status, const FString& Diagnostic)
+{
+    check(IsInGameThread());
+    if (OperationHistory.Num() >= 32)
+    {
+        const int32 Index = OperationHistory.IndexOfByPredicate([](const FAdaptiveOperationResult& Result)
+        { return Result.Status != EAdaptiveOperationStatus::Pending; });
+        if (Index == INDEX_NONE)
+        {
+            FAdaptiveOperationResult Result;
+            Result.Status = EAdaptiveOperationStatus::Failed;
+            Result.Diagnostic = TEXT("Too many pending operations.");
+            LastError = Result.Diagnostic;
+            return Result;
+        }
+        OperationHistory.RemoveAt(Index);
+    }
+    FAdaptiveOperationResult Result;
+    Result.OperationId = FGuid::NewGuid();
+    Result.Status = Status;
+    Result.Diagnostic = Diagnostic;
+    OperationHistory.Add(Result);
+    LastError = Status == EAdaptiveOperationStatus::Failed ? Diagnostic : FString();
+    return Result;
+}
+
+void UAdaptiveNPCPolicy::CompleteOperation(FGuid OperationId, EAdaptiveOperationStatus Status, const FString& Diagnostic)
+{
+    check(IsInGameThread());
+    for (auto& Result : OperationHistory)
+    {
+        if (Result.OperationId == OperationId && Result.Status == EAdaptiveOperationStatus::Pending)
+        {
+            Result.Status = Status;
+            Result.Diagnostic = Diagnostic;
+            if (Status == EAdaptiveOperationStatus::Failed) LastError = Diagnostic;
+            return;
+        }
+    }
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::GetOperationResult(FGuid OperationId) const
+{
+    check(IsInGameThread());
+    for (const auto& Result : OperationHistory)
+        if (Result.OperationId == OperationId) return Result;
+    FAdaptiveOperationResult Result;
+    Result.OperationId = OperationId;
+    Result.Status = EAdaptiveOperationStatus::Failed;
+    Result.Diagnostic = TEXT("Unknown or retired operation ID.");
+    return Result;
+}
+
+FAdaptiveSessionInfo UAdaptiveNPCPolicy::GetSessionInfo() const
+{
+    check(IsInGameThread());
+    FAdaptiveSessionInfo Result;
+    Result.State = SessionState;
+    Result.SessionId = SessionId;
+    Result.AgentId = AgentId;
+    Result.EpisodeId = EpisodeId;
+    return Result;
+}
+
+namespace
+{
+FAdaptiveOperationResult UnsupportedOperation(const TCHAR* Operation)
+{
+    FAdaptiveOperationResult Result;
+    Result.Diagnostic = FString::Printf(TEXT("%s is not supported by this adaptive policy."), Operation);
+    return Result;
+}
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::SetLearningEnabled(bool bEnabled)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Learning control"));
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::SetInferenceMode(EAdaptiveInferenceMode Mode)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Inference mode selection"));
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::ResetLearning(int32 Seed)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Learning reset"));
+}
+
+FAdaptiveOperationResult UAdaptiveNPCPolicy::CaptureSnapshot(UAdaptivePolicySnapshot*& OutSnapshot)
+{
+    check(IsInGameThread());
+    return UnsupportedOperation(TEXT("Policy snapshots"));
 }
 
 bool UAdaptiveNPCPolicy::Think(const TInstancedStruct<FPoint>& Observation, TInstancedStruct<FPoint>& Action)
@@ -177,6 +309,7 @@ void UAdaptiveNPCPolicy::ExpireDecision()
         RequestError = TEXT("Decision expired before use. Request a fresh observation/action.");
         Decision = FAdaptiveDecision();
         LastError = RequestError;
+        OnDecisionRetired(Request.DecisionId, false);
     }
 }
 
@@ -192,7 +325,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
     ExpireDecision();
     if (SessionState != EAdaptiveSessionState::Ready)
     {
-        LastError = TEXT("Decision requests require a Ready session; local initialization alone does not connect to Python.");
+        LastError = TEXT("Decision requests require a Ready session started by a native learner policy; base initialization only validates spaces.");
         return false;
     }
     if (RequestStatus == EAdaptiveRequestStatus::Pending)
@@ -206,7 +339,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
         return false;
     }
     FString Error;
-    if (!ValidateBoxPoint(Observation, InteractionDefinition.ObsSpaceDefn, Error))
+    if (!ValidatePoint(Observation, InteractionDefinition.ObsSpaceDefn, Error))
     {
         LastError = TEXT("Observation rejected: ") + Error;
         return false;
@@ -218,6 +351,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
     }
 
     // One bounded slot: a new accepted request retires the previous terminal/ready ticket.
+    OnDecisionRetired(Request.DecisionId, false);
     Request = FAdaptiveDecisionRequest();
     Request.SessionId = SessionId;
     Request.AgentId = AgentId;
@@ -234,7 +368,7 @@ bool UAdaptiveNPCPolicy::RequestDecision(const TInstancedStruct<FPoint>& Observa
     const FAdaptiveDecisionRequest DispatchedRequest = Request;
     if (!DispatchDecision(DispatchedRequest))
     {
-        FailDecision(DispatchedRequest, TEXT("Decision dispatch unavailable or rejected. No Python client is connected by the base policy."));
+        FailDecision(DispatchedRequest, TEXT("Decision dispatch unavailable or rejected. The base policy has no learner implementation."));
         return false;
     }
     OutDecisionId = DispatchedRequest.DecisionId;
@@ -252,6 +386,7 @@ EAdaptiveRequestStatus UAdaptiveNPCPolicy::TryGetDecision(int64 DecisionId, FAda
     if (RequestStatus == EAdaptiveRequestStatus::Ready)
     {
         OutDecision = Decision;
+        OnDecisionRetrieved(DecisionId);
     }
     return RequestStatus;
 }
@@ -260,6 +395,61 @@ FString UAdaptiveNPCPolicy::GetDecisionError(int64 DecisionId) const
 {
     check(IsInGameThread());
     return DecisionId >= 0 && Request.DecisionId == DecisionId ? RequestError : FString();
+}
+
+EAdaptiveSubmitResult UAdaptiveNPCPolicy::SubmitExperience(const FAdaptiveExperience& Experience)
+{
+    check(IsInGameThread());
+    if (SessionState != EAdaptiveSessionState::Ready)
+    {
+        LastError = TEXT("Experiences require a Ready learner session.");
+        return EAdaptiveSubmitResult::NotReady;
+    }
+    if (Experience.SessionId != SessionId || Experience.AgentId != AgentId || Experience.EpisodeId != EpisodeId)
+    {
+        LastError = TEXT("Experience session, agent and episode must match the active policy binding.");
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    if (Experience.DecisionId < 0 || Experience.PolicyVersion < 0 || !FMath::IsFinite(Experience.Reward))
+    {
+        LastError = TEXT("Experience requires nonnegative decision/version IDs and a finite reward.");
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    FString Error;
+    if (!ValidatePoint(Experience.Observation, InteractionDefinition.ObsSpaceDefn, Error))
+    {
+        LastError = TEXT("Experience observation rejected: ") + Error;
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    if (!ValidatePoint(Experience.NextObservation, InteractionDefinition.ObsSpaceDefn, Error))
+    {
+        LastError = TEXT("Experience next observation rejected: ") + Error;
+        return EAdaptiveSubmitResult::Rejected;
+    }
+    if (!ValidatePoint(Experience.ExecutedAction, InteractionDefinition.ActionSpaceDefn, Error))
+    {
+        LastError = TEXT("Experience executed action rejected: ") + Error;
+        return EAdaptiveSubmitResult::Rejected;
+    }
+
+    LastError.Reset();
+    const EAdaptiveSubmitResult Result = DispatchExperience(Experience);
+    switch (Result)
+    {
+    case EAdaptiveSubmitResult::Accepted:
+    case EAdaptiveSubmitResult::Frozen:
+        LastError.Reset();
+        return Result;
+    case EAdaptiveSubmitResult::Dropped:
+        if (LastError.IsEmpty()) LastError = TEXT("Experience dropped: the learner queue is full.");
+        return Result;
+    case EAdaptiveSubmitResult::NotReady:
+        if (LastError.IsEmpty()) LastError = TEXT("The native learner is not ready to accept experiences.");
+        return Result;
+    default:
+        if (LastError.IsEmpty()) LastError = TEXT("Experience rejected by the native learner.");
+        return EAdaptiveSubmitResult::Rejected;
+    }
 }
 
 bool UAdaptiveNPCPolicy::MatchesPendingRequest(const FGuid& InSessionId, int64 InAgentId, int64 InEpisodeId, int64 InDecisionId) const
@@ -280,7 +470,7 @@ bool UAdaptiveNPCPolicy::CompleteDecision(const FAdaptiveDecision& InDecision)
         return false;
     }
     FString Error;
-    if (InDecision.PolicyVersion < 0 || !ValidateBoxPoint(InDecision.Action, InteractionDefinition.ActionSpaceDefn, Error))
+    if (InDecision.PolicyVersion < 0 || !ValidatePoint(InDecision.Action, InteractionDefinition.ActionSpaceDefn, Error))
     {
         FailDecision(Request, InDecision.PolicyVersion < 0
             ? TEXT("Result policy version must be nonnegative.") : TEXT("Action rejected: ") + Error);
@@ -310,6 +500,7 @@ bool UAdaptiveNPCPolicy::FailDecision(const FAdaptiveDecisionRequest& InRequest,
 
 void UAdaptiveNPCPolicy::InvalidateDecision(const FString& Reason)
 {
+    OnDecisionRetired(Request.DecisionId, true);
     if (RequestStatus == EAdaptiveRequestStatus::Pending || RequestStatus == EAdaptiveRequestStatus::Ready)
     {
         RequestStatus = EAdaptiveRequestStatus::Cancelled;
@@ -341,33 +532,53 @@ bool UAdaptiveNPCPolicy::ResetEpisode()
         LastError = TEXT("Encounter reset requires a Ready session and an available episode ID.");
         return false;
     }
+    const FAdaptiveSessionInfo PreviousSession = GetSessionInfo();
     InvalidateDecision(TEXT("Encounter reset cancelled the previous action."));
     ++EpisodeId;
+    OnEpisodeReset(PreviousSession);
     LastError.Reset();
     return true;
+}
+
+void UAdaptiveNPCPolicy::EndSession(const FString& Reason)
+{
+    const FAdaptiveSessionInfo PreviousSession = GetSessionInfo();
+    InvalidateDecision(Reason);
+    SessionId.Invalidate();
+    AgentId = EpisodeId = INDEX_NONE;
+    SessionState = EAdaptiveSessionState::Stopped;
+    if (PreviousSession.State == EAdaptiveSessionState::Ready)
+    {
+        ReleaseLearnerBinding(PreviousSession);
+    }
+    OnSessionEnded(PreviousSession);
+    for (auto& Operation : OperationHistory)
+    {
+        if (Operation.Status == EAdaptiveOperationStatus::Pending)
+        {
+            Operation.Status = EAdaptiveOperationStatus::Cancelled;
+            Operation.Diagnostic = Reason;
+        }
+    }
 }
 
 void UAdaptiveNPCPolicy::Shutdown()
 {
     check(IsInGameThread());
-    InvalidateDecision(TEXT("Policy shut down."));
-    SessionId.Invalidate();
-    AgentId = EpisodeId = INDEX_NONE;
-    SessionState = EAdaptiveSessionState::Stopped;
+    EndSession(TEXT("Policy shut down."));
     LastError.Reset();
 }
 
 void UAdaptiveNPCPolicy::BeginDestroy()
 {
-    InvalidateDecision(TEXT("Policy destroyed."));
-    SessionId.Invalidate();
-    SessionState = EAdaptiveSessionState::Stopped;
+    EndSession(TEXT("Policy destroyed."));
     Super::BeginDestroy();
 }
 
 void UAdaptiveNPCPolicy::ResetRuntimeState()
 {
-    // Loaded/duplicated policy configuration never inherits a live learner connection or its work.
+    OperationHistory.Reset();
+    // Loaded/duplicated policy configuration never inherits an active learner session or its work.
     SessionId.Invalidate();
     AgentId = EpisodeId = INDEX_NONE;
     Request = FAdaptiveDecisionRequest();

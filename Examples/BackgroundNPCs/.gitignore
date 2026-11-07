@@ -1,0 +1,9 @@
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+Recordings/
+*.sln
+!Content/Models/*.onnx
+Plugins/
