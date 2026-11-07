@@ -23,7 +23,12 @@ the same division of responsibilities with RLtools running locally in C++.
 Success meant demonstrating this workflow through the actual Schola policy API,
 including asynchronous learning and configurations beyond our example shapes.
 
-**Shared Policy Team**： In D2, we had a working Shared Policy prototype with a shared backbone and multiple specialized heads, but it was mainly tested in Python. We needed to verify its compatibility with Unreal Engine and explore different architectures to understand their potential performance trade-offs.
+### Shared Policy NPCs (Hiu Yan (Jaela) Kwok, Clementine)
+
+D2 provided a Python ONNX prototype; its Unreal bindings and Stepper were not
+connected to real NNE inference. AMD asked us to compare alternative designs
+before choosing one. We therefore needed to verify equivalent routed actions in
+Unreal and compare complete-request latency, including routing overhead.
 
 ### Background NPCs — Max Xu
 
@@ -104,7 +109,24 @@ and [#36 configuration generation](https://github.com/csc301-2026-f/9-AMD-Advanc
 The [minimal test host](../../Examples/NativeLearning/README.md) exercises the plugin
 without depending on the older examples' learner code.
 
-**Shared policy Team**： We developed a benchmark prototype to compare five architectures (A–E) and evaluate their inference behaviour (PR #24). We also added macOS ARM64 build support for Schola (PR #32) and implemented Unreal NNE Automation Tests for architectures A, C, and D. All three passed and their outputs were validated against Python ONNX Runtime reference results (PR #33).
+### Shared Policy NPCs
+
+We built five candidates from the same seeded weights: all heads (A), runtime
+masks (B), one complete model per expert (C), one conditional graph (D), and a
+separate backbone plus head models (E). Results were accepted only when actions
+matched A and returned in original NPC order. D's scalar ONNX condition required
+grouping mixed NPCs by expert before inference.
+
+AMD narrowed repeated measurement to C versus D. The portable matrix completed
+144 trials with no correctness failures. On UE 5.8.4 using
+`NNERuntimeORTCpu` on one Apple Silicon Mac, all 48 reports across 16 workloads
+passed correctness. C had lower request p50 in 45/48 trials and every workload
+median; the median gaps were 0.626–2.895 microseconds. This is not a general
+performance claim. Implementation is in
+[#24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24), with macOS ARM64
+support in [#32](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/32) and
+initial A/C/D NNE compatibility tests in
+[#33](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33).
 
 ### Background NPCs — CampusCrowd
 
@@ -127,8 +149,9 @@ Local automated tests and scripted builds/packages replace GitHub Actions for th
 |Adaptive NPCs| Ownership and lifecycle | Prototype-specific runtime management | World service, independent/default ownership, explicit sharing and asynchronous controls | Sharing, reset and teardown tests |
 |Adaptive NPCs| Reproducible Unreal evidence | Separate prototype evidence; general backend unverified | UE 5.8.4 build and 40/40 selected tests, plus 43 generator checks | [Evidence](adaptive-npc-evidence.md) |
 |Background NPCs| Integration and scale | 20,000-agent comparison scene | Campus geometry, routes, camera controls, and runs up to 100,000 agents | [Recorded performance](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/92c4fd7708c136218e5cd79cc6d240b217307ccb/Examples/CampusCrowd/README.md#performance) |
-|Shared Policy| Architecture comparison | No systematic comparison | Evaluated five architectures (A–E) and their inference trade-offs | PR #24 |
-|Shared Policy| Unreal compatibility | Mainly Python testing | A, C and D passed Unreal NNE tests | PR #33 |
+|Shared Policy| Architecture decision | One all-head reference design, with no controlled comparison | A–E share seeded weights and one correctness contract; AMD's repeated comparison is C versus D | [PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24) |
+|Shared Policy| Unreal compatibility | Python ONNX Runtime prototype; Unreal routing existed separately | A/C/D run through NNE, and C/D share an end-to-end routed request path | [PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24), [PR #33](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33) |
+|Shared Policy| Reproducible evidence | No end-to-end architecture performance evidence | 144/144 portable trials and 48/48 Unreal reports passed correctness; C led 45/48 paired p50 trials and all 16 workload medians | [Benchmark guide](../../Prototypes/SharedPolicy/benchmarks/README.md) |
 |Shared Policy| macOS support | Limited build support | Added ARM64 build support | PR #32 |
 
 The adaptive comparison concerns capabilities and reproducibility, not a claimed
@@ -182,7 +205,17 @@ recurrent models, accelerated devices and other spaces need separate implementat
 and evidence. This keeps D4 acceptance criteria concrete rather than presenting
 the wider RLtools feature set as already supported.
 
-**Shared Policy Team**： D3 helped us move beyond the initial prototype and verify that multiple Shared Policy architectures can run in Unreal. We also learned that supporting selective inference does not automatically guarantee better performance. Next, we plan to complete NPC head-routing integration, improve the benchmark, and evaluate the architectures under more realistic conditions.
+### Shared Policy NPCs
+
+**What worked well.** Correctness gates and one complete-request boundary made the
+C/D comparison consistent.
+
+**What was harder.** D ran correctly but did not improve latency. The small gaps,
+synthetic models, and single Mac/CPU environment limit the conclusion.
+
+**Path to D4.** Compare C/D model storage and steady-state memory. If D has no
+meaningful advantage, retain C and integrate it with trained policies and
+role-assigned NPCs in gameplay. AMD hardware and more experts require later tests.
 
 ### Background NPCs — Max Xu
 
