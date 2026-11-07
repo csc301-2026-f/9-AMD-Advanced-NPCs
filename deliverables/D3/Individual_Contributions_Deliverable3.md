@@ -29,6 +29,24 @@ Each entry records that member's D3 work. Subteams maintain their own entries.
 
 Implemented field-specific validation errors for native learner runtime settings and added regression checks for zero, negative, NaN, and infinity values. Clarified AdaptiveTag HUD labels to distinguish the active policy from the preserved learned actor. Updated freeze/resume controls to reset recent catch-rate history while preserving cumulative scores and learned weights. Verified both demo changes manually in Unreal; native tests passed. Added Unreal API error-propagation checks, which have not yet been run.
 
+### Chloe Lee — Adaptive NPCs: checkpoint save and load
+
+- Moved my D2 checkpoint code ([#44](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/44))
+  into the plugin's native learner so it works for SAC, TD3 and PPO
+  ([#45](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/45)).
+- Three save modes: policy only, training state, and full resume with the replay
+  buffer.
+- Loading checks the file first (size, checksum, config, RLtools version) and
+  refuses bad or mismatched files without touching the current learner. RLtools'
+  own replay buffer loader didn't work here, so I save the buffer manually.
+- Native tests that run without Unreal: 460 checks, all passing on macOS.
+- Blueprint save/load nodes, Unreal tests and a short guide
+  ([#46](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/46)), still
+  waiting on a UE 5.8 build to test.
+
+**Evidence:** [#45](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/45),
+[#46](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/46)
+
 ### Hiu Yan (Jaela) Kwok — Shared Policy Architecture Evaluation
 
 - Built the A–E ONNX comparison from the same seeded weights, including export,
