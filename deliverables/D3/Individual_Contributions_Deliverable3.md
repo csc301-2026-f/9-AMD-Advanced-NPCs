@@ -54,7 +54,7 @@ and [D3 slides](index.html#shared-policy-benchmark).
 
 - **Documentation:** Added macOS setup instructions and documented the build and testing process.
 
-- **Collaboration:** 
+- **Collaboration:** Prepared the Shared Policy D3 report, demo materials and presentation slides. Coordinated with the team to deliver presentation and demo.
   
 **[Name]**, [Role]
 > [Specific contributions]
