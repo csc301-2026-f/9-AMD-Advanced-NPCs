@@ -25,7 +25,9 @@ Each entry records that member's D3 work. Subteams maintain their own entries.
   the release path while preserving the other subteams' changes. PRs #31, #35
   and #36 received teammate approval from Max Xu.
 
-**Evidence:** [Adaptive workflow and verification](adaptive-npc-evidence.md).
+### Jason Panusopone — Adaptive NPCs: Native learning diagnostics and demo usability  
+
+Implemented field-specific validation errors for native learner runtime settings and added regression checks for zero, negative, NaN, and infinity values. Clarified AdaptiveTag HUD labels to distinguish the active policy from the preserved learned actor. Updated freeze/resume controls to reset recent catch-rate history while preserving cumulative scores and learned weights. Verified both demo changes manually in Unreal; native tests passed. Added Unreal API error-propagation checks, which have not yet been run.
 
 ### Hiu Yan (Jaela) Kwok — Shared Policy Architecture Evaluation
 
