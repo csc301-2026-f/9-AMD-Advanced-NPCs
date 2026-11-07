@@ -17,7 +17,37 @@ The event-based NPC work focuses on allowing NPCs to perform inference in respon
 | Subteam / feature | Description and value |
 | --- | --- |
 | Efficient background agents | Batched, non-blocking inference for large populations of ML-controlled Actors and Mass entities. The game thread submits observations and applies actions on a later frame. Background workers run the ONNX policy in batches. Researchers can scale agent counts and decision rates without the model running inside the frame. |
-| Shared Policy NPC inference | A reference ONNX model batches observations from multiple NPCs and supports role-specific Combat and Support outputs. Unreal-side bindings associate each NPC with a head, while the Shared Policy Stepper collects observations and routes returned actions. The reference model and Unreal routing infrastructure are implemented separately; real NNE integration and performance evaluation remain future work. |
+| Shared Policy NPC inference | Five equivalent ONNX architectures test different ways to route role-specific actions. A/C/D run through Unreal NNE, and a correctness-gated C/D benchmark measures the complete routed request. On the tested Mac CPU environment, C had lower request p50 in 45/48 paired trials and every workload median; memory and gameplay integration remain open. |
+
+## D3 highlight: Shared Policy architecture evaluation
+
+D3 adds an A–E architecture comparison and Unreal NNE evaluation to the D2 Python
+prototype. All 144 portable trials and 48 Unreal reports passed correctness. C had
+lower request p50 in 45/48 trials and all 16 workload medians on one Mac CPU setup;
+the 0.626–2.895 microsecond gaps do not establish a universal winner.
+
+**Start here:** [benchmark design and commands](Prototypes/SharedPolicy/benchmarks/README.md),
+[D3 report](deliverables/D3/product-evolution.md#shared-policy-npcs),
+[merged PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24),
+and [presentation](deliverables/D3/index.html#shared-policy-benchmark).
+
+With Python 3.12 and [`uv`](https://docs.astral.sh/uv/) installed, a TA can run
+the portable tests and a short correctness-gated benchmark from a fresh checkout:
+
+```bash
+cd Prototypes/SharedPolicy
+uv sync --python 3.12
+uv run pytest -q
+uv run python -m benchmarks.export_models
+uv run python -m benchmarks.benchmark --config benchmarks/config.json --smoke \
+  --output benchmarks/runs/smoke.json
+```
+
+**NFR and process:** invalid shapes, roles, call counts, or output order fail before
+results are accepted. The benchmark uses warm-ups and isolated processes. AMD has
+its own Unreal CI/CD; we are working with the partner to integrate it into this
+repository, so current verification uses the documented local scripts. The models
+are synthetic and do not evaluate trained NPC behaviour.
 
 ## D3 highlight: CampusCrowd
 
@@ -133,6 +163,7 @@ Changes to the runner mode preserve the learned weights. Fresh launches and **T*
 | --- | --- | --- |
 | Background NPC comparison | Build and run [Examples/BackgroundNPCs](Examples/BackgroundNPCs/README.md) (see [setup](#background-npc-comparison)). It starts with the background API enabled. Press **Tab** to switch to per-agent synchronous inference and back. | 20,000 Mass agents walk toward goals, steered by the ONNX policy. The HUD shows frame rate, frame time, game-thread inference time, decisions per second, agents per model call, and action latency for the active mode. |
 | Shared Policy ONNX reference prototype | Follow the setup and execution commands in [Prototypes/SharedPolicy/README.md](Prototypes/SharedPolicy/README.md). The prototype requires Python 3.12 and `uv`. | The test suite reports 11 passing tests. The demo processes two NPC observations in one ONNX Runtime call and selects the Combat output for one row and the Support output for the other. This verifies the reference contract outside Unreal; it does not verify NNE integration. |
+| Shared Policy D3 architecture evaluation | Run the tests and smoke command in [the D3 highlight](#d3-highlight-shared-policy-architecture-evaluation); use the [benchmark guide](Prototypes/SharedPolicy/benchmarks/README.md) for the complete portable and Unreal matrices. | A–E must reproduce the oracle actions. The D3 result is 144/144 correct portable C/D trials and 48/48 correct Unreal reports; performance conclusions remain scoped to the recorded environment. |
 
 ## Key use cases
 
@@ -215,13 +246,12 @@ inference work while selecting outputs for their assigned roles, so that I can
 support specialized NPC behaviour without running an unrelated complete model
 design for every agent.
 
-**Description:** The Shared Policy investigation explores how Schola could
+**Description:** The Shared Policy investigation explores how Schola can
 collect observations from several NPCs, process them as a tensor batch, and
 route each returned action according to the NPC's configured role. The initial
 reference architecture uses one shared layer with named Combat and Support
-outputs. Following AMD feedback, the team is also considering role-conditioned
-policies, batching NPCs separately by role, and separate backbone and head
-models.
+outputs. Following AMD feedback, D3 compares all-head, runtime-mask, complete
+model-per-expert, conditional-graph, and separate-backbone/head designs.
 
 **Implemented functionality:**
 
@@ -238,15 +268,18 @@ models.
 - A Shared Policy Stepper that collects NPC observations, calls the
   `ISharedPolicy` batch interface, and routes returned actions to the
   corresponding NPCs.
+- A–E benchmark artifacts and a 144-trial portable C/D matrix.
+- Unreal NNE tests for A/C/D and 48 isolated C/D reports across 16 workloads.
 
 **Demo and validation:** [PR #5](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/5)
 and the [prototype instructions](Prototypes/SharedPolicy/README.md) contain the
 reference implementation, reproduction commands, expected output, and tests.
 [PR #7](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/7) and
 [PR #13](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/13) contain
-the Unreal configuration and Stepper work. The Python and Unreal components
-have not yet been connected through a real NNE policy, and no production
-performance claim has been made.
+the original Unreal configuration and Stepper work. D3's benchmark is in
+[PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24), with A/C/D
+NNE tests in [PR #33](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33).
+These tests do not evaluate a trained gameplay policy.
 
 ## D2 adaptive NPC prototype implementation
 
@@ -435,6 +468,11 @@ The existing Schola codebase carries an MIT license in [LICENSE.txt](LICENSE.txt
 
 Next steps for adaptive NPCs are automatic observation/action/reward collection through the Schola coordinator, learning-versus-frozen evaluation under the same behavior changes, resumable checkpoint persistence, and separate-project packaging. The native policy API and project configuration generation are implemented; see the [D3 reflection](deliverables/D3/product-evolution.md#4-reflection).
 
+For Shared Policy NPCs, compare C and D's model-storage and baseline-subtracted
+steady-state memory. If D shows no meaningful advantage, retain C and integrate
+it with trained policies and role-assigned NPCs in a real gameplay workflow.
+More experts and AMD hardware require separate validation.
+
 Proposed next steps for background agents are to validate the comparison example on Windows, run it with a trained policy, measure scaling with more workers and larger crowds, and resolve the Actor-adapter pool growth. GPU execution would be added only if CPU workers become the bottleneck.
 
 Extend Event NPCs with configurable gameplay event subscriptions and unsubscriptions.
@@ -461,5 +499,6 @@ Others included in link
 | Olivia Markow | Built the in-engine SAC learner, the chase task and the interactive `chase_sim` simulator, and compared options for training inside Unreal without Python. Connected the learner to Schola's `UAdaptiveNPCPolicy` in a test host. | [PR #16](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/16), [demo video](https://drive.google.com/file/d/1KCl6-ZuzqVPr-uehdEMz8i1f82DPB4sj/view?usp=sharing) and [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md#olivia-markow) |
 | | | |
 
-More in [detailed contributions](deliverables/D2/Individual_Contributions_Deliverable2.md)
+D2 details are in the [D2 contribution record](deliverables/D2/Individual_Contributions_Deliverable2.md).
+For current work, see the [D3 individual contributions](deliverables/D3/Individual_Contributions_Deliverable3.md).
 

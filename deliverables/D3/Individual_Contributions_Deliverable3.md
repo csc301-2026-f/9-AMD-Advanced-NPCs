@@ -27,8 +27,19 @@ Each entry records that member's D3 work. Subteams maintain their own entries.
 
 **Evidence:** [Adaptive workflow and verification](adaptive-npc-evidence.md).
 
-**[Name]**, [Role]
-> [Specific contributions]
+### Hiu Yan (Jaela) Kwok — Shared Policy Architecture Evaluation
+
+- Built the A–E ONNX comparison from the same seeded weights, including export,
+  routing, correctness tests, profiling, and the portable C/D matrix.
+- Added the Unreal C/D routing, timing, isolated runner, and aggregation. All 48
+  reports passed correctness; C had lower request p50 in 45 trials and all 16
+  workload medians on the tested Mac CPU environment.
+- Documented the experiment, limitations, presentation results, and next step:
+  compare C/D model storage and memory before gameplay integration.
+
+**Evidence:** [PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24),
+[benchmark design and reproduction guide](../../Prototypes/SharedPolicy/benchmarks/README.md),
+and [D3 slides](index.html#shared-policy-benchmark).
 
 **[Name]**, [Role]
 > [Specific contributions]

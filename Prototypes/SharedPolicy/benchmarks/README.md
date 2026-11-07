@@ -1,19 +1,31 @@
 # Shared policy architecture benchmarks
 
-Status: A–E can be exported, routed through one validated request contract, and
-run through a correctness-gated timing smoke test. The repeated portable matrix
-is implemented for the narrowed C/D comparison; Unreal measurements are pending.
+Status: A–E are implemented; the repeated comparison focuses on C/D.
 
-This experiment evaluates how a shared-backbone, multi-head policy should avoid
-unused head computation. It directly tests the architectures raised in AMD
-feedback: fixed masks, host-side expert routing, conditional ONNX execution, and
-separate backbone/head models. The deliverable is complete only after the
-portable ONNX Runtime comparison is followed by Unreal NNE compatibility and
-performance validation.
+This experiment compares the alternatives raised in AMD feedback while requiring
+equivalent routed actions. Models use the same seeded weights and synthetic
+observations; they do not train or evaluate NPC behaviour.
 
-Models use identical seeded weights and synthetic observations so architecture
-cost is isolated from training quality. The experiment does not train a router,
-learn role assignments, or claim useful NPC behavior.
+## D3 results
+
+The portable matrix completed **144/144** trials without correctness failures.
+On UE 5.8.4, macOS 26.6, Apple Silicon, and `NNERuntimeORTCpu`, all **48/48**
+reports across 16 workloads passed correctness. C had lower request p50 in
+**45/48** trials and all **16/16** workload medians, by **0.626–2.895
+microseconds**. Three trials reversed direction, so this result does not establish
+that C is universally faster. Memory, AMD hardware, trained policies, and gameplay
+were not tested.
+
+Reproduce the isolated Unreal matrix from the repository root after building
+`Examples/BackgroundNPCs` and setting `UE_ENGINE_ROOT` to Unreal Engine 5.8.4:
+
+```bash
+Examples/BackgroundNPCs/Scripts/run_cd_isolated_matrix.sh
+```
+
+The runner writes ignored per-process reports and
+`Saved/Automation/SharedPolicy/isolated/cd-isolated-summary.json`. It stops before
+aggregation if Unreal fails, a report is missing, or correctness fails.
 
 ## Candidate definitions
 
@@ -166,9 +178,13 @@ Generated ONNX files go in ignored `artifacts/`. Temporary results and profiles
 go in ignored `runs/`. These generated files are not source code and will not be
 committed.
 
-After exporting the artifacts, validate the timing harness with:
+From `Prototypes/SharedPolicy`, install the locked environment, run the tests,
+export and validate all A–E artifacts, then validate the timing harness:
 
 ```bash
+uv sync --python 3.12
+uv run pytest -q
+uv run python -m benchmarks.export_models
 uv run python -m benchmarks.benchmark \
   --config benchmarks/config.json \
   --smoke \
