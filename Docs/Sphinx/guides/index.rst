@@ -15,6 +15,7 @@ Guides
    native_online_learning_foundation
    native_rltools_learning
    native_adaptive_policy
+   native_rltools_checkpoints
    rltools_configuration_generation
    running_from_cli
    lerobot_evaluation

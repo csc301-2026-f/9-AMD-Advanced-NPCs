@@ -9,6 +9,15 @@ enum class ERLToolsAlgorithm : uint8 { SAC, TD3, PPO };
 UENUM(BlueprintType)
 enum class ERLToolsActivation : uint8 { ReLU, Tanh };
 
+/** What a native checkpoint file contains. The mode is recorded in the file; Load restores only that. */
+UENUM(BlueprintType)
+enum class ERLToolsCheckpointMode : uint8
+{
+    PolicyExport UMETA(ToolTip = "Actor (and PPO value function) plus fixed preprocessing. Load starts from these weights with fresh critics/optimizers and an empty replay."),
+    TrainingState UMETA(ToolTip = "All networks, target networks, optimizers, training RNG and counters. Excludes the replay buffer: after Load the learner refills it and warms up again. Not a full resume."),
+    FullResume UMETA(ToolTip = "TrainingState plus SAC/TD3 replay buffer contents, so training continues where it stopped. PPO has no persistent replay; equivalent to TrainingState.")
+};
+
 /** Runtime choices copied on Init. Structural and algorithm-template parameters come from the profile. */
 USTRUCT(BlueprintType)
 struct SCHOLARLTOOLS_API FRLToolsRuntimeSettings

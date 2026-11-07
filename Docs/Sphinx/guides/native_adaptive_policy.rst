@@ -261,6 +261,9 @@ deterministic, does not advance exploration or submit experiences, and remains
 usable after later training, reset, binding destruction or world teardown.
 Captured inference state is not a resumable training checkpoint.
 
+``SaveCheckpoint`` and ``LoadCheckpoint`` persist and restore the whole logical
+learner as observable operations; see :doc:`native_rltools_checkpoints`.
+
 Background execution
 --------------------
 
@@ -302,7 +305,7 @@ The host script checks successful results against source registrations.
 Supported functionality is CPU, feedforward SAC/TD3/PPO, Box observations and
 bounded continuous Box actions with registered configurations. Discrete/Dict/custom
 spaces, recurrent networks, running normalization,
-accelerated devices, checkpoints, final separate-project packaging and automatic
+accelerated devices, final separate-project packaging and automatic
 game/environment collection remain follow-up capabilities. Rendering and useful
 gameplay adaptation require their own validation. The numerical behavior and
 configuration extension points are detailed in :doc:`native_rltools_learning`.

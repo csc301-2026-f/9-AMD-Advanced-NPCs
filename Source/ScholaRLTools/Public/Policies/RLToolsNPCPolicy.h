@@ -69,6 +69,18 @@ public:
     UFUNCTION(BlueprintPure, Category = "Schola|RLtools")
     FAdaptiveOperationResult GetInitializationOperation() const { return GetOperationResult(InitializationOperation); }
 
+    /** Asynchronous; poll GetOperationResult. Saves the whole (possibly shared) learner without closing bindings.
+     * Empty or relative paths resolve under Saved/Schola/Learning; empty uses the profile id as file name.
+     */
+    UFUNCTION(BlueprintCallable, Category = "Schola|RLtools|Checkpoint")
+    FAdaptiveOperationResult SaveCheckpoint(const FString& Path, ERLToolsCheckpointMode Mode = ERLToolsCheckpointMode::TrainingState);
+
+    /** Asynchronous; the mode is read from the file. Success replaces the whole learner like ResetLearning
+     * (new session, outstanding decisions invalidated for every group member). Failure changes nothing.
+     */
+    UFUNCTION(BlueprintCallable, Category = "Schola|RLtools|Checkpoint")
+    FAdaptiveOperationResult LoadCheckpoint(const FString& Path);
+
 protected:
     bool DispatchDecision(const FAdaptiveDecisionRequest& Request) override;
     EAdaptiveSubmitResult DispatchExperience(const FAdaptiveExperience& Experience) override;
@@ -83,7 +95,8 @@ private:
     void BindingReady(FGuid Binding, FGuid Session, int64 Agent);
     void BindingFailed(FGuid Binding, const FString& Error);
     void BindingResetting(FGuid Binding);
-    void BindingOperationCompleted(FGuid Binding, FGuid Operation, const FString& Error);
+    // Error decides the status; Diagnostic is the reported text (equal to Error on failure).
+    void BindingOperationCompleted(FGuid Binding, FGuid Operation, const FString& Error, const FString& Diagnostic);
 
     FGuid BindingId;
     FGuid InitializationOperation;
