@@ -301,7 +301,8 @@ void ATagArenaGameMode::Tick(float DeltaSeconds)
         {
             bFreezeLearning = !bFreezeLearning;
             NativeLearner->SetTrainingEnabled(bUseLearner && !bFreezeLearning);
-            AddEvent(bFreezeLearning ? TEXT("Training frozen. NPC keeps using its current learned policy.") : TEXT("Training resumed. Weights were preserved."));
+            RecentRewards.Reset();
+            AddEvent(bFreezeLearning ? TEXT("Training frozen. Learned policy preserved; recent catch rate cleared.") : TEXT("Training resumed. Weights preserved; recent catch rate cleared."));
         }
         if (Player->WasInputKeyJustPressed(EKeys::B))
         {

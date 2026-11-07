@@ -723,11 +723,18 @@ bool FLearner::ValidateSettings(const std::string& ProfileId, const FSettings& S
     if (Match == Profiles.end()) { Error = "No compiled RLtools configuration matches this identifier. Generate the configuration and build the Unreal project."; return {}; }
     if (std::count_if(Profiles.begin(), Profiles.end(), [&](const FProfile& P) { return P.Id == ProfileId; }) != 1)
     { Error = "Duplicate compiled RLtools configuration identifier."; return {}; }
-    if (!Settings.QueueCapacity || !Settings.MaxRecordsPerBurst || !Settings.TrainFrequency || !Settings.GradientSteps
-        || !Settings.MaxUpdatesPerBurst || !Settings.PublishEveryUpdates || !Settings.PPOEpochs
-        || !std::isfinite(Settings.LearningRate) || Settings.LearningRate <= 0
-        || !std::isfinite(Settings.ExplorationNoise) || Settings.ExplorationNoise < 0)
-    { Error = "Invalid queue, scheduling or optimizer settings."; return {}; }
+    if (!Settings.QueueCapacity) { Error = "QueueCapacity must be greater than zero."; return false; }
+    if (!Settings.MaxRecordsPerBurst) { Error = "MaxRecordsPerBurst must be greater than zero."; return false; }
+    if (!Settings.TrainFrequency) { Error = "TrainFrequency must be greater than zero."; return false; }
+    if (!Settings.GradientSteps) { Error = "GradientSteps must be greater than zero."; return false; }
+    if (!Settings.MaxUpdatesPerBurst) { Error = "MaxUpdatesPerBurst must be greater than zero."; return false; }
+    if (!Settings.PublishEveryUpdates) { Error = "PublishEveryUpdates must be greater than zero."; return false; }
+    if (!Settings.PPOEpochs) { Error = "PPOEpochs must be greater than zero."; return false; }
+    if (!std::isfinite(Settings.LearningRate) || Settings.LearningRate <= 0)
+    { Error = "LearningRate must be finite and greater than zero."; return false; }
+    if (!std::isfinite(Settings.ExplorationNoise) || Settings.ExplorationNoise < 0)
+    { Error = "ExplorationNoise must be finite and nonnegative."; return false; }
+
     if (Match->Algorithm != EAlgorithm::PPO && Settings.LearningStarts < Match->BatchSize)
     { Error = "LearningStarts must be at least the compiled training batch size."; return {}; }
     if ((!Settings.ObservationMean.empty() || !Settings.ObservationStd.empty())

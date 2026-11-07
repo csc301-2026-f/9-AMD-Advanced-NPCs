@@ -170,6 +170,24 @@ bool FRLToolsPolicyConfigurationTest::RunTest(const FString&)
     P->Configuration = TEXT("td3/3x2-mlp32");
     TestFalse(TEXT("Algorithm/config mismatch"), P->Init(Def));
     P->Configuration = TEXT("sac/3x2-mlp32");
+    const auto ValidSettings = P->Settings;
+    for (int32 FRLToolsRuntimeSettings::* Field : {&FRLToolsRuntimeSettings::Seed,
+        &FRLToolsRuntimeSettings::QueueCapacity, &FRLToolsRuntimeSettings::LearningStarts})
+    {
+        P->Settings = ValidSettings;
+        P->Settings.*Field = -1;
+        TestFalse(TEXT("Invalid integer setting rejected"), P->Init(Def));
+        const TCHAR* Name = Field == &FRLToolsRuntimeSettings::Seed ? TEXT("Seed")
+            : Field == &FRLToolsRuntimeSettings::QueueCapacity ? TEXT("QueueCapacity") : TEXT("LearningStarts");
+        TestTrue(TEXT("Integer diagnostic names field"), P->GetLastError().Contains(Name));
+    }
+    P->Settings = ValidSettings;
+    P->Settings.LearningRate = -1;
+    TestFalse(TEXT("Invalid optimizer setting rejected"), P->Init(Def));
+    TestTrue(TEXT("Native diagnostic reaches policy"), P->GetLastError().Contains(TEXT("LearningRate")));
+    TestTrue(TEXT("Invalid settings preserve live learner"), P->GetSessionInfo().SessionId == Original);
+    P->Settings = ValidSettings;
+
     P->Settings.LearningStarts = 1; TestFalse(TEXT("Invalid warmup rejected locally"), P->Init(Def)); P->Settings.LearningStarts = 32;
     P->Settings.ObservationMean = {0}; P->Settings.ObservationStd = {1};
     TestFalse(TEXT("Invalid preprocessing rejected locally"), P->Init(Def));
