@@ -40,12 +40,13 @@ void ATagArenaHUD::DrawHUD()
     const float P=Arena->bUseLearner?Stats.expectedLeft:0.5f;
     Text(FString::Printf(TEXT("LEFT %.0f%%               RIGHT %.0f%%"),100*P,100*(1-P)),42,192,Ink,0.72f);
     Rect(42,220,292,10,Coral); Rect(42,220,292*P,10,Cyan);
-    Text(TEXT("Actor's own LEFT / RIGHT distribution"),42,240,Muted,0.59f);
+    Text(Arena->bUseLearner?TEXT("Active policy: learned actor"):TEXT("Active policy: fixed 50/50 baseline"),42,240,Muted,0.59f);
     Text(FString::Printf(TEXT("EXPERIENCES %u   /   ONLINE UPDATES"),Stats.experiences),42,274,Ink,0.68f);
     Text(FString::Printf(TEXT("TRAINING UPDATES  %u"),Stats.updates),42,304,Ink,0.72f);
     Text(FString::Printf(TEXT("POLICY v%u   TRAINED v%u"),Stats.appliedVersion,Stats.trainedVersion),42,334,Muted,0.63f);
     Text(FString::Printf(TEXT("QUEUE %u/128  DROPPED %u  INVALID %u"),Stats.queued,Stats.dropped,Stats.rejected),42,362,Muted,0.59f);
-    Text(TEXT("P(LEFT) / LAST 30 WALL-CLOCK SECONDS"),42,394,Muted,0.60f);
+    Text(TEXT("LEARNED ACTOR P(LEFT) / LAST 30s"),42,390,Muted,0.60f);
+    if(!Arena->bUseLearner)Text(TEXT("Actor weights preserved during baseline play"),42,405,Gold,0.53f);
     Rect(42,420,292,66,FLinearColor(0.025f,0.044f,0.065f)); Line(42,453,334,453,Muted);
     const auto& History=Arena->ProbabilityHistory;
     for(int32 i=1;i<History.Num();++i)Line(42+292.0f*(i-1)/119,486-66*History[i-1],42+292.0f*i/119,486-66*History[i],Cyan,2);
@@ -56,7 +57,7 @@ void ATagArenaHUD::DrawHUD()
     Text(TEXT("WHAT THE AGENT SEES"),42,604,Cyan,0.73f);
     Text(TEXT("Observation [1.0] / constant bias only"),42,636,Ink,0.64f);
     Text(TEXT("No runner position, route or mode input."),42,662,Muted,0.59f);
-    Text(FString::Printf(TEXT("Actor P(LEFT)=%.0f%%  P(RIGHT)=%.0f%%"),100*Decision.leftProbability,100*(1-Decision.leftProbability)),42,693,Ink,0.66f);
+    Text(FString::Printf(TEXT("Decision LEFT %.0f%%  RIGHT %.0f%%"),100*Decision.leftProbability,100*(1-Decision.leftProbability)),42,693,Ink,0.66f);
     Text(!Arena->bUseLearner?TEXT("Comparison: fixed 50/50 baseline"):TEXT("Action source: actor only / every round"),42,722,Gold,0.60f);
     Text(Arena->bTaggerRevealed?FString::Printf(TEXT("Sampled route: %s"),*ATagArenaGameMode::SideLabel(Arena->TaggerSide)):TEXT("Sampled route: HIDDEN until you commit"),42,751,Coral,0.61f);
     const float R=W-354;

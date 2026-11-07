@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 #include "Learning/RLToolsLearner.h"
 #include <cmath>
+#include <limits>
 #include <cstdlib>
 #include <iostream>
 #include <thread>
@@ -91,6 +92,28 @@ static void AdmissionTest()
     Drain(*Learner);
     Require(Learner->Submit(First, First.GetAction(), 1, Obs, false, false) == ESubmitResult::Rejected, "duplicate outcome");
     Require(Learner->Submit(Second, Second.GetAction(), 1, Obs, false, true) == ESubmitResult::Accepted, "overflow preserves unsubmitted decision");
+    auto RejectSetting = [&](const FSettings& Invalid, const char* Field) {
+        Require(!FLearner::ValidateSettings("sac/3x2-mlp32", Invalid, Error), "invalid setting rejected");
+        Require(Error.find(Field) != std::string::npos, "diagnostic names invalid setting");
+    };
+    { FSettings Invalid; Invalid.QueueCapacity = 0; RejectSetting(Invalid, "QueueCapacity"); }
+    { FSettings Invalid; Invalid.MaxRecordsPerBurst = 0; RejectSetting(Invalid, "MaxRecordsPerBurst"); }
+    { FSettings Invalid; Invalid.TrainFrequency = 0; RejectSetting(Invalid, "TrainFrequency"); }
+    { FSettings Invalid; Invalid.GradientSteps = 0; RejectSetting(Invalid, "GradientSteps"); }
+    { FSettings Invalid; Invalid.MaxUpdatesPerBurst = 0; RejectSetting(Invalid, "MaxUpdatesPerBurst"); }
+    { FSettings Invalid; Invalid.PublishEveryUpdates = 0; RejectSetting(Invalid, "PublishEveryUpdates"); }
+    { FSettings Invalid; Invalid.PPOEpochs = 0; RejectSetting(Invalid, "PPOEpochs"); }
+    for (float Value : {-1.0f, 0.0f, std::numeric_limits<float>::quiet_NaN(),
+                        std::numeric_limits<float>::infinity()}) {
+        FSettings Invalid; Invalid.LearningRate = Value; RejectSetting(Invalid, "LearningRate");
+    }
+    for (float Value : {-1.0f, std::numeric_limits<float>::quiet_NaN(),
+                        std::numeric_limits<float>::infinity()}) {
+        FSettings Invalid; Invalid.ExplorationNoise = Value; RejectSetting(Invalid, "ExplorationNoise");
+    }
+    { FSettings Valid; Valid.ExplorationNoise = 0;
+      Require(FLearner::ValidateSettings("sac/3x2-mlp32", Valid, Error) && Error.empty(), "zero noise accepted and error cleared"); }
+
     FSettings Bad;
     Bad.LearningRate = -1;
     Require(!FLearner::Create("sac/3x2-mlp32", Bad, Error) && !Error.empty(), "invalid settings");

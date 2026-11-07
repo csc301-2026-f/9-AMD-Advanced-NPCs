@@ -63,13 +63,27 @@ FRLToolsConfiguration DescribeProfile(const FProfile& P)
 bool ValidateConfiguration(ERLToolsAlgorithm Algorithm, const FString& Id, const FRLToolsRuntimeSettings& S,
     const FInteractionDefinition& Definition, FString& Error)
 {
-    if (S.Seed < 0 || S.QueueCapacity <= 0 || S.MaxRecordsPerBurst <= 0 || S.LearningStarts < 0
-        || S.InitialRandomSteps < 0 || S.TrainFrequency <= 0 || S.GradientSteps <= 0
-        || S.MaxUpdatesPerBurst <= 0 || S.PublishEveryUpdates <= 0 || S.PPOEpochs <= 0)
-    {
-        Error = TEXT("Seed, warm-up and initial exploration must be nonnegative; queue and scheduling limits must be positive.");
-        return false;
-    }
+    if (S.Seed < 0)
+    { Error = TEXT("Seed must be nonnegative."); return false; }
+    if (S.QueueCapacity <= 0)
+    { Error = TEXT("QueueCapacity must be greater than zero."); return false; }
+    if (S.MaxRecordsPerBurst <= 0)
+    { Error = TEXT("MaxRecordsPerBurst must be greater than zero."); return false; }
+    if (S.LearningStarts < 0)
+    { Error = TEXT("LearningStarts must be nonnegative."); return false; }
+    if (S.InitialRandomSteps < 0)
+    { Error = TEXT("InitialRandomSteps must be nonnegative."); return false; }
+    if (S.TrainFrequency <= 0)
+    { Error = TEXT("TrainFrequency must be greater than zero."); return false; }
+    if (S.GradientSteps <= 0)
+    { Error = TEXT("GradientSteps must be greater than zero."); return false; }
+    if (S.MaxUpdatesPerBurst <= 0)
+    { Error = TEXT("MaxUpdatesPerBurst must be greater than zero."); return false; }
+    if (S.PublishEveryUpdates <= 0)
+    { Error = TEXT("PublishEveryUpdates must be greater than zero."); return false; }
+    if (S.PPOEpochs <= 0)
+    { Error = TEXT("PPOEpochs must be greater than zero."); return false; }
+
     const std::string NativeId(TCHAR_TO_UTF8(*Id));
     std::string NativeError;
     if (!FLearner::ValidateSettings(NativeId, ToNative(S), NativeError))
