@@ -6,9 +6,33 @@
 #include "Learning/RLToolsPolicyConversion.h"
 #include "Engine/World.h"
 #include "HAL/PlatformTime.h"
+#include "Misc/Paths.h"
 #include "Spaces/BoxSpace.h"
 
 using namespace Schola::RLTools;
+
+namespace
+{
+// Empty, directory-only or relative paths resolve under Saved/Schola/Learning; the worker creates the directory.
+FString CheckpointPath(const FString& Path, const FString& Profile)
+{
+    FString Result = Path;
+    if (Result.IsEmpty() || Result.EndsWith(TEXT("/")) || Result.EndsWith(TEXT("\\")))
+        Result += FPaths::MakeValidFileName(Profile, TEXT('_')) + TEXT(".ckpt");
+    if (FPaths::IsRelative(Result)) Result = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Schola/Learning"), Result);
+    return FPaths::ConvertRelativePathToFull(Result);
+}
+bool CheckpointMode(ERLToolsCheckpointMode Mode, ECheckpointMode& Out)
+{
+    switch (Mode)
+    {
+    case ERLToolsCheckpointMode::PolicyExport: Out = ECheckpointMode::PolicyExport; return true;
+    case ERLToolsCheckpointMode::TrainingState: Out = ECheckpointMode::TrainingState; return true;
+    case ERLToolsCheckpointMode::FullResume: Out = ECheckpointMode::FullResume; return true;
+    default: return false;
+    }
+}
+}
 
 bool URLToolsWorldSubsystem::DoesSupportWorldType(EWorldType::Type Type) const
 {
@@ -167,11 +191,47 @@ void URLToolsWorldSubsystem::HandleCompletion(FGuid Id, uint8 KindValue, FGuid I
         }
     }
     else if (Kind == EWork::Fence) Entry->ControlPending = false;
+    FString Diagnostic = Error;
+    if (Kind == EWork::Save || Kind == EWork::Load)
+    {
+        if (Kind == EWork::Load && Entry->Phase != EBindingPhase::Resetting) return;
+        Entry->ControlPending = false;
+        Diagnostic = Error.IsEmpty()
+            ? FString::Printf(TEXT("%s %s."), Kind == EWork::Save ? TEXT("Saved checkpoint to") : TEXT("Loaded checkpoint from"), *Entry->Checkpoint)
+            : FString::Printf(TEXT("%s (%s)%s"), *Error, *Entry->Checkpoint, Kind == EWork::Load ? TEXT(". Learner, session and decisions unchanged.") : TEXT(""));
+        if (!Entry->Group.IsNone())
+            Diagnostic += FString::Printf(TEXT(" Shared learner '%s': %s %d bindings."), *Entry->Group.ToString(),
+                Error.IsEmpty() ? TEXT("affected") : TEXT("did not change"), Entry->Bindings.Num());
+        Entry->Checkpoint.Reset();
+    }
+    if (Kind == EWork::Load)
+    {
+        // Failure keeps the same session: facades were never suspended and retained decisions stay valid.
+        Entry->Phase = EBindingPhase::Ready;
+        if (Error.IsEmpty())
+        {
+            // Success matches Reset: native generation advanced, so rotate the session and invalidate every member.
+            Entry->Session = FGuid::NewGuid();
+            const FGuid Session = Entry->Session;
+            const TArray<FGuid> Bindings = Entry->Bindings;
+            for (FGuid BindingId : Bindings)
+            {
+                auto* Binding = Runtime->Bindings.Find(BindingId);
+                auto* Policy = Binding ? Binding->Policy.Get() : nullptr;
+                if (!Policy) { Release(BindingId); continue; }
+                const int64 Agent = Binding->Agent;
+                Binding->Decisions.Empty();
+                Binding->Episode = 0;
+                Policy->BindingResetting(BindingId);
+                Policy->BindingReady(BindingId, Session, Agent);
+            }
+        }
+    }
     if (Initiator.IsValid())
     {
         auto* Binding = Runtime->Bindings.Find(Initiator);
         if (auto* Policy = Binding ? Binding->Policy.Get() : nullptr)
-            Policy->BindingOperationCompleted(Initiator, Operation, Error);
+            Policy->BindingOperationCompleted(Initiator, Operation, Error, Diagnostic);
     }
 }
 bool URLToolsWorldSubsystem::Decide(FGuid Id, const FAdaptiveDecisionRequest& Request, EAdaptiveInferenceMode Mode,
@@ -351,6 +411,47 @@ bool URLToolsWorldSubsystem::LearningReset(FGuid Id, int32 Seed, FGuid Operation
         if (auto* Policy = Binding.Policy.Get()) Policy->BindingResetting(BindingId);
     }
     Runtime->Executor->Enqueue(Entry->Worker, {EWork::Reset, Id, Operation, static_cast<unsigned>(Seed)});
+    return true;
+}
+bool URLToolsWorldSubsystem::LearningSave(FGuid Id, const FString& Path, ERLToolsCheckpointMode Mode, FGuid Operation, FString& Error)
+{
+    auto* Entry = Runtime->Ready(Id, Error);
+    if (!Entry) return false;
+    FCommand Command;
+    if (!CheckpointMode(Mode, Command.Mode) || Entry->ControlPending)
+    {
+        Error = TEXT("Save requires a valid checkpoint mode and no pending shared learner control operation.");
+        return false;
+    }
+    // Bindings stay Ready: inference continues while the worker pauses training to serialize.
+    Entry->ControlPending = true;
+    Entry->Checkpoint = CheckpointPath(Path, Entry->Profile);
+    Command.Kind = EWork::Save;
+    Command.Binding = Id;
+    Command.Operation = Operation;
+    Command.Path = TCHAR_TO_UTF8(*Entry->Checkpoint);
+    Runtime->Executor->Enqueue(Entry->Worker, MoveTemp(Command));
+    return true;
+}
+bool URLToolsWorldSubsystem::LearningLoad(FGuid Id, const FString& Path, FGuid Operation, FString& Error)
+{
+    auto* Entry = Runtime->Ready(Id, Error);
+    if (!Entry) return false;
+    if (Entry->ControlPending)
+    {
+        Error = TEXT("Load requires no pending shared learner control operation.");
+        return false;
+    }
+    // The whole group stops deciding/submitting; facades are suspended only if the load succeeds.
+    Entry->ControlPending = true;
+    Entry->Phase = EBindingPhase::Resetting;
+    Entry->Checkpoint = CheckpointPath(Path, Entry->Profile);
+    FCommand Command;
+    Command.Kind = EWork::Load;
+    Command.Binding = Id;
+    Command.Operation = Operation;
+    Command.Path = TCHAR_TO_UTF8(*Entry->Checkpoint);
+    Runtime->Executor->Enqueue(Entry->Worker, MoveTemp(Command));
     return true;
 }
 bool URLToolsWorldSubsystem::Snapshot(FGuid Id, UAdaptivePolicySnapshot*& Out, FString& Error)

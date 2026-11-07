@@ -90,10 +90,10 @@ void URLToolsNPCPolicy::BindingResetting(FGuid Binding)
 {
     if (Binding == BindingId) SuspendSession();
 }
-void URLToolsNPCPolicy::BindingOperationCompleted(FGuid Binding, FGuid Operation, const FString& Error)
+void URLToolsNPCPolicy::BindingOperationCompleted(FGuid Binding, FGuid Operation, const FString& Error, const FString& Diagnostic)
 {
     if (Binding == BindingId)
-        CompleteOperation(Operation, Error.IsEmpty() ? EAdaptiveOperationStatus::Succeeded : EAdaptiveOperationStatus::Failed, Error);
+        CompleteOperation(Operation, Error.IsEmpty() ? EAdaptiveOperationStatus::Succeeded : EAdaptiveOperationStatus::Failed, Diagnostic);
 }
 void URLToolsNPCPolicy::OnSessionEnded(const FAdaptiveSessionInfo& Previous)
 {
@@ -171,6 +171,26 @@ FAdaptiveOperationResult URLToolsNPCPolicy::ResetLearning(int32 Seed)
     FString Error;
     auto* WorldService = Service.Get();
     if (!WorldService || !WorldService->LearningReset(BindingId, Seed, Operation.OperationId, Error))
+        CompleteOperation(Operation.OperationId, EAdaptiveOperationStatus::Failed, Error.IsEmpty() ? TEXT("No live learner binding.") : Error);
+    return GetOperationResult(Operation.OperationId);
+}
+FAdaptiveOperationResult URLToolsNPCPolicy::SaveCheckpoint(const FString& Path, ERLToolsCheckpointMode Mode)
+{
+    check(IsInGameThread());
+    auto Operation = RecordOperation(EAdaptiveOperationStatus::Pending);
+    FString Error;
+    auto* WorldService = Service.Get();
+    if (!WorldService || !WorldService->LearningSave(BindingId, Path, Mode, Operation.OperationId, Error))
+        CompleteOperation(Operation.OperationId, EAdaptiveOperationStatus::Failed, Error.IsEmpty() ? TEXT("No live learner binding.") : Error);
+    return GetOperationResult(Operation.OperationId);
+}
+FAdaptiveOperationResult URLToolsNPCPolicy::LoadCheckpoint(const FString& Path)
+{
+    check(IsInGameThread());
+    auto Operation = RecordOperation(EAdaptiveOperationStatus::Pending);
+    FString Error;
+    auto* WorldService = Service.Get();
+    if (!WorldService || !WorldService->LearningLoad(BindingId, Path, Operation.OperationId, Error))
         CompleteOperation(Operation.OperationId, EAdaptiveOperationStatus::Failed, Error.IsEmpty() ? TEXT("No live learner binding.") : Error);
     return GetOperationResult(Operation.OperationId);
 }

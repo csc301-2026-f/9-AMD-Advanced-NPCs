@@ -105,9 +105,12 @@ Runtime ``FSettings`` controls seed, queue capacity, learning starts, initial
 random exploration, collection/training frequency, update bursts, publication,
 PPO epochs, learning rate and TD3 exploration noise. Optional fixed observation
 means/standard deviations are validated and copied into snapshots; observations
-are otherwise unchanged. Running normalization, recurrent models, additional
-devices and checkpoint persistence are not implemented. Their presence
+are otherwise unchanged. Running normalization, recurrent models and additional
+devices are not implemented. Their presence
 in RLtools is not reported as available Schola functionality.
+
+Saving and restoring learner state (policy export, training state and optional
+replay contents) is described in :doc:`native_rltools_checkpoints`.
 
 Execution and lifecycle
 -----------------------
