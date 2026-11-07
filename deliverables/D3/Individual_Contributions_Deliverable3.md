@@ -62,14 +62,10 @@ and [D3 slides](index.html#shared-policy-benchmark).
 
 - **PR #33 – Unreal NNE Testing:** Implemented Unreal Automation Tests for Shared Policy architectures A, C, and D using `NNERuntimeORTCpu`.
 
-- **Reference Testing:** Compared Unreal inference outputs against Python ONNX Runtime results, checking numerical accuracy and tensor shapes across different batch sizes.
+- Compared Unreal inference outputs against Python ONNX Runtime results, checking numerical accuracy and tensor shapes across different batch sizes.
 
-- **Documentation:** Added macOS setup instructions and documented the build and testing process.
-
-- **Collaboration:** 
+- Added macOS setup instructions and documented the build and testing process. Prepared the Shared Policy D3 report, demo materials and presentation slides. Coordinated with the team to deliver presentation and demo.
   
-**[Name]**, [Role]
-> [Specific contributions]
 
 ### Prithvi Ajay
 
