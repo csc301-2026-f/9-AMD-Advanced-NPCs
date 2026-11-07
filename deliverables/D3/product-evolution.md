@@ -1,7 +1,8 @@
 # Advanced NPCs for AMD Schola
 
 This report describes the team's improvements since D2. The adaptive NPC work
-turns the native learning prototypes into a configurable Schola integration.
+turns the native learning prototypes into a configurable Schola integration
+and tests whether a learning NPC actually adapts when its opponent changes.
 
 ## 1. What Needed to Improve
 
@@ -23,6 +24,17 @@ the same division of responsibilities with RLtools running locally in C++.
 Success meant demonstrating this workflow through the actual Schola policy API,
 including asynchronous learning and configurations beyond our example shapes.
 
+<<<<<<< Updated upstream
+=======
+Reusable learning only matters if the NPC adapts. At D2 we could not show that:
+the SAC chaser learned, but a policy trained on the circle runner already caught
+every square start, so a frozen policy did just as well. Learning was also too
+slow for AMD, who asked in a partner meeting for adaptation within minutes; the
+D2 chase setup needed about 28–55 minutes of play. The D2 review (Q2, item 3)
+and Chloe's D2 evaluation plan (test 9) flagged the same missing
+adaptive-versus-frozen comparison.
+
+>>>>>>> Stashed changes
 ### Shared Policy NPCs (Hiu Yan (Jaela) Kwok, Clementine)
 
 D2 provided a Python ONNX prototype; its Unreal bindings and Stepper were not
@@ -37,6 +49,8 @@ D2 demonstrated background inference with 20,000 Mass agents in a comparison sce
 ## 2. What You Did
 
 ### Adaptive NPCs
+
+#### Reusable native learning in Schola
 
 **Developer workflow.** A developer creates a native policy in Blueprint or C++,
 chooses SAC, TD3 or PPO, supplies a Schola interaction definition, and waits for
@@ -96,11 +110,11 @@ hard frame-time guarantee. See the [evidence and NFR record](adaptive-npc-eviden
 
 **Process.** Focused PRs separate lifecycle/build foundations, native learning,
 the policy/world adapter and configuration generation. PRs #31, #35 and #36 have
-visible teammate approvals. Our repeatable local scripts are the current
-verification path. AMD has its own CI/CD checks; they are not integrated into this
-repository yet, and we are working with the partner to establish that integration.
-This is an outstanding process dependency, not a claim that these local results
-ran in CI.
+visible teammate approvals. Unreal builds use repeatable local scripts: AMD has
+its own CI/CD checks, which are not integrated into this repository yet, and we
+are working with the partner on that integration. The chase work below adds the
+repository's first GitHub Actions workflow, which covers the standalone
+simulator only, not the Unreal plugin.
 
 **Implementation:** [#30 foundations](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/30),
 [#31 native learners](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/31),
@@ -109,6 +123,42 @@ and [#36 configuration generation](https://github.com/csc301-2026-f/9-AMD-Advanc
 The [minimal test host](../../Examples/NativeLearning/README.md) exercises the plugin
 without depending on the older examples' learner code.
 
+<<<<<<< Updated upstream
+=======
+#### Showing adaptation in the chase task
+
+**Harder task.** Chase v2 (board 100, 200-step rounds, catch distance 2) adds
+three deterministic habit runners that react to the chaser: `rightturn` turns
+right to flee, `clockwise` slides along the walls, and `corner` flees to the
+corner with the biggest lead (flee radius 60, 25-unit switch margin). The
+observation adds the runner's offset from the chaser. An intercept baseline
+shows the task is learnable but not trivial.
+
+**Faster learning.** A sweep of about 40 variants over 3 seeds showed that more
+gradient updates per move was the biggest lever. New defaults: 8 updates per
+move, a 64-wide network and a catch bonus of 10, at about 170 moves/s.
+
+**Adaptation test.** Train on `rightturn`, snapshot the policy, switch to
+`corner` and keep learning. Five pass criteria were fixed before scoring and
+never loosened: ≥0.50 before the switch, ≤0.80 right after, back to ≥0.80 within
+20,000 moves, the snapshot more than 0.20 below the learner at 20,000 moves, all
+on 3 seeds.
+
+**Integration challenge.** Once the runners fled properly, `corner` became much
+harder (greedy fell to 0.03), so an earlier passing run no longer applied. It is
+archived and not reported as a current result.
+
+**Demo and CI.** `chase_sim watch` draws the chase live with the runner's mood;
+`eval` compares the learner, the snapshot and three baselines; scripted demos
+run in 40 s and about 5 min. A GitHub Actions workflow (5-minute timeout) builds
+the simulator and runs smoke tests on PRs to `main`.
+
+**Implementation:** [#42 chase adaptation](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/42).
+The simulator runs in the terminal and calls RLtools SAC directly, not through
+the Schola policy. See the [chase adaptation
+evidence](adaptive-npc-evidence.md#sac-chase-adaptation).
+
+>>>>>>> Stashed changes
 ### Shared Policy NPCs
 
 We built five candidates from the same seeded weights: all heads (A), runtime
@@ -148,17 +198,23 @@ Local automated tests and scripted builds/packages replace GitHub Actions for th
 |Adaptive NPCs| Observation/action configuration | Shapes embedded in prototype/native template code | Configuration asset exports and compiles project-specific shapes | PR #36; generated 6/3, 7/4 and 8/2 profiles |
 |Adaptive NPCs| Ownership and lifecycle | Prototype-specific runtime management | World service, independent/default ownership, explicit sharing and asynchronous controls | Sharing, reset and teardown tests |
 |Adaptive NPCs| Reproducible Unreal evidence | Separate prototype evidence; general backend unverified | UE 5.8.4 build and 40/40 selected tests, plus 43 generator checks | [Evidence](adaptive-npc-evidence.md) |
+|Adaptive NPCs| Adaptation versus frozen policy | None: a circle-trained policy already caught every square start | Criteria 1–2 pass; recovery to 0.80 takes 9,708–20,346 moves (seed 1 misses by 346); snapshot gap at 20,000 moves 0.17/0.13/0.29 (2 seeds under 0.20). All seeds later reach 0.99–1.00 against snapshots of 0.26–0.56 | [Evidence](adaptive-npc-evidence.md#sac-chase-adaptation) |
+|Adaptive NPCs| Learning speed | 0.34 catch rate after 20,000 moves | 0.76 after 20,000 moves (8 updates per move) | [Evidence](adaptive-npc-evidence.md#sac-chase-adaptation) |
+|Adaptive NPCs| Task difficulty | Greedy pursuit caught 40% on circle | Greedy 0.03, intercept 0.98 on corner: learnable, not trivial | [Evidence](adaptive-npc-evidence.md#sac-chase-adaptation) |
 |Background NPCs| Integration and scale | 20,000-agent comparison scene | Campus geometry, routes, camera controls, and runs up to 100,000 agents | [Recorded performance](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/blob/92c4fd7708c136218e5cd79cc6d240b217307ccb/Examples/CampusCrowd/README.md#performance) |
 |Shared Policy| Architecture decision | One all-head reference design, with no controlled comparison | A–E share seeded weights and one correctness contract; AMD's repeated comparison is C versus D | [PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24) |
 |Shared Policy| Unreal compatibility | Python ONNX Runtime prototype; Unreal routing existed separately | A/C/D run through NNE, and C/D share an end-to-end routed request path | [PR #24](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/24), [PR #33](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/33) |
 |Shared Policy| Reproducible evidence | No end-to-end architecture performance evidence | 144/144 portable trials and 48/48 Unreal reports passed correctness; C led 45/48 paired p50 trials and all 16 workload medians | [Benchmark guide](../../Prototypes/SharedPolicy/benchmarks/README.md) |
 |Shared Policy| macOS support | Limited build support | Added ARM64 build support | PR #32 |
 
-The adaptive comparison concerns capabilities and reproducibility, not a claimed
+The integration rows concern capabilities and reproducibility, not a claimed
 speedup or higher catch rate. D2 gameplay results remain evidence for those
-prototypes. A newer published policy proves that updates reached inference; useful
-adaptation requires a task-level comparison against a frozen policy under the
-same conditions. The presentation includes a separate live-game demonstration.
+prototypes. A newer published policy proves that updates reached inference;
+useful adaptation requires a task-level comparison against a frozen policy under
+the same conditions. The chase rows provide that comparison in the standalone
+simulator. It does not yet pass every criterion and has not been repeated
+through the Schola policy in Unreal. The presentation includes a separate
+live-game demonstration.
 
 ### CampusCrowd measurements
 
@@ -185,6 +241,9 @@ Testing the actual policy and world service exposed lifecycle and conversion
 problems that standalone learner tests could not. Configuration generation also
 removed an artificial restriction on developer-defined shapes while preserving
 RLtools' compile-time requirements.
+In the chase task, fixing pass criteria before scoring kept the goalposts still
+when the harder runner changed the results, and the sweep turned "learning is
+slow" into one clear lever instead of guesswork.
 
 **What was harder.** Safe background learning involves more than moving Train to
 a worker. Rewards may arrive after action selection expires; a full queue must
@@ -192,12 +251,19 @@ preserve a retryable decision; a reset must invalidate every affected shared
 binding. PPO adds strict action/provenance requirements. We responded with bounded
 retention, explicit admission outcomes and identity-checked operation completion.
 The cost is a more explicit asynchronous lifecycle for game developers to handle.
+Making the chase runners flee properly invalidated a passing result, so we
+archived it rather than reuse its numbers. Learning speed also has a cost: 1
+update per move runs at about 1,250 moves/s and 16 updates at about 85, so a
+game must trade adaptation speed against frame budget.
 
 **Path to D4.** First, connect the policy to the live-agent coordinator and
 existing-environment adapter so observations, actions, rewards and episode
 boundaries flow automatically. Next, evaluate learning versus frozen policies
 across repeated seeds and behavior changes, measuring gameplay-thread latency and
-memory at realistic NPC counts. Resumable checkpoint persistence and validation
+memory at realistic NPC counts. The chase test defines that evaluation: we will
+first shorten recovery on the `corner` runner without changing its criteria, then
+run it through the native policy in Unreal, including the habit-runner automation
+tests that have not yet been run there. Resumable checkpoint persistence and validation
 in a separate packaged project remain distinct follow-ups. Captured snapshots
 currently preserve inference state only. CPU feedforward networks, Box
 observations and bounded continuous Box actions define the supported scope;

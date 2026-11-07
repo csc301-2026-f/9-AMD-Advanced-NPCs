@@ -44,6 +44,18 @@ and [D3 slides](index.html#shared-policy-benchmark).
 **[Name]**, [Role]
 > [Specific contributions]
 
+### Olivia Markow — Adaptive NPCs: SAC chaser adaptation and learning speed
+
+- Built three deterministic habit runners (rightturn, clockwise, corner) that react to the chaser, plus the harder chase v2 task (board 100, 200-step rounds, relative-position observation) and an INTERCEPT baseline.
+- Ran a ~40-variant, 3-seed hyperparameter sweep; set new defaults (8 updates per move, 64-wide network, catch bonus 10), raising the 20,000-move catch rate from 0.34 to 0.76.
+- Designed and ran the adapt-vs-frozen test (train on rightturn, snapshot, switch to corner) with five pass criteria fixed before scoring. Result: criteria 1–2 pass on all seeds; recovery (9,708–20,346 moves) and the snapshot gap miss on some seeds, reported as-is.
+- Extended chase_sim: live watch view with runner mood, five-way eval, --script sessions, a one-command build script, and 40 s / 5 min demo scripts. Traced and confirmed the snapshot is a frozen, immutable policy.
+- Added the repository's first GitHub Actions workflow: builds chase_sim and runs smoke tests on PRs, with a 5-minute timeout.
+- Wrote the D3 adaptation section of the product evolution report and the SAC evidence README.
+
+**Evidence:** [PR #42](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/42), SAC D3 evidence.
+
+
 ### Clementine Yang — Shared Policy Unreal Integration
 
 - **PR #32 – macOS ARM64 Support:** Added macOS build scripts and dependency configuration for Schola. Successfully built gRPC dependencies and compiled the BackgroundNPCsEditor project on Apple Silicon using Unreal Engine 5.8.
