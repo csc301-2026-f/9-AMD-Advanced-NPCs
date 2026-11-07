@@ -10,7 +10,7 @@ CXX=${CXX:-$(command -v clang++ || command -v g++)}
 [ -n "$CXX" ] || { echo "No C++ compiler found (install clang++ or g++)." >&2; exit 1; }
 mkdir -p "$OUT"
 "$CXX" -std=c++20 -O2 -fno-rtti -fno-exceptions -ffp-contract=off -DRL_TOOLS_DEBUG $EXTRA_FLAGS \
-  -I "$SRC/Public" -I "$SRC/Private" -isystem "$HERE/../../ThirdParty/RLtools/include" \
+  -I "$SRC/Public" -I "$SRC/Private" -isystem "$HERE/../../../../Source/ThirdParty/RLTools/include" \
   "$HERE/Main.cpp" "$SRC/Private/OnlineSACRuntime.cpp" "$SRC/Private/ChaseConfig.cpp" "$SRC/Private/RunnerPatterns.cpp" \
   "$SRC/Private/ChaseWorld.cpp" "$SRC/Private/ChaseSession.cpp" \
   -o "$OUT/chase_sim"
