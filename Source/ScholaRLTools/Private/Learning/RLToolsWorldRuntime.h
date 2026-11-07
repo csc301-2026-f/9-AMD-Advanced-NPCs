@@ -15,17 +15,20 @@ class URLToolsNPCPolicy;
 
 namespace Schola::RLTools
 {
-enum class EWork : uint8 { Create, Reset, Fence, Train, Dispose };
+enum class EWork : uint8 { Create, Reset, Fence, Train, Dispose, Save, Load };
 enum class EBindingPhase : uint8 { Constructing, Ready, Resetting };
 struct FCommand
 {
     EWork Kind = EWork::Train;
     FGuid Binding, Operation;
     unsigned Seed = 0;
+    // Save/Load only: absolute UTF-8 path. Load reads the mode from the file.
+    std::string Path;
+    ECheckpointMode Mode = ECheckpointMode::TrainingState;
 };
 /** Native data only. Learner pointer construction/disposal is worker-owned.
  * The game thread reads it only after Ready delivery and before closing the binding.
- * Reset changes numerical state, not this pointer, and closes all bindings first.
+ * Reset and Load change numerical state, not this pointer, and close all bindings first.
  */
 struct FWorkerLearner
 {
@@ -98,6 +101,8 @@ struct FWorldLearner
     FGuid Session = FGuid::NewGuid();
     EBindingPhase Phase = EBindingPhase::Constructing;
     TArray<FGuid> Bindings;
+    // Pending Save/Load destination, reported in its completion diagnostic.
+    FString Checkpoint;
     bool ControlPending = false;
 };
 struct FWorldService

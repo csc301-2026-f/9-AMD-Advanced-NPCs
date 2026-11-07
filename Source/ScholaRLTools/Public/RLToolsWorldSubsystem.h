@@ -46,6 +46,9 @@ private:
     void EpisodeReset(FGuid Binding, int64 Episode);
     bool LearningControl(FGuid Binding, bool bEnabled, FGuid Operation, FString& Error);
     bool LearningReset(FGuid Binding, int32 Seed, FGuid Operation, FString& Error);
+    // Act on the whole logical learner. Save keeps bindings Ready; Load closes them like Reset.
+    bool LearningSave(FGuid Binding, const FString& Path, ERLToolsCheckpointMode Mode, FGuid Operation, FString& Error);
+    bool LearningLoad(FGuid Binding, const FString& Path, FGuid Operation, FString& Error);
     bool Snapshot(FGuid Binding, UAdaptivePolicySnapshot*& OutSnapshot, FString& Error);
     bool Statistics(FGuid Binding, FRLToolsLearningStats& OutStats) const;
     bool ActiveSettings(FGuid Binding, FRLToolsRuntimeSettings& OutSettings) const;

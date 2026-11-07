@@ -1,10 +1,21 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 #include "Learning/RLToolsWorldRuntime.h"
 #include "Async/Async.h"
+#include "HAL/FileManager.h"
 #include "HAL/PlatformTime.h"
+#include "Misc/Paths.h"
 
 namespace Schola::RLTools
 {
+namespace
+{
+FString CheckpointError(const TCHAR* Prefix, ECheckpointResult Result, const std::string& Detail)
+{
+    FString Text = FString::Printf(TEXT("%s: %s"), Prefix, UTF8_TO_TCHAR(ToString(Result)));
+    if (!Detail.empty()) Text += FString(TEXT(" - ")) + UTF8_TO_TCHAR(Detail.c_str());
+    return Text;
+}
+}
 FWorldExecutor::FWorldExecutor(int32 InLimit, FCompletion InCompletion)
     : Completion(std::move(InCompletion)), Limit(InLimit) {}
 
@@ -128,6 +139,28 @@ void FWorldExecutor::Execute(std::shared_ptr<FWorkerLearner> Slot, FCommand Comm
         {
             Slot->Learner->Reset(Command.Seed);
             if (!Slot->Stopping) Notify(Slot, Command, FString());
+        }
+        else if (Command.Kind == EWork::Save)
+        {
+            // File I/O and the wait for an active burst stay on this worker; inference continues.
+            std::string Detail = "could not create the checkpoint directory";
+            ECheckpointResult Result = ECheckpointResult::IoError;
+            const FString Directory = FPaths::GetPath(FString(UTF8_TO_TCHAR(Command.Path.c_str())));
+            if (Directory.IsEmpty() || IFileManager::Get().MakeDirectory(*Directory, true))
+            {
+                Detail.clear();
+                Result = Slot->Learner->SaveCheckpoint(Command.Path, Command.Mode, Detail);
+            }
+            if (!Slot->Stopping)
+                Notify(Slot, Command, Result == ECheckpointResult::Ok ? FString() : CheckpointError(TEXT("Save failed"), Result, Detail));
+        }
+        else if (Command.Kind == EWork::Load)
+        {
+            // Failure leaves the live learner unchanged; success replaces it like Reset.
+            std::string Detail;
+            const ECheckpointResult Result = Slot->Learner->LoadCheckpoint(Command.Path, Detail);
+            if (!Slot->Stopping)
+                Notify(Slot, Command, Result == ECheckpointResult::Ok ? FString() : CheckpointError(TEXT("Load refused"), Result, Detail));
         }
         else if (Command.Kind == EWork::Fence)
         {
