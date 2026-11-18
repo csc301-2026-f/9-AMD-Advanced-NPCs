@@ -240,7 +240,7 @@ The display shows action probabilities, recent experiences and rewards, training
 
 [![Side-by-side: without the API (left) and with it (right)](deliverables/D2/evidence/background-npc-side-by-side.jpg)](deliverables/D2/evidence/background-npc-side-by-side.mp4)
 
-Measured with `Scripts/compare.sh` on one Linux machine (Ryzen 5 7600X, Radeon RX 7800 XT, UE 5.8.3 packaged Development build, Vulkan, 1280×720). The workload was 20,000 Mass agents, each deciding 10 times per second (200,000 decisions/s), with a 60 FPS cap. Each mode ran in its own process: 10 s warm-up, then 30 s measured. [Raw reports](deliverables/D2/evidence/background-npc-comparison.md).
+Measured with `./demo.sh compare` on one Linux machine (Ryzen 5 7600X, Radeon RX 7800 XT, UE 5.8.3 packaged Development build, Vulkan, 1280×720). The workload was 20,000 Mass agents, each deciding 10 times per second (200,000 decisions/s), with a 60 FPS cap. Each mode ran in its own process: 10 s warm-up, then 30 s measured. [Raw reports](deliverables/D2/evidence/background-npc-comparison.md).
 
 | Metric | Without API (per-agent sync) | With background NPC API |
 | --- | ---: | ---: |
@@ -362,7 +362,7 @@ The native and packaged learning results use the current actor rate of 0.006. Th
 | Actor adapter | `UBackgroundStepper`, `INPCBackgroundRowAgent` | Schedules Actor agents by decision rate, submits due rows, and applies current results |
 | Mass adapter | `Source/ScholaMass` | Gather/apply processor bases, schedule and state fragments, a bucket shared fragment, and the `ScholaDecideNow` signal |
 
-For Mass, derive a gather processor that writes observation rows and an apply processor that consumes action rows. Give entities the `FScholaInferenceScheduleFragment`, `FScholaInferenceStateFragment`, and a `FScholaInferenceBucketFragment` from `UScholaMassInferenceSubsystem::AcquireBucket`. [`CrowdProcessors.cpp`](Examples/BackgroundNPCs/Source/BackgroundNPCs/CrowdProcessors.cpp) is a complete example. The [API guide](Docs/Sphinx/guides/mock_inference_paradigms.rst) covers the Actor and Blueprint paths.
+For Mass, create a policy with `UScholaMassInferenceSubsystem::CreatePolicy` from an `FScholaMassPolicyConfig` (the model, decision rate and expected crowd size are enough), spawn entities with `FScholaMassPolicy::BatchCreateEntities`, and derive a gather processor that fills each due agent's observation row and an apply processor that reads each action row. [`CrowdProcessors.cpp`](Examples/CampusCrowd/Source/CampusCrowd/CrowdProcessors.cpp) and [`CampusCrowdHost.cpp`](Examples/CampusCrowd/Source/CampusCrowd/CampusCrowdHost.cpp) are a complete example. The [API guide](Docs/Sphinx/guides/mock_inference_paradigms.rst) covers the Actor and Blueprint paths.
 
 ### Current limitations
 
@@ -436,20 +436,19 @@ Gameplay writes experience and telemetry CSV files beneath the packaged game's `
 
 ```bash
 export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8.3
-Scripts/build.sh      # links Plugins/Schola to this repository and builds the editor target
-Scripts/run.sh        # play; Tab switches between the API and per-agent synchronous inference
-Scripts/package.sh    # standalone Development game in Saved/Package/Linux
-Scripts/compare.sh    # measures both modes and writes Saved/Comparison/summary.md
-Scripts/record.sh     # records both modes and writes Saved/Recording/side-by-side.mp4
+./demo.sh             # builds and plays; Tab switches between the API and per-agent synchronous inference
+./demo.sh package     # standalone Development game in Saved/Package/Linux
+./demo.sh compare     # measures both modes and writes Saved/Comparison/summary.md
+./demo.sh record      # records both modes and writes Saved/Recording/side-by-side.mp4
+./demo.sh help        # every command
 ```
 
-On Windows, run `New-Item -ItemType Junction -Path Plugins/Schola -Target ../../..` once in `Examples/BackgroundNPCs`, then open `BackgroundNPCs.uproject`. Use `-Agents=`, `-DecisionHz=`, `-MaxFPS=`, `-Workers=`, and `-MaxBatch=` to change the workload; see the [example README](Examples/BackgroundNPCs/README.md).
+On Windows, open `BackgroundNPCs.uproject` after setting up `Plugins/Schola` as described in the [example README](Examples/BackgroundNPCs/README.md). Use `-Agents=`, `-DecisionHz=`, `-MaxFPS=`, `-Workers=`, and `-MaxBatch=` to change the workload; see the [example README](Examples/BackgroundNPCs/README.md).
 
 **Validation commands:** the plugin's automation tests cover the scheduler, NNE backend, Actor stepper, and Mass bridge:
 
 ```bash
-"$UE_ENGINE_ROOT/Engine/Binaries/Linux/UnrealEditor-Cmd" "$PWD/BackgroundNPCs.uproject" -nullrhi -unattended -nosound \
-  "-ExecCmds=Automation RunTests Schola.Inference.Background+Schola.Mass;Quit"
+./demo.sh test
 ```
 
 On the development machine, all 43 `Schola.Inference.Background` and `Schola.Mass` automation tests passed from the example project (UE 5.8.3, Linux).

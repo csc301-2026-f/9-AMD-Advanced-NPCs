@@ -42,14 +42,15 @@ UnrealBuildTool discovers a plugin only when `Schola.uplugin` is inside a child 
 
 For an existing game, copy this repository to that project's `Plugins/Schola` directory, then recompile. See [README-Schola.md](../README-Schola.md).
 
-For an example that already lives inside this checkout, do not symlink `Plugins/Schola` to the repository root. That symlink walks back through `Examples/.../Plugins/Schola` and recurses. `Examples/BackgroundNPCs/Scripts/prepare.sh` creates a gitignored `Plugins/Schola` directory instead: it copies `Schola.uplugin` and relatively links `Config`, `Content`, `Resources`, `Shaders`, and each `Source/<module>`.
+For an example that already lives inside this checkout, do not symlink `Plugins/Schola` to the repository root. That symlink walks back through `Examples/.../Plugins/Schola` and recurses. Each example's `demo.sh` creates a gitignored `Plugins/Schola` directory instead: it copies `Schola.uplugin` and relatively links `Source`, `Config`, `Resources`, `Binaries`, and `Intermediate` (plus `Content` and `Shaders` when present).
 
 ```bash
 cd Examples/BackgroundNPCs
-Scripts/prepare.sh
+export UE_ENGINE_ROOT=/path/to/UE_5.8
+./demo.sh build    # or ./demo.sh to build and play, ./demo.sh editor to open the editor
 ```
 
-Run it again after pulling source changes. All of its links are relative to the script.
+It refreshes the descriptor copy on every run. All of its links are relative.
 
 ## Build
 

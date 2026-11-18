@@ -21,20 +21,21 @@ Tested on Linux with Unreal Engine 5.8.3 (Vulkan) and on Apple Silicon with Unre
 
 Apple Silicon setup for Schola, including gRPC, plugin preparation, and the `-NoUBA` build, is in the [macOS setup guide](../../Docs/macOS-Setup.md).
 
-### Linux
+### Linux and macOS
+
+**Entry point: [`demo.sh`](demo.sh).** It links the repository's plugin into `Plugins/Schola`, builds the editor target, and starts the demo. `./demo.sh help` lists every command.
 
 ```bash
 export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8.3
 cd Examples/BackgroundNPCs
-Scripts/build.sh        # editor target; links Plugins/Schola to this repository's root
-Scripts/run.sh          # starts in Background mode; press Tab to switch
-Scripts/run.sh -Mode=Sync -Agents=5000
-Scripts/package.sh      # standalone game in Saved/Package/Linux
+./demo.sh                          # build and play; starts in Background mode, press Tab to switch
+./demo.sh -Mode=Sync -Agents=5000
+./demo.sh package                  # Linux: standalone game in Saved/Package/Linux
 ```
 
 `Config/Linux/LinuxEngine.ini` disables PSO precaching (`r.PSOPrecaching=0`) because the Mesa RADV driver crashed while precompiling compute pipelines in packaged Vulkan builds. The setting applies to both modes equally.
 
-On Windows, create the plugin link once with `New-Item -ItemType Junction -Path Plugins/Schola -Target ../../..` from this directory, then open `BackgroundNPCs.uproject` or build the `BackgroundNPCsEditor` target.
+`demo.sh` is a Bash script. On Windows, open `BackgroundNPCs.uproject` after creating `Plugins/Schola` with the plugin's `Schola.uplugin`, `Source`, `Config` and `Resources` (see the [Schola setup guide](../../README-Schola.md)); this path has not been tested.
 
 | Argument | Default | Meaning |
 | --- | --- | --- |
@@ -47,14 +48,14 @@ On Windows, create the plugin link once with `New-Item -ItemType Junction -Path 
 
 ## Reproduce the comparison
 
-After `Scripts/package.sh`:
+On Linux, after `./demo.sh package`:
 
 ```bash
-Scripts/compare.sh    # 10 s warm-up + 30 s capture per mode; writes Saved/Comparison/summary.md
-Scripts/record.sh     # X11 only: records both modes and writes Saved/Recording/side-by-side.mp4
+./demo.sh compare    # 10 s warm-up + 30 s capture per mode; writes Saved/Comparison/summary.md
+./demo.sh record     # X11 only: records both modes and writes Saved/Recording/side-by-side.mp4
 ```
 
-The two modes run one after another in separate processes, so they don't compete for the CPU. `record.sh` uses `ffmpeg` and `xdotool`.
+The two modes run one after another in separate processes, so they don't compete for the CPU. `record` uses `ffmpeg` and `xdotool`.
 
 ## Files
 
@@ -64,5 +65,6 @@ The two modes run one after another in separate processes, so they don't compete
 | `Source/BackgroundNPCs/CrowdProcessors.*` | Shared observation/movement code; the ScholaMass gather/apply processors; the per-agent synchronous baseline |
 | `Source/BackgroundNPCs/CrowdGameMode.*` | Game mode and HUD |
 | `Content/Models/crowd_policy.onnx` | Policy loaded from disk at runtime (staged as a non-UFS file) |
+| `demo.sh` | Entry point: build, run, package, compare, record, and test |
 | `Tools/` | Model generator and report summarizer |
-| `Scripts/` | Linux build, run, package, measurement, and recording scripts |
+| `Benchmarks/` | ROCm feasibility results and the Shared Policy routing benchmark runner (not part of the demo) |

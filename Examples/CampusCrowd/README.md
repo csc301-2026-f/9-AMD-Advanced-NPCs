@@ -6,11 +6,12 @@ Up to 100,000 Mass students walk a 1.3 × 1.4 km campus. Each student asks a neu
 
 The campus geometry is based on the City of Toronto's [3D massing data](https://opendata.toronto.ca/city.planning/3d-massing/2025/AutoCAD/50H_NORTH.dwg). It is stored with Git LFS, so run `git lfs pull` after cloning.
 
+**Entry point: [`demo.sh`](demo.sh).** It builds the project and starts the demo. `./demo.sh help` lists every command (build, editor, package, measure, record, video, test).
+
 ```bash
 cd Examples/CampusCrowd
 export UE_ENGINE_ROOT=/path/to/UnrealEngine-5.8
-Scripts/build.sh
-Scripts/run.sh -Agents=50000
+./demo.sh -Agents=50000
 ```
 
 ## Performance
@@ -46,7 +47,6 @@ The HUD shows the same measurements. Below 95% of target, the decision rate turn
 | `-MaxBatch` | 64 | Rows per model call |
 | `-MaxPendingRows` | ~50 ms of target decisions (≥ 4,096) | Inference queue limit; results older than 100 ms are discarded |
 | `-MaxRowsPerFrame` | half the queue | Rows submitted per frame |
-| `-Mode` | Background | `Sync` runs one model call per student on the game thread |
 
 To measure, add `-WarmupSeconds=10 -CaptureSeconds=10 -Report=out.json`. The run exits after writing the JSON report. Exit status 3 means the run delivered less than 95% of the target decision rate.
 
@@ -66,15 +66,15 @@ The output gets 15% weight in each student's heading. Route following and separa
 
 ## Setup and controls
 
-This is a local Unreal application, with no hosted URL. The video above lets a tester evaluate the demo without installing Unreal. Building requires Linux, Unreal Engine 5.8 (measured on 5.8.3), its C++ toolchain, Git LFS, and Schola’s native dependencies. Follow the [Schola installation guide](../../README-Schola.md) for dependencies. The build script links the repository’s plugin into the example. First-time engine and dependency setup can take longer than a few minutes.
+This is a local Unreal application, with no hosted URL. The video above lets a tester evaluate the demo without installing Unreal. Building requires Linux, Unreal Engine 5.8 (measured on 5.8.3), its C++ toolchain, Git LFS, and Schola’s native dependencies. Follow the [Schola installation guide](../../README-Schola.md) for dependencies. `demo.sh` links the repository’s plugin into the example. First-time engine and dependency setup can take longer than a few minutes.
 
-Run `git lfs pull` from the clone, set `UE_ENGINE_ROOT` to your installed engine, then use the build and run commands above. For the recorded workload, run:
+Run `git lfs pull` from the clone, set `UE_ENGINE_ROOT` to your installed engine, then run `./demo.sh`. For the recorded workload, run:
 
 ```bash
-Scripts/run.sh -Agents=20000 -DecisionHz=10 -Workers=2 -MaxBatch=64
+./demo.sh -Agents=20000 -DecisionHz=10 -Workers=2 -MaxBatch=64
 ```
 
-Click the game viewport to focus keyboard input. Use **1–3** for camera views, **WASD + Q/E** to fly, right mouse to look, **Tab** to compare inference modes, **N** to show routes, and **Space** to pause. Watch the HUD’s FPS, game-thread inference time, completed decisions/s versus target, and action latency. Expected background workload: 20,000 agents requesting 200,000 decisions/s; the recording reaches 60 FPS on the documented hardware.
+Click the game viewport to focus keyboard input. Use **1–3** for camera views, **WASD + Q/E** to fly, right mouse to look, **N** to show routes, and **Space** to pause. Watch the HUD’s FPS, game-thread inference time, completed decisions/s versus target, and action latency. Expected background workload: 20,000 agents requesting 200,000 decisions/s; the recording reaches 60 FPS on the documented hardware.
 
 Configuration lives in [Config](Config), the option table above, and `UE_ENGINE_ROOT`; the path shown in setup is a placeholder. No service credentials or user accounts are needed to run the demo. The model and generated campus are versioned; the original DWG is needed only to rebuild or verify the CAD import.
 
@@ -95,17 +95,13 @@ The tests cover typed and legacy CAD transforms, concave roofs, window holes, an
 For an installed engine, run build verification and the background/Mass Unreal suites:
 
 ```bash
-Scripts/build.sh
-"$UE_ENGINE_ROOT/Engine/Binaries/Linux/UnrealEditor-Cmd" "$PWD/CampusCrowd.uproject" \
-  -nullrhi -unattended -nosound \
-  "-ExecCmds=Automation RunTests Schola.Inference.Background+Schola.Mass;Quit" \
-  "-ReportExportPath=$PWD/Saved/D3Tests"
-Scripts/compare.sh Saved/D3Comparison -Agents=20000 -DecisionHz=10 -Workers=2 -MaxBatch=64
-Scripts/package.sh
-Scripts/run.sh -Agents=20000 -DecisionHz=10
+./demo.sh test                       # builds, then runs the suites; report in Saved/Tests
+./demo.sh measure Saved/D3/report.json -Agents=20000 -DecisionHz=10 -Workers=2 -MaxBatch=64
+./demo.sh package
+./demo.sh run --packaged -Agents=20000 -DecisionHz=10
 ```
 
-The final command selects the package when it exists. Confirm that the campus loads, movement and camera controls work, and the HUD reports decision throughput. Keep the test report, comparison JSON, build/package logs, engine version, hardware, and commit ID with the release evidence. Comparison exit status 3 means a mode missed 95% of its decision target; inspect the report rather than treating this as a crash. The headless tests do not validate rendering. On 5 November 2026, the D3 editor build, all 43 background/Mass tests, packaging, and standalone smoke test passed on UE 5.8.3/Linux. The packaged 20,000-agent run reached **59.98 FPS and 199,922 decisions/s**, with zero dropped requests during the timed capture. Camera switching, inference-mode switching, pause/resume, and normal close were checked separately. [Retained D3 results, logs, and screenshots](Evidence/d3-validation-2026-11-05/README.md).
+The final command plays the standalone package. Confirm that the campus loads, movement and camera controls work, and the HUD reports decision throughput. Keep the test report, capture JSON, build/package logs, engine version, hardware, and commit ID with the release evidence. Capture exit status 3 means the crowd missed 95% of its decision target; inspect the report rather than treating this as a crash. The headless tests do not validate rendering. On 5 November 2026, the D3 editor build, all 43 background/Mass tests, packaging, and standalone smoke test passed on UE 5.8.3/Linux. The packaged 20,000-agent run reached **59.98 FPS and 199,922 decisions/s**, with zero dropped requests during the timed capture. Camera switching, inference-mode switching, pause/resume, and normal close were checked separately. [Retained D3 results, logs, and screenshots](Evidence/d3-validation-2026-11-05/README.md).
 
 Optional full CAD validation: place the original `50H_NORTH.dwg` at the repository root, install [Tools/requirements.txt](Tools/requirements.txt), then run `python Tools/validate_campus.py`. It checks the source hash, finite vertices, triangle indices, connected reciprocal routes, and three-metre building clearance. [Recorded geometry validation](Evidence/geometry-validation.json) is available without that source file.
 
@@ -115,7 +111,7 @@ Before merging, attach local results to the PR and request a teammate’s review
 
 - **Performance:** the HUD and JSON reports expose FPS, inference cost, throughput, and action latency. Queue limits bound pending work, and old actions are discarded. See the measurements above for the 100,000-agent limit.
 - **Input validation and errors:** crowd size, decision rate, worker count, and camera preset are clamped. Submissions are clamped to queue capacity with a warning. Missing route data or model failures produce an explicit error. Missed decision targets are reported in text as well as color.
-- **Usability:** keyboard camera presets, pause, route overlay, and inference-mode switching support a repeatable walkthrough. A full accessibility audit has not been completed.
+- **Usability:** keyboard camera presets, pause, and route overlay support a repeatable walkthrough. A full accessibility audit has not been completed.
 - **Local security:** the unused Android file server and its network access are disabled, and its generated token was removed from the current config. This does not remove it from Git history. The demo needs no remote service credentials; only use trusted models and CAD files.
 
 D2 reflection identified single-machine testing and late packaging as weaknesses. D3 adds a repeatable campus workflow, CAD regression tests, geometry checks, and explicit overload reporting. Independent-machine validation remains open. D4 prioritizes clearer setup and controls and less integration boilerplate.
