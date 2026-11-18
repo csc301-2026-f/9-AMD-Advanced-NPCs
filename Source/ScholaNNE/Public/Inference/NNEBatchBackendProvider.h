@@ -17,4 +17,6 @@ public:
     virtual TSharedPtr<IBatchInferenceBackend> CreateBackend(const FInteractionDefinition& Definition,
         FNPCRowLayout& OutLayout, FString& OutError) override;
     virtual FString GetBucketKey() const override;
+    /** One unbounded Box per side, sized from the model's single float input and output tensor. */
+    virtual bool DescribeDefaultDefinition(FInteractionDefinition& OutDefinition, FString& OutError) override;
 };

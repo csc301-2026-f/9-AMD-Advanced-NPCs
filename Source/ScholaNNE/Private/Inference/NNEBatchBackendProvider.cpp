@@ -7,6 +7,7 @@
 #include <atomic>
 #include "Misc/ScopeExit.h"
 #include "Spaces/DictSpace.h"
+#include "Spaces/BoxSpace.h"
 
 namespace
 {
@@ -202,6 +203,46 @@ bool Describe(TConstArrayView<FTensorDesc> Descs, TArray<FNPCRowElement>& Elemen
 }
 }
 
+static TSharedPtr<IModelCPU> CreateCpuModel(const UNNEBatchBackendProvider& Provider, FString& OutError)
+{
+    const bool bBasic = Provider.RuntimeName == TEXT("NNERuntimeBasicCpu");
+    if (!Provider.ModelData || Provider.MaxBatchSize < 0 || (Provider.RuntimeName != TEXT("NNERuntimeORTCpu") && !bBasic))
+    { OutError = TEXT("Select ORT CPU or BasicCpu and a model asset"); return nullptr; }
+    auto Runtime = UE::NNE::GetRuntime<INNERuntimeCPU>(Provider.RuntimeName);
+    if (!Runtime.IsValid()) { OutError = TEXT("CPU runtime plugin is not enabled"); return nullptr; }
+    TSharedPtr<IModelCPU> Model = Runtime->CreateModelCPU(Provider.ModelData);
+    if (!Model) OutError = TEXT("Runtime cannot create model (check model file format)");
+    return Model;
+}
+
+bool UNNEBatchBackendProvider::DescribeDefaultDefinition(FInteractionDefinition& OutDefinition, FString& OutError)
+{
+    check(IsInGameThread());
+    OutError.Reset();
+    const auto Model = CreateCpuModel(*this, OutError);
+    const auto Instance = Model ? Model->CreateModelInstanceCPU() : nullptr;
+    if (!Instance) { if (OutError.IsEmpty()) OutError = TEXT("Runtime cannot create a model instance"); return false; }
+    FNPCRowLayout Layout;
+    int32 FixedBatch = 0;
+    if (!Describe(Instance->GetInputTensorDescs(), Layout.Inputs, Layout.ObsSize, FixedBatch, false, OutError) ||
+        !Describe(Instance->GetOutputTensorDescs(), Layout.Outputs, Layout.ActSize, FixedBatch, false, OutError)) return false;
+    if (Layout.Inputs.Num() != 1 || Layout.Outputs.Num() != 1 ||
+        Layout.Inputs[0].DType != ENPCRowDType::Float || Layout.Outputs[0].DType != ENPCRowDType::Float)
+    {
+        OutError = FString::Printf(TEXT("Model has %d input and %d output tensors; sizes can only be inferred for one float "
+            "input and one float output. Pass an explicit FInteractionDefinition (FDictSpace keyed by tensor name)"),
+            Layout.Inputs.Num(), Layout.Outputs.Num());
+        return false;
+    }
+    // Box bounds are not used on the background row path; leave them open.
+    FBoxSpace Observations, Actions;
+    for (int32 I = 0; I < Layout.ObsSize; ++I) Observations.Add(TNumericLimits<float>::Lowest(), TNumericLimits<float>::Max());
+    for (int32 I = 0; I < Layout.ActSize; ++I) Actions.Add(TNumericLimits<float>::Lowest(), TNumericLimits<float>::Max());
+    OutDefinition = FInteractionDefinition(TInstancedStruct<FSpace>::Make<FBoxSpace>(Observations),
+        TInstancedStruct<FSpace>::Make<FBoxSpace>(Actions));
+    return true;
+}
+
 FString UNNEBatchBackendProvider::GetBucketKey() const
 {
     return FString::Printf(TEXT("%s:%s:%s:%d:%d"), *GetPathNameSafe(ModelData),
@@ -214,13 +255,9 @@ TSharedPtr<IBatchInferenceBackend> UNNEBatchBackendProvider::CreateBackend(const
     check(IsInGameThread());
     OutError.Reset(); OutLayout = {};
     const bool bBasic = RuntimeName == TEXT("NNERuntimeBasicCpu");
-    if (!ModelData || MaxBatchSize < 0 || (RuntimeName != TEXT("NNERuntimeORTCpu") && !bBasic))
-    { OutError = TEXT("Select ORT CPU or BasicCpu and a model asset"); return nullptr; }
-    auto Runtime = UE::NNE::GetRuntime<INNERuntimeCPU>(RuntimeName);
-    if (!Runtime.IsValid()) { OutError = TEXT("CPU runtime plugin is not enabled"); return nullptr; }
     auto Backend = MakeShared<FNNEBatchBackend>();
-    Backend->Model = Runtime->CreateModelCPU(ModelData);
-    if (!Backend->Model) { OutError = TEXT("Runtime cannot create model (check model file format)"); return nullptr; }
+    Backend->Model = CreateCpuModel(*this, OutError);
+    if (!Backend->Model) return nullptr;
     auto Instance = Backend->Model->CreateModelInstanceCPU();
     if (!Instance || !Describe(Instance->GetInputTensorDescs(), OutLayout.Inputs, OutLayout.ObsSize,
             Backend->FixedBatch, bBasic, OutError) ||

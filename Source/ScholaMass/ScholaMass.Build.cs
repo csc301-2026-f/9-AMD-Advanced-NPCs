@@ -4,6 +4,7 @@ public class ScholaMass : ModuleRules
     public ScholaMass(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "MassCore", "MassEntity", "MassSignals", "ScholaInferenceUtils", "Schola" });
+        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "MassCore", "MassEntity", "MassSignals", "ScholaInferenceUtils", "Schola", "NNE" });
+        PrivateDependencyModuleNames.AddRange(new[] { "ScholaNNE" });
     }
 }

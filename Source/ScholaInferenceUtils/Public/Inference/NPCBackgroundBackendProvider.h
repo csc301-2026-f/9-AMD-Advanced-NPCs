@@ -14,6 +14,16 @@ public:
     virtual TSharedPtr<IBatchInferenceBackend> CreateBackend(const FInteractionDefinition& Definition,
         FNPCRowLayout& OutLayout, FString& OutError) PURE_VIRTUAL(UNPCBackgroundBackendProvider::CreateBackend, return nullptr;);
     virtual FString GetBucketKey() const { return GetPathName(); }
+    /**
+     * Builds the interaction a caller gets when it does not pass one: usually one flat Box
+     * observation and one flat Box action sized from the model's own tensors. Game thread only.
+     * Providers that cannot inspect their model return false and explain why in OutError.
+     */
+    virtual bool DescribeDefaultDefinition(FInteractionDefinition& OutDefinition, FString& OutError)
+    {
+        OutError = TEXT("This backend provider cannot infer observation/action sizes; pass an explicit FInteractionDefinition");
+        return false;
+    }
 };
 
 /** Index transport for prototypes. The policy keeps the source points until consumption. */

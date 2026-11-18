@@ -225,4 +225,28 @@ bool FNNEBackgroundRejectsRecurrent::RunTest(const FString&)
     TestTrue(TEXT("Rejection names the recurrent signature: ") + Error, Error.Contains(TEXT("Recurrent")));
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FNNEBackgroundDefaultDefinition, "Schola.Inference.Background.NNE.DefaultDefinitionFromModel",
+    EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::EngineFilter)
+bool FNNEBackgroundDefaultDefinition::RunTest(const FString&)
+{
+    // The only single-tensor fixture; ORT multi-tensor fixtures are covered by the rejection below.
+    auto* Provider = NewObject<UNNEBatchBackendProvider>();
+    Provider->RuntimeName = TEXT("NNERuntimeBasicCpu");
+    Provider->ModelData = NewObject<UNNEModelData>();
+    Provider->ModelData->Init(TEXT("ubnne"), MakeArrayView(BackgroundBasicCpu));
+    FInteractionDefinition Definition; FString Error;
+    const bool bDescribed = Provider->DescribeDefaultDefinition(Definition, Error);
+    if (!TestTrue(TEXT("Single-tensor model describes itself: ") + Error, bDescribed)) return false;
+    FNPCRowLayout Layout;
+    TestTrue(TEXT("Inferred definition is accepted by CreateBackend: ") + Error, Provider->CreateBackend(Definition, Layout, Error).IsValid());
+    TestEqual(TEXT("Observation size matches the model"), Definition.ObsSpaceDefn.Get<FSpace>().GetFlattenedSize(), Layout.ObsSize);
+    TestEqual(TEXT("Action size matches the model"), Definition.ActionSpaceDefn.Get<FSpace>().GetFlattenedSize(), Layout.ActSize);
+
+    Provider->RuntimeName = TEXT("NNERuntimeORTCpu");
+    Provider->ModelData = NewObject<UNNEModelData>();
+    Provider->ModelData->Init(TEXT("onnx"), MakeArrayView(BackgroundTypedONNX));
+    TestFalse(TEXT("Multi-tensor model needs an explicit definition"), Provider->DescribeDefaultDefinition(Definition, Error));
+    TestTrue(TEXT("Error points to FInteractionDefinition: ") + Error, Error.Contains(TEXT("FInteractionDefinition")));
+    return true;
+}
 #endif

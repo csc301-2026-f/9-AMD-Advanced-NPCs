@@ -165,23 +165,65 @@ Mass integration
 ~~~~~~~~~~~~~~~~
 
 Add ``ScholaMass`` to module dependencies. This module uses engine Mass runtime
-modules and does not require the MassGameplay plugin. Derive a gather processor
-from ``UScholaMassGatherProcessor`` and supply observation requirements plus
-``WriteObservations``. Derive an apply processor from
-``UScholaMassApplyProcessor`` and supply action requirements plus ``ApplyActions``.
-The chunk callback receives entity indices and packed rows in matching order.
+modules and does not require the MassGameplay plugin.
+
+Create one policy per model on the game thread with
+``UScholaMassInferenceSubsystem::CreatePolicy``. Only ``Model`` (or ``Provider``)
+is required in ``FScholaMassPolicyConfig``; observation and action sizes come from
+the model, and queue limits come from ``ExpectedAgents`` x ``DecisionHz``. Set
+``ExpectedObservationSize``/``ExpectedActionSize`` to fail early when the model
+does not match your rows. ``MaxActionAgeMs`` is the single action age limit:
+older actions are dropped before apply. Spawn entities with
+``FScholaMassPolicy::BatchCreateEntities``; it adds the schedule, state and bucket
+fragments and runs your initializer before the entities are bound.
+
+.. code-block:: cpp
+
+   FScholaMassPolicyConfig Config;
+   Config.Model = ModelData;
+   Config.DecisionHz = 10;
+   Config.ExpectedAgents = 20000;
+   Config.ExpectedObservationSize = 64;
+   Config.ExpectedActionSize = 2;
+   FString Error;
+   FScholaMassPolicy Policy = Subsystem->CreatePolicy(Config, Error);
+
+   const UScriptStruct* Fragments[] = {FMyAgentFragment::StaticStruct()};
+   Policy.BatchCreateEntities(Manager, Fragments, 20000, Entities,
+       [](const FMassEntityView& Entity, int32 Index) { /* fill FMyAgentFragment */ });
+
+Blueprints can call ``CreatePolicy`` on the subsystem and read statistics through
+``UScholaMassPolicyLibrary`` (``GetPolicyStats``, ``StatsSince``, ``MeetsTarget``,
+``DescribeShortfall``); spawning entities and the gather/apply hooks stay in C++.
+
+Derive a gather processor from ``UScholaMassGatherProcessor`` and supply
+observation requirements plus ``WriteObservations``. Derive an apply processor
+from ``UScholaMassApplyProcessor`` and supply action requirements plus
+``ApplyActions``. Both receive one row per agent, with the agent's index in the
+chunk:
+
+.. code-block:: cpp
+
+   void UMyGather::WriteObservations(FMassExecutionContext& Context, const FScholaMassObservationRows& Rows)
+   {
+       const auto Agents = Context.GetFragmentView<FMyAgentFragment>();
+       for (const auto& Row : Rows)
+       {
+           WriteMyObservation(Agents[Row.EntityIndex], Row.Values);
+       }
+   }
+
 Set your movement/behavior processor groups after ``ScholaInference.Apply``.
 Choose observation/action requirements that select the population owned by each
 processor. Matching gather processors share the same due-time fragments.
 Callbacks must not perform immediate structural changes. Parallel gather uses
 Mass's per-job command buffers and disjoint row ranges.
 
-Entities need ``FScholaInferenceScheduleFragment``,
-``FScholaInferenceStateFragment``, and the const shared
-``FScholaInferenceBucketFragment``. Acquire the bucket on the game thread via
-``UScholaMassInferenceSubsystem::AcquireBucket``. The observer allocates dense
-slots; removal invalidates them. Handles are checked using index and serial;
-fragment migration preserves delivery, while bucket changes invalidate old work.
+``UScholaMassInferenceSubsystem::AcquireBucket`` remains available for explicit
+spaces and scheduler settings; its ``Settings.DefaultMaxAgeMs`` is the action age
+limit. The observer allocates dense slots; removal invalidates them. Handles are
+checked using index and serial; fragment migration preserves delivery, while
+bucket changes invalidate old work.
 An optional ``ActionReadySignal`` can notify MassStateTree consumers after apply.
 Schola does not yet ship a MassStateTree task or a trait/LOD rate bridge;
 consume the signal from your own processor or StateTree task.
