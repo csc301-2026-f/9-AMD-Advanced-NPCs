@@ -20,7 +20,7 @@ Reproduce the isolated Unreal matrix from the repository root after building
 `Examples/BackgroundNPCs` and setting `UE_ENGINE_ROOT` to Unreal Engine 5.8.4:
 
 ```bash
-Examples/BackgroundNPCs/Scripts/run_cd_isolated_matrix.sh
+Examples/BackgroundNPCs/Benchmarks/shared-policy/run_cd_isolated_matrix.sh
 ```
 
 The runner writes ignored per-process reports and

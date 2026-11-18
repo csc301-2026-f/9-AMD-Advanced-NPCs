@@ -30,7 +30,7 @@ def main():
     log.write_text('')
     launcher_log = open(work/'launcher.log', 'w')
     game = subprocess.Popen([
-        str(project/'Scripts/run.sh'), f'-Agents={args.agents}', '-Mode=Background', '-View=2', f'-FlightSeconds={args.seconds:g}',
+        str(project/'demo.sh'), 'run', '--no-build', f'-Agents={args.agents}', '-View=2', f'-FlightSeconds={args.seconds:g}',
         f'-DecisionHz={args.decision_hz}', f'-MaxBatch={args.max_batch}', f'-Workers={args.workers}',
         '-ResX=1920', '-ResY=1080', '-ForceRes', '-NoBorder', '-WinX=0', '-WinY=0',
         '-MaxFPS=60', '-WarmupSeconds=10', f'-Screenshot={work / "ready.png"}',

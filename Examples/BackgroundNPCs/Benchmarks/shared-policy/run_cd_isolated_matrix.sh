@@ -6,7 +6,7 @@ set -euo pipefail
 : "${UE_ENGINE_ROOT:?Set UE_ENGINE_ROOT to the Unreal Engine directory containing Engine/Binaries.}"
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-example_dir="$(cd "${script_dir}/.." && pwd)"
+example_dir="$(cd "${script_dir}/../.." && pwd)"
 project="${example_dir}/BackgroundNPCs.uproject"
 editor="${UE_ENGINE_ROOT}/Engine/Binaries/Mac/UnrealEditor-Cmd"
 report_dir="${example_dir}/Saved/Automation/SharedPolicy/isolated"
