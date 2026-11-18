@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
 #pragma once
+
 #include "MassProcessor.h"
 #include "MassEntityQuery.h"
 #include "ScholaMassInferenceProcessors.h"
@@ -8,70 +10,59 @@
 
 class ACampusScene;
 
-namespace UE::NNE { class IModelCPU; class IModelInstanceCPU; }
-
-/** With the API: writes observation rows for agents the ScholaMass scheduler marks due. */
+/** @brief Writes an observation row for each student the ScholaMass scheduler marks due. */
 UCLASS()
 class UCrowdGatherProcessor : public UScholaMassGatherProcessor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
+
 public:
-    UCrowdGatherProcessor();
-    float HalfSize = 0;
+	UCrowdGatherProcessor();
+
+	float HalfSize = 0;
+
 protected:
-    virtual void ConfigureObservationRequirements(FMassEntityQuery& Query) override;
-    virtual void WriteObservations(FMassExecutionContext& Context, TConstArrayView<int32> DueIndices, TArrayView<float> Rows) override;
+	virtual void ConfigureObservationRequirements(FMassEntityQuery& InQuery) override;
+	virtual void WriteObservations(FMassExecutionContext& Context, const FScholaMassObservationRows& Rows) override;
 };
 
-/** With the API: applies completed background actions on the game thread. */
+/** @brief Applies completed background actions on the game thread. */
 UCLASS()
 class UCrowdApplyProcessor : public UScholaMassApplyProcessor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
+
 public:
-    UCrowdApplyProcessor();
-    FCrowdFrameCounters* Counters = nullptr;
+	UCrowdApplyProcessor();
+
 protected:
-    virtual void ConfigureActionRequirements(FMassEntityQuery& Query) override;
-    virtual void ApplyActions(FMassExecutionContext& Context, TConstArrayView<int32> EntityIndices, TConstArrayView<float> Rows) override;
+	virtual void ConfigureActionRequirements(FMassEntityQuery& InQuery) override;
+	virtual void ApplyActions(FMassExecutionContext& Context, const FScholaMassActionRows& Rows) override;
 };
 
-/**
- * Without the API: the straightforward approach. Each due agent builds its
- * observation and runs one batch-1 inference on the game thread.
- */
-UCLASS()
-class UCrowdSyncInferenceProcessor : public UMassProcessor
-{
-    GENERATED_BODY()
-public:
-    UCrowdSyncInferenceProcessor();
-    TSharedPtr<UE::NNE::IModelCPU> Model;
-    TSharedPtr<UE::NNE::IModelInstanceCPU> Instance;
-    FCrowdFrameCounters* Counters = nullptr;
-    float HalfSize = 0, PeriodSeconds = 0.5f;
-    bool bFailed = false;
-protected:
-    virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& Manager) override;
-    virtual void Execute(FMassEntityManager& Manager, FMassExecutionContext& Context) override;
-    FMassEntityQuery Query;
-};
-
-/** Shared by both modes: steers toward the latest action and writes instance transforms. */
+/** @brief Steers each student toward its latest action and writes instance transforms. */
 UCLASS()
 class UCrowdMoveProcessor : public UMassProcessor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
+
 public:
-    UCrowdMoveProcessor();
-    const ACampusScene* Campus = nullptr;
-    TArray<FTransform>* Transforms = nullptr;
-    float HalfSize = 0;
+	UCrowdMoveProcessor();
+
+	const ACampusScene* Campus = nullptr;
+	TArray<FTransform>* Transforms = nullptr;
+	float				HalfSize = 0;
+
 protected:
-    virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& Manager) override;
-    virtual void Execute(FMassEntityManager& Manager, FMassExecutionContext& Context) override;
-    FMassEntityQuery Query;
-    // Separation grid, rebuilt each frame by counting sort and reused to avoid per-frame allocation.
-    TArray<FVector2f> Positions;
-    TArray<int32> CellOf, CellStart, CellFill, Sorted;
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& Manager) override;
+	virtual void Execute(FMassEntityManager& Manager, FMassExecutionContext& Context) override;
+
+	FMassEntityQuery Query;
+
+	// Separation grid, rebuilt each frame by counting sort and reused to avoid per-frame allocation.
+	TArray<FVector2f> Positions;
+	TArray<int32>	  CellOf;
+	TArray<int32>	  CellStart;
+	TArray<int32>	  CellFill;
+	TArray<int32>	  Sorted;
 };

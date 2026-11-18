@@ -1,13 +1,8 @@
 // Copyright (c) 2026 Advanced Micro Devices, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/Actor.h"
-#if __has_include("Mass/EntityHandle.h")
-#include "Mass/EntityHandle.h"
-#else
-#include "MassEntityHandle.h" // UE 5.7 and earlier
-#endif
 #include "MassEntityTypes.h"
-#include "Inference/BackgroundInferenceTypes.h"
+#include "ScholaMassPolicy.h"
 #include "CrowdTypes.h"
 #include "CrowdComparisonHost.generated.h"
 
@@ -17,7 +12,6 @@ class UCrowdGatherProcessor;
 class UCrowdApplyProcessor;
 class UCrowdSyncInferenceProcessor;
 class UCrowdMoveProcessor;
-class FNPCBackgroundScheduler;
 
 /** Values shown on the HUD, refreshed once per second. */
 struct FCrowdDisplayStats
@@ -79,7 +73,8 @@ private:
     UPROPERTY() TObjectPtr<UCrowdSyncInferenceProcessor> Sync;
     UPROPERTY() TObjectPtr<UCrowdMoveProcessor> Move;
 
-    TSharedPtr<FNPCBackgroundScheduler, ESPMode::ThreadSafe> Scheduler;
+    /** The crowd's model and queue in background mode. */
+    FScholaMassPolicy Policy;
     TArray<FMassEntityHandle> Entities;
     TArray<FTransform> Transforms;
     ECrowdInferenceMode Mode = ECrowdInferenceMode::Background;

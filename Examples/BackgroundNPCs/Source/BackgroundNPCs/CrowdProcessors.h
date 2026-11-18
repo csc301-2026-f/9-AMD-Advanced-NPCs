@@ -18,7 +18,7 @@ public:
     float HalfSize = 0;
 protected:
     virtual void ConfigureObservationRequirements(FMassEntityQuery& Query) override;
-    virtual void WriteObservations(FMassExecutionContext& Context, TConstArrayView<int32> DueIndices, TArrayView<float> Rows) override;
+    virtual void WriteObservations(FMassExecutionContext& Context, const FScholaMassObservationRows& Rows) override;
 };
 
 /** With the API: applies completed background actions on the game thread. */
@@ -31,7 +31,7 @@ public:
     FCrowdFrameCounters* Counters = nullptr;
 protected:
     virtual void ConfigureActionRequirements(FMassEntityQuery& Query) override;
-    virtual void ApplyActions(FMassExecutionContext& Context, TConstArrayView<int32> EntityIndices, TConstArrayView<float> Rows) override;
+    virtual void ApplyActions(FMassExecutionContext& Context, const FScholaMassActionRows& Rows) override;
 };
 
 /**

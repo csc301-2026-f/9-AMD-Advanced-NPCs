@@ -50,16 +50,16 @@ void UCrowdGatherProcessor::ConfigureObservationRequirements(FMassEntityQuery& I
     InQuery.AddRequirement<FCrowdAgentFragment>(EMassFragmentAccess::ReadWrite);
 }
 
-void UCrowdGatherProcessor::WriteObservations(FMassExecutionContext& Context, TConstArrayView<int32> DueIndices, TArrayView<float> Rows)
+void UCrowdGatherProcessor::WriteObservations(FMassExecutionContext& Context, const FScholaMassObservationRows& Rows)
 {
     // May run on several worker threads at once; only this chunk's rows and fragments are touched.
     auto Agents = Context.GetMutableFragmentView<FCrowdAgentFragment>();
     const double Now = FPlatformTime::Seconds();
-    for (int32 R = 0; R < DueIndices.Num(); ++R)
+    for (const auto& Row : Rows)
     {
-        auto& Agent = Agents[DueIndices[R]];
+        auto& Agent = Agents[Row.EntityIndex];
         Agent.ObservationTime = Now;
-        CrowdSim::WriteObservation(Agent, HalfSize, Rows.Slice(R * CrowdSim::ObservationSize, CrowdSim::ObservationSize));
+        CrowdSim::WriteObservation(Agent, HalfSize, Row.Values);
     }
 }
 
@@ -70,11 +70,11 @@ void UCrowdApplyProcessor::ConfigureActionRequirements(FMassEntityQuery& InQuery
     InQuery.AddRequirement<FCrowdAgentFragment>(EMassFragmentAccess::ReadWrite);
 }
 
-void UCrowdApplyProcessor::ApplyActions(FMassExecutionContext& Context, TConstArrayView<int32> EntityIndices, TConstArrayView<float> Rows)
+void UCrowdApplyProcessor::ApplyActions(FMassExecutionContext& Context, const FScholaMassActionRows& Rows)
 {
     auto Agents = Context.GetMutableFragmentView<FCrowdAgentFragment>();
-    for (int32 R = 0; R < EntityIndices.Num(); ++R)
-        CrowdSim::ApplyAction(Agents[EntityIndices[R]], Rows.Slice(R * CrowdSim::ActionSize, CrowdSim::ActionSize), *Counters);
+    for (const auto& Row : Rows)
+        CrowdSim::ApplyAction(Agents[Row.EntityIndex], Row.Values, *Counters);
 }
 
 UCrowdSyncInferenceProcessor::UCrowdSyncInferenceProcessor() : Query(*this)

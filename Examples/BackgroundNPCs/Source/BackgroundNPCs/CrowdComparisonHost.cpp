@@ -16,10 +16,9 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/FileManager.h"
 #include "HAL/IConsoleManager.h"
-#include "Inference/BackgroundInferenceScheduler.h"
-#include "Inference/NNEBatchBackendProvider.h"
 #include "MassEntityManager.h"
 #include "MassEntitySubsystem.h"
+#include "MassEntityView.h"
 #include "MassExecutor.h"
 #include "MassProcessingContext.h"
 #include "Misc/CommandLine.h"
@@ -30,10 +29,8 @@
 #include "NNEModelData.h"
 #include "NNERuntimeCPU.h"
 #include "RHIGlobals.h"
-#include "ScholaInferenceFragments.h"
 #include "ScholaMassInferenceSubsystem.h"
 #include "Serialization/JsonSerializer.h"
-#include "Spaces/BoxSpace.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
@@ -113,53 +110,35 @@ void ACrowdComparisonHost::BeginPlay()
     BuildScene();
     if (!LoadPolicy()) return;
 
-    // One policy and one batching bucket shared by the whole crowd.
-    FBoxSpace Observations, Actions;
-    for (int32 I = 0; I < CrowdSim::ObservationSize; ++I) Observations.Add(-1e6f, 1e6f);
-    for (int32 I = 0; I < CrowdSim::ActionSize; ++I) Actions.Add(-1e6f, 1e6f);
-    const FInteractionDefinition Definition(TInstancedStruct<FSpace>::Make<FBoxSpace>(Observations),
-        TInstancedStruct<FSpace>::Make<FBoxSpace>(Actions));
-    auto* Provider = NewObject<UNNEBatchBackendProvider>(this);
-    Provider->ModelData = ModelData;
-    FNPCBackgroundSchedulerSettings Settings;
-    Settings.WorkerCount = FMath::Clamp(Workers, 1, 64);
-    Settings.MaxBatchSize = FMath::Max(1, MaxBatch);
-    FString BucketError;
-    auto* Service = GetWorld()->GetSubsystem<UScholaMassInferenceSubsystem>();
-    const int32 Bucket = Service ? Service->AcquireBucket(*Provider, Definition, Settings, BucketError) : INDEX_NONE;
-    if (Bucket == INDEX_NONE) { Fail(TEXT("Background bucket: ") + BucketError); return; }
-    {
-        FScopeLock Lock(&Service->Mutex);
-        Scheduler = Service->Bridge.GetScheduler(Bucket);
-    }
+    // One policy shared by the whole crowd; queue limits are sized from the crowd.
+    FScholaMassPolicyConfig Config;
+    Config.Model = ModelData;
+    Config.DecisionHz = 1.0 / PeriodSeconds;
+    Config.ExpectedAgents = AgentCount;
+    Config.ExpectedObservationSize = CrowdSim::ObservationSize;
+    Config.ExpectedActionSize = CrowdSim::ActionSize;
+    Config.WorkerCount = Workers;
+    Config.MaxBatchSize = MaxBatch;
+    FString PolicyError;
+    if (auto* Inference = GetWorld()->GetSubsystem<UScholaMassInferenceSubsystem>())
+        Policy = Inference->CreatePolicy(Config, PolicyError);
+    if (!Policy.IsValid()) { Fail(TEXT("Background policy: ") + PolicyError); return; }
 
     auto& Manager = EntityManager(GetWorld());
-    const UScriptStruct* Types[] = {FCrowdAgentFragment::StaticStruct(),
-        FScholaInferenceStateFragment::StaticStruct(), FScholaInferenceScheduleFragment::StaticStruct()};
-    const FMassArchetypeHandle Archetype = Manager.CreateArchetype(MakeArrayView(Types));
-    FMassArchetypeSharedFragmentValues Shared;
-    FScholaInferenceBucketFragment BucketFragment;
-    BucketFragment.BucketId = Bucket;
-    Shared.Add(Manager.GetOrCreateConstSharedFragment(BucketFragment));
-    Shared.Sort();
     Started = FPlatformTime::Seconds();
+    Transforms.SetNum(AgentCount);
+    const UScriptStruct* Fragments[] = {FCrowdAgentFragment::StaticStruct()};
+    Policy.BatchCreateEntities(Manager, Fragments, AgentCount, Entities, [this](const FMassEntityView& Entity, int32 I)
     {
-        // Fill fragments before the creation context fires ScholaMass's schedule observer.
-        auto Creation = Manager.BatchCreateEntities(Archetype, Shared, AgentCount, Entities);
-        Transforms.SetNum(AgentCount);
-        for (int32 I = 0; I < AgentCount; ++I)
-        {
-            auto& Agent = Manager.GetFragmentDataChecked<FCrowdAgentFragment>(Entities[I]);
-            Agent.Instance = I;
-            Agent.Random = 0x9E3779B9u ^ uint32(I * 7919 + 1);
-            Agent.Position = CrowdSim::RandomPoint(Agent.Random, HalfSize);
-            Agent.Goal = CrowdSim::RandomPoint(Agent.Random, HalfSize);
-            Agent.Steering = (Agent.Goal - Agent.Position).GetSafeNormal();
-            Agent.SyncNextDue = Started + PeriodSeconds * (CrowdSim::NextRandom(Agent.Random) / double(MAX_uint32));
-            Manager.GetFragmentDataChecked<FScholaInferenceScheduleFragment>(Entities[I]).PeriodSeconds = PeriodSeconds;
-            Transforms[I] = FTransform(FVector(Agent.Position.X, Agent.Position.Y, 40));
-        }
-    }
+        auto& Agent = Entity.GetFragmentData<FCrowdAgentFragment>();
+        Agent.Instance = I;
+        Agent.Random = 0x9E3779B9u ^ uint32(I * 7919 + 1);
+        Agent.Position = CrowdSim::RandomPoint(Agent.Random, HalfSize);
+        Agent.Goal = CrowdSim::RandomPoint(Agent.Random, HalfSize);
+        Agent.Steering = (Agent.Goal - Agent.Position).GetSafeNormal();
+        Agent.SyncNextDue = Started + PeriodSeconds * (CrowdSim::NextRandom(Agent.Random) / double(MAX_uint32));
+        Transforms[I] = FTransform(FVector(Agent.Position.X, Agent.Position.Y, 40));
+    });
     Crowd->AddInstances(Transforms, false, true, false);
 
     Gather = NewObject<UCrowdGatherProcessor>(this);
@@ -230,7 +209,7 @@ void ACrowdComparisonHost::SetMode(ECrowdInferenceMode NewMode)
 {
     Mode = NewMode;
     Counters = WindowCounters = CaptureCounters = {};
-    if (Scheduler) WindowSchedulerStart = ModeSchedulerStart = CaptureSchedulerStart = Scheduler->GetStats();
+    if (Policy.IsValid()) WindowSchedulerStart = ModeSchedulerStart = CaptureSchedulerStart = Policy.GetStats().Scheduler;
     if (Mode == ECrowdInferenceMode::Synchronous && !Entities.IsEmpty())
     {
         // Agents keep their phase offsets; restart the synchronous schedule from now.
@@ -287,7 +266,7 @@ void ACrowdComparisonHost::Tick(float DeltaSeconds)
         bCapturing = true;
         CaptureStart = Now;
         CaptureCounters = {};
-        if (Scheduler) CaptureSchedulerStart = Scheduler->GetStats();
+        if (Policy.IsValid()) CaptureSchedulerStart = Policy.GetStats().Scheduler;
     }
     else if (bCapturing)
     {
@@ -315,9 +294,9 @@ void ACrowdComparisonHost::UpdateDisplay(double Now, double FrameMs, double Infe
     Display.InferenceMs = WindowInferenceMs / WindowFrames;
     Display.DecisionsPerSecond = Decisions / Elapsed;
     Display.LatencyMs = Decisions > 0 ? (Counters.LatencySumMs - WindowCounters.LatencySumMs) / Decisions : 0;
-    if (Scheduler && Mode == ECrowdInferenceMode::Background)
+    if (Policy.IsValid() && Mode == ECrowdInferenceMode::Background)
     {
-        const FNPCBackgroundStats Stats = Scheduler->GetStats();
+        const FNPCBackgroundStats Stats = Policy.GetStats().Scheduler;
         Display.RowsPerModelCall = RowsPerCall(Stats, WindowSchedulerStart);
         Display.ModelMsPerSecond = ServiceMs(Stats, WindowSchedulerStart) / Elapsed;
         Display.DroppedRows = Dropped(Stats, ModeSchedulerStart);
@@ -366,9 +345,9 @@ void ACrowdComparisonHost::WriteReport()
     Root->SetNumberField(TEXT("inference_game_thread_ms_p99"), Quantile(CaptureInferenceMs, .99));
     Root->SetNumberField(TEXT("decisions_per_second"), Decisions / Elapsed);
     Root->SetNumberField(TEXT("action_latency_ms_mean"), Decisions > 0 ? CaptureCounters.LatencySumMs / Decisions : 0);
-    if (Scheduler && Mode == ECrowdInferenceMode::Background)
+    if (Policy.IsValid() && Mode == ECrowdInferenceMode::Background)
     {
-        const FNPCBackgroundStats Stats = Scheduler->GetStats();
+        const FNPCBackgroundStats Stats = Policy.GetStats().Scheduler;
         Root->SetNumberField(TEXT("rows_per_model_call"), RowsPerCall(Stats, CaptureSchedulerStart));
         Root->SetNumberField(TEXT("model_calls"), double(Stats.BackendCalls - CaptureSchedulerStart.BackendCalls));
         Root->SetNumberField(TEXT("model_ms_per_second"), ServiceMs(Stats, CaptureSchedulerStart) / Elapsed);
