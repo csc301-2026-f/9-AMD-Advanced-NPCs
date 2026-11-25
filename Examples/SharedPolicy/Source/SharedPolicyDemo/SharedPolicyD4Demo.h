@@ -18,7 +18,7 @@ class ASharedPolicyD4Agent : public AActor, public IAgent
 
 public:
     ASharedPolicyD4Agent();
-    void Configure(AActor& InTarget, bool bInToward, float Lane);
+    void Configure(AActor& InTarget, bool bInToward, const FVector& InTargetOffset, float MaxSpeed);
     FVector GetSteeringPoint() const;
     void Define_Implementation(FInteractionDefinition& OutDefinition) override;
     void Observe_Implementation(FInstancedStruct& OutObservations) override;
@@ -35,6 +35,7 @@ private:
 
     FVector ArenaCenter = FVector::ZeroVector;
     FVector TargetOffset = FVector::ZeroVector;
+    float MaxMovementPerDecision = 0.f;
     bool bAppliedAction = false;
 };
 
@@ -50,6 +51,7 @@ public:
 
 private:
     void MoveTarget(float DeltaSeconds);
+    void MoveBeaconTo(const FVector& Position);
     bool RunDecision();
 
     UPROPERTY()

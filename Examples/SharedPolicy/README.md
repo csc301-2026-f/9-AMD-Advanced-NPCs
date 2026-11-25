@@ -1,8 +1,12 @@
 # Shared Policy example
 
 The D4 example uses Schola's Architecture C policy to steer six NPCs with
-two model calls per decision step. Three blue cubes follow a beacon at
-separate spots, and three orange cubes move away.
+two model calls per decision step. Three blue cubes follow the beacon in
+single file, fastest closest to the beacon, and three orange cubes move away.
+The follow spots turn with the beacon's direction of travel. The blue cubes have
+maximum speeds of 30%, 60%, and 100% of the beacon's speed, respectively.
+They share the same steering model; the demo applies each cube's speed
+when turning its steering output into movement.
 
 ## Build on macOS
 

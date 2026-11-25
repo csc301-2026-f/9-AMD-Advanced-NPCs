@@ -28,14 +28,21 @@ namespace SharedPolicyD4
     constexpr int32 AgentsPerRole = 3;
     constexpr float DecisionPeriod = .2f;
     constexpr float BeaconSpeed = 280.f;
-    constexpr float MovementPerDecision = 32.f;
+    constexpr float FollowerSpeeds[AgentsPerRole] = {84.f, 168.f, BeaconSpeed};
+    constexpr float FollowSpacing = 120.f;
+    constexpr float AwaySpeed = 160.f;
     constexpr float ObservationScale = 100.f;
     constexpr float BeaconRadius = 550.f;
     constexpr float ArenaRadius = 950.f;
-    constexpr int32 SmokeSteps = 36;
+    constexpr int32 SmokeSteps = 64;
     const FName TargetName(TEXT("D4_Target"));
     const FName TowardHead(TEXT("Toward"));
     const FName AwayHead(TEXT("Away"));
+
+    constexpr float FollowDistance(int32 Index)
+    {
+        return (AgentsPerRole - Index) * FollowSpacing;
+    }
 
     UNNEModelData* MakeModel(UObject* Owner, TConstArrayView<uint8> Bytes)
     {
@@ -56,15 +63,12 @@ ASharedPolicyD4Agent::ASharedPolicyD4Agent()
     Body->SetStaticMesh(Cube.Object);
 }
 
-void ASharedPolicyD4Agent::Configure(AActor& InTarget, bool bInToward, float Lane)
+void ASharedPolicyD4Agent::Configure(AActor& InTarget, bool bInToward, const FVector& InTargetOffset, float MaxSpeed)
 {
     Target = &InTarget;
     ArenaCenter = InTarget.GetActorLocation();
-    if (bInToward)
-    {
-        // Give each follower its own spot behind the beacon.
-        TargetOffset = FVector(-120.f, Lane, 0.f);
-    }
+    MaxMovementPerDecision = MaxSpeed * SharedPolicyD4::DecisionPeriod;
+    TargetOffset = InTargetOffset;
     if (auto* Material = Body->CreateDynamicMaterialInstance(0))
     {
         Material->SetVectorParameterValue(TEXT("Color"),
@@ -74,7 +78,7 @@ void ASharedPolicyD4Agent::Configure(AActor& InTarget, bool bInToward, float Lan
 
 FVector ASharedPolicyD4Agent::GetSteeringPoint() const
 {
-    return Target->GetActorLocation() + TargetOffset;
+    return Target->GetActorLocation() + Target->GetActorQuat().RotateVector(TargetOffset);
 }
 
 void ASharedPolicyD4Agent::Define_Implementation(FInteractionDefinition& OutDefinition)
@@ -104,7 +108,7 @@ void ASharedPolicyD4Agent::Act_Implementation(const FInstancedStruct& InAction)
         return;
     }
     const FVector ProposedOffset = GetActorLocation() - ArenaCenter
-        + FVector(Action->Values[0], Action->Values[1], 0) * SharedPolicyD4::MovementPerDecision;
+        + FVector(Action->Values[0], Action->Values[1], 0) * MaxMovementPerDecision;
     SetActorLocation(ArenaCenter + ProposedOffset.GetClampedToMaxSize2D(SharedPolicyD4::ArenaRadius));
     bAppliedAction = true;
 }
@@ -126,6 +130,7 @@ bool ASharedPolicyD4Demo::Setup(AActor& InTarget)
         return false;
     }
     TargetRoot->SetMobility(EComponentMobility::Movable);
+    Target->SetActorRotation(FRotator::ZeroRotator);
 
     Policy = NewObject<UNNEPerHeadSharedPolicy>(this);
     Policy->HeadModels.Add(TowardHead, MakeModel(Policy, MakeArrayView(SharedPolicyD4Models::Toward)));
@@ -146,14 +151,16 @@ bool ASharedPolicyD4Demo::Setup(AActor& InTarget)
     for (int32 Index = 0; Index < 2 * AgentsPerRole; ++Index)
     {
         const bool bToward = Index < AgentsPerRole;
-        const float Lane = (Index % AgentsPerRole - 1) * 145.f;
-        const FVector Offset(bToward ? -250.f : 210.f, Lane, 0.f);
-        auto* Agent = World->SpawnActor<ASharedPolicyD4Agent>(TargetStart + Offset, FRotator::ZeroRotator);
+        const FVector TargetOffset = bToward ? FVector(-FollowDistance(Index), 0, 0) : FVector::ZeroVector;
+        const FVector SpawnOffset = bToward ? TargetOffset - FVector(130, 0, 0)
+            : FVector(210, (Index - AgentsPerRole - 1) * 145.f, 0);
+        auto* Agent = World->SpawnActor<ASharedPolicyD4Agent>(TargetStart + SpawnOffset, FRotator::ZeroRotator);
         if (!Agent)
         {
             return false;
         }
-        Agent->Configure(*Target, bToward, Lane);
+        const float Speed = bToward ? FollowerSpeeds[Index] : AwaySpeed;
+        Agent->Configure(*Target, bToward, TargetOffset, Speed);
         Agents.Add(Agent);
         Bindings.Emplace(TScriptInterface<IAgent>(Agent), bToward ? TowardHead : AwayHead);
     }
@@ -197,7 +204,17 @@ void ASharedPolicyD4Demo::MoveTarget(float DeltaSeconds)
     {
         const FVector Offset = Target->GetActorLocation() - TargetStart
             + Direction.GetSafeNormal() * BeaconSpeed * DeltaSeconds;
-        Target->SetActorLocation(TargetStart + Offset.GetClampedToMaxSize2D(BeaconRadius));
+        MoveBeaconTo(TargetStart + Offset.GetClampedToMaxSize2D(BeaconRadius));
+    }
+}
+
+void ASharedPolicyD4Demo::MoveBeaconTo(const FVector& Position)
+{
+    const FVector Travel = (Position - Target->GetActorLocation()).GetSafeNormal2D();
+    if (!Travel.IsZero())
+    {
+        // Keep the last heading while stopped. Use actual travel after arena clamping.
+        Target->SetActorLocationAndRotation(Position, Travel.Rotation());
     }
 }
 
@@ -217,6 +234,7 @@ bool ASharedPolicyD4Demo::RunDecision()
     int32 Applied = 0;
     int32 Toward = 0;
     int32 Away = 0;
+    bool bFollowerSpeedsMatch = true;
     for (int32 Index = 0; Index < Agents.Num(); ++Index)
     {
         const auto* Agent = Agents[Index].Get();
@@ -225,6 +243,12 @@ bool ASharedPolicyD4Demo::RunDecision()
             FVector::Dist2D(Agent->GetSteeringPoint(), Agent->GetActorLocation()) - Before[Index];
         Toward += Index < AgentsPerRole && DistanceChange < -KINDA_SMALL_NUMBER;
         Away += Index >= AgentsPerRole && DistanceChange > KINDA_SMALL_NUMBER;
+        if (bSmokeTest && DecisionNumber == 0 && Index < AgentsPerRole)
+        {
+            // Initial followers face their aligned slots with a full-strength action.
+            bFollowerSpeedsMatch &= FMath::IsNearlyEqual(
+                -DistanceChange, double(FollowerSpeeds[Index] * DecisionPeriod), .01);
+        }
     }
 
     ++DecisionNumber;
@@ -237,6 +261,15 @@ bool ASharedPolicyD4Demo::RunDecision()
     if (Applied != Agents.Num() || Calls != 2)
     {
         UE_LOG(LogSharedPolicyD4, Error, TEXT("The D4 inference step did not apply all actions in two model calls."));
+        return false;
+    }
+    if (bSmokeTest && DecisionNumber == 1)
+    {
+        UE_LOG(LogSharedPolicyD4, Display, TEXT("D4 follower speeds: %s"),
+            bFollowerSpeedsMatch ? TEXT("PASS") : TEXT("FAIL"));
+    }
+    if (!bFollowerSpeedsMatch)
+    {
         return false;
     }
     return !bSmokeTest || DecisionNumber > 2 || (Toward == AgentsPerRole && Away == AgentsPerRole);
@@ -252,14 +285,22 @@ void ASharedPolicyD4Demo::Tick(float DeltaSeconds)
         return;
     }
     DecisionElapsed = 0.f;
-    if (bSmokeTest && DecisionNumber == 1)
+    if (bSmokeTest && (DecisionNumber == 1 || DecisionNumber == 2))
     {
-        // Put the beacon beyond the agents to exercise a new steering direction.
-        const FVector NewPosition = TargetStart + FVector(450, 150, 0);
-        Target->SetActorLocation(NewPosition);
-        if (!Target->GetActorLocation().Equals(NewPosition))
+        // Turn sideways, then reverse. All three assigned spots must stay behind the new heading.
+        const FVector NewPosition = TargetStart + FVector(0, DecisionNumber == 1 ? 350 : -250, 0);
+        const FVector Travel = (NewPosition - Target->GetActorLocation()).GetSafeNormal2D();
+        MoveBeaconTo(NewPosition);
+        bool bBehind = Target->GetActorLocation().Equals(NewPosition);
+        for (int32 Index = 0; Index < SharedPolicyD4::AgentsPerRole; ++Index)
         {
-            UE_LOG(LogSharedPolicyD4, Error, TEXT("D4 smoke: could not relocate the beacon."));
+            const FVector Offset = Agents[Index]->GetSteeringPoint() - Target->GetActorLocation();
+            bBehind &= Offset.Equals(-Travel * SharedPolicyD4::FollowDistance(Index), .01);
+        }
+        UE_LOG(LogSharedPolicyD4, Display, TEXT("D4 follow spots after %s: %s"),
+            DecisionNumber == 1 ? TEXT("sideways turn") : TEXT("reversal"), bBehind ? TEXT("PASS") : TEXT("FAIL"));
+        if (!bBehind)
+        {
             SetActorTickEnabled(false);
             FPlatformMisc::RequestExitWithStatus(false, 1);
             return;
