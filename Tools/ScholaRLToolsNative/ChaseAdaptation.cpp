@@ -231,7 +231,7 @@ int main(int Argc, char** Argv)
 
     FILE* Csv = Options.Csv.empty() ? nullptr : std::fopen(Options.Csv.c_str(), "w");
     if (!Options.Csv.empty() && !Csv) { std::fprintf(stderr, "error: cannot write %s\n", Options.Csv.c_str()); return 2; }
-    if (Csv) std::fprintf(Csv, "phase,pattern,episodes,total_moves,moves_since_switch,learner_catch,learner_steps,snapshot_catch,version,replay_size,seconds\n");
+    if (Csv) std::fprintf(Csv, "phase,pattern,episodes,total_moves,moves_since_switch,learner_catch,learner_steps,snapshot_catch,version,replay_size,seconds,accepted,rejected,dropped,eval_fallbacks\n");
 
     FRun Run(Options, std::move(Learner));
     Run.Frozen = Frozen.get();
@@ -256,9 +256,12 @@ int main(int Argc, char** Argv)
         std::fflush(stdout);
         if (Csv)
         {
-            std::fprintf(Csv, "%s,%s,%llu,%llu,%llu,%.4f,%.2f,%.4f,%llu,%u,%.1f\n", Phase, PatternName(Pattern),
+            // Feedback counts are cumulative; eval_fallbacks is for this evaluation only.
+            std::fprintf(Csv, "%s,%s,%llu,%llu,%llu,%.4f,%.2f,%.4f,%llu,%u,%.1f,%llu,%llu,%llu,%llu\n", Phase, PatternName(Pattern),
                 (unsigned long long)Run.Episode, (unsigned long long)Run.Moves, (unsigned long long)Since,
-                Learned.CatchRate, Learned.MeanSteps, SnapshotCatch, (unsigned long long)Stats.Version, Stats.ReplaySize, Seconds());
+                Learned.CatchRate, Learned.MeanSteps, SnapshotCatch, (unsigned long long)Stats.Version, Stats.ReplaySize, Seconds(),
+                (unsigned long long)Stats.Accepted, (unsigned long long)Stats.Rejected, (unsigned long long)Stats.Dropped,
+                (unsigned long long)Learned.Fallbacks);
             std::fflush(Csv);
         }
         return std::pair<FEval, double>{Learned, SnapshotCatch};
