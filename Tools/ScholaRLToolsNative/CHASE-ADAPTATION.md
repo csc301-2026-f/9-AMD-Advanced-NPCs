@@ -88,6 +88,40 @@ snapshot, but it is not steady. Seed 1 drops to 0.54 at one evaluation, and fina
 to 1.00. 20k and 60k behave similarly (minimums 0.36–0.82). Defining a post-recovery stability criterion
 before tuning against it is the next step. The D3 criteria should not be loosened to absorb this.
 
+## Starting from a checkpoint (2026-11-26)
+
+Test 9 in the design doc compares adaptive and frozen learners "from the same starting weights". The runs
+above keep the frozen snapshot in memory. This run saves a checkpoint after pretraining and restarts from
+it in a new process:
+
+```sh
+CHECKPOINT=1 SEEDS="1 2 3 4 5 6" JOBS=3 Tools/ScholaRLToolsNative/run-chase.sh \
+    Tools/ScholaRLToolsNative/Evidence/chase-adaptation/checkpoint-10k
+```
+
+1. **Save run** (`seed<N>-save`): the normal protocol, plus a FullResume checkpoint saved at the switch.
+2. **Start run** (`seed<N>-start`): a new process loads that file into two learners. One keeps learning.
+   The other has learning disabled and is the frozen control. Both then run the `corner` switch.
+
+| Seed | Save run: ≥0.80 at move | learner / frozen | Start run: ≥0.80 at move | learner / frozen | Start run: after window min / final |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 12,039 | 0.75 / 0.37 | 9,863 | 0.95 / 0.37 | 0.79 / 0.97 |
+| 2 | 10,916 | 0.87 / 0.18 | 12,763 | 0.98 / 0.18 | 0.59 / 0.96 |
+| 3 | 4,396 | 1.00 / 0.38 | 13,994 | 1.00 / 0.38 | 0.50 / 0.88 |
+| 4 | 11,367 | 0.98 / 0.10 | 11,824 | 0.74 / 0.10 | 0.57 / 0.93 |
+| 5 | 10,162 | 0.94 / 0.27 | 2,774 | 0.77 / 0.27 | 0.70 / 1.00 |
+| 6 | 13,999 | 1.00 / 0.21 | 8,470 | 0.96 / 0.21 | 0.73 / 0.98 |
+
+- **Criteria 1–4 pass on all 12 runs**, so criterion 5 passes for both the save runs and the start runs.
+- **Saving does not change a run.** Every save run reproduces the replay-10k numbers in the table above.
+- **The file restores the learner exactly.** In every start run, both learners match the saver's
+  `rightturn` and post-switch `corner` catch rates, and the frozen control's catch rate never moves.
+- **Start runs are not replays of save runs.** The training start states after the load come from a
+  different random stream, because the chase world's RNG is not in the checkpoint. Recovery times differ
+  for that reason (2,774 to 13,994 moves), but all stay inside the 20,000-move window.
+- **The frozen control check** (`PASS control-frozen`) was added after these runs. In the current code the
+  frozen learner is given every move and must refuse all of them. The learner's results do not depend on it.
+
 ## Limits
 
 - This is the native learner without Unreal. The same protocol through `UAdaptiveStepper` and
