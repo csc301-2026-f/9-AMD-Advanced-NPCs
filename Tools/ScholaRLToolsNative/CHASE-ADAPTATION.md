@@ -119,8 +119,12 @@ CHECKPOINT=1 SEEDS="1 2 3 4 5 6" JOBS=3 Tools/ScholaRLToolsNative/run-chase.sh \
 - **Start runs are not replays of save runs.** The training start states after the load come from a
   different random stream, because the chase world's RNG is not in the checkpoint. Recovery times differ
   for that reason (2,774 to 13,994 moves), but all stay inside the 20,000-move window.
-- **The frozen control check** (`PASS control-frozen`) was added after these runs. In the current code the
-  frozen learner is given every move and must refuse all of them. The learner's results do not depend on it.
+- **The frozen control check** (`PASS control-frozen`) in these runs checks that the frozen control's
+  version and update count are unchanged since the load. A later commit made it stronger: the frozen
+  learner is now given every move and must refuse all of them. The learner's results do not depend on it.
+- **Seed 2 was run by hand** with the same binary and flags (`ChaseAdaptation --seed 2 --save-checkpoint
+  ...`, then `--start-checkpoint ...`), not through `run-chase.sh`, so its `saved` and `loaded` lines show a
+  relative path. Seeds 1 and 3–6 came from the command above.
 
 ## Limits
 
