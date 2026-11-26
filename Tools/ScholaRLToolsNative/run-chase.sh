@@ -34,20 +34,27 @@ echo "Building with $CXX into $OUT"
 
 # Run seeds JOBS at a time; each writes seed<N>.txt and seed<N>.csv.
 RUNNING=0
+# Run NAME ARGS... runs the binary into NAME.txt and records its exit code in NAME.exit.
+# A failed criterion exits 1; keep going so the start run still happens (set -e would stop here).
+Run() {
+    NAME=$1; shift
+    if "$BIN" "$@" > "$OUT/$NAME.txt" 2>&1; then CODE=0; else CODE=$?; fi
+    echo "$CODE" > "$OUT/$NAME.exit"
+}
 RunSeed() {
     S=$1; shift
     if [ "$CHECKPOINT" = 1 ]; then
-        # A failed criterion exits 1; keep going so the start run still happens (set -e would stop here).
         # Remove any old file first so a save that never got that far cannot leave a stale checkpoint.
         rm -f "$OUT/seed$S.ckpt"
-        "$BIN" --seed "$S" --csv "$OUT/seed$S-save.csv" --save-checkpoint "$OUT/seed$S.ckpt" "$@" > "$OUT/seed$S-save.txt" 2>&1 || true
+        Run "seed$S-save" --seed "$S" --csv "$OUT/seed$S-save.csv" --save-checkpoint "$OUT/seed$S.ckpt" "$@"
         if [ -f "$OUT/seed$S.ckpt" ]; then
-            "$BIN" --seed "$S" --csv "$OUT/seed$S-start.csv" --start-checkpoint "$OUT/seed$S.ckpt" "$@" > "$OUT/seed$S-start.txt" 2>&1 || true
+            Run "seed$S-start" --seed "$S" --csv "$OUT/seed$S-start.csv" --start-checkpoint "$OUT/seed$S.ckpt" "$@"
         else
             echo "error: seed $S saved no checkpoint" > "$OUT/seed$S-start.txt"
+            echo 1 > "$OUT/seed$S-start.exit"
         fi
     else
-        "$BIN" --seed "$S" --csv "$OUT/seed$S.csv" "$@" > "$OUT/seed$S.txt" 2>&1 || true
+        Run "seed$S" --seed "$S" --csv "$OUT/seed$S.csv" "$@"
     fi
 }
 for SEED in $SEEDS; do
@@ -64,6 +71,8 @@ for SEED in $SEEDS; do
         sed -n '/^RESULT/,$p' "$OUT/$RUN.txt"
         grep -q '^FAIL\|^error' "$OUT/$RUN.txt" && FAILED=1
         grep -q '^RESULT' "$OUT/$RUN.txt" || FAILED=1
+        CODE=$(cat "$OUT/$RUN.exit" 2>/dev/null || echo missing)
+        [ "$CODE" = 0 ] || { echo "FAIL $RUN exited with $CODE"; FAILED=1; }
     done
 done
 if [ "$FAILED" -eq 0 ]; then echo "PASS criterion5: criteria 1-4 hold on seeds $SEEDS"; else echo "FAIL criterion5: see above"; fi
