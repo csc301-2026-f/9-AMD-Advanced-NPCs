@@ -35,11 +35,11 @@
         <div class="card-grid" style="grid-template-columns: repeat(4, 1fr)">
           <div><h3>Adaptive</h3><p>Keeps learning from the player after the game ships.</p></div>
           <div><h3>Background</h3><p>Thousands of agents deciding within one frame budget.</p></div>
-          <div><h3>Shared Policy</h3><p>One network serving NPCs in different roles.</p></div>
+          <div><h3>Shared Policy</h3><p>One inference interface for NPCs in different roles.</p></div>
           <div><h3>Event</h3><p>Decides only when something happens in the game.</p></div>
         </div>
         <div class="takeaway"><span>Who it is for</span><p>Unreal developers and ML engineers who build NPCs with Schola.</p></div>
-        <aside class="speaker-notes" data-time="0:45">Schola is AMD's open-source Unreal plugin. Its existing loop trains a policy in Python over gRPC, exports ONNX, and runs one synchronous decision per agent per tick on the game thread. Each card is a need that loop can't serve: learning after training ends, scale within a frame budget, sharing one network across roles, and deciding only on events. These are the D1 user stories, unchanged.</aside>
+        <aside class="speaker-notes" data-time="0:45">Schola is AMD's open-source Unreal plugin. Its existing loop trains a policy in Python over gRPC, exports ONNX, and runs one synchronous decision per agent per tick on the game thread. Each card names a need from D1: learning after training ends, scaling within a frame budget, sharing inference across roles, and deciding only on events.</aside>
       </section>
 
       <section class="slide" id="scope" aria-labelledby="scope-heading" data-title="What existed and what we built" data-section="Introduction">
@@ -51,7 +51,7 @@
           <tbody>
             <tr><th scope="row">Learning</th><td>Python training over gRPC (SB3, RLlib), then a frozen ONNX model</td><td>SAC, TD3 and PPO learning inside the running game, in C++, with no Python process</td></tr>
             <tr><th scope="row">Scheduling</th><td>Synchronous <i>Think</i> per agent on the game thread</td><td>Batched inference on worker threads for Actors and Mass entities; event-triggered decisions</td></tr>
-            <tr><th scope="row">Model structure</th><td>One ONNX policy per agent type</td><td>One shared network with role-specific heads; five designs benchmarked for latency and correctness</td></tr>
+            <tr><th scope="row">Model structure</th><td>One ONNX policy per agent type</td><td>One shared-policy interface with role-based routing and five ONNX designs evaluated</td></tr>
             <tr><th scope="row">Proof</th><td>Unreal automation tests</td><td>Example games, benchmarks, adaptation experiments, and learner tests that run in CI without Unreal</td></tr>
           </tbody>
         </table>
@@ -143,18 +143,21 @@
 
       <section class="slide" id="demo-shared" aria-labelledby="demo-shared-heading" data-title="Demo: shared policy NPCs" data-section="Demo">
         <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Demo 3 / Shared Policy NPCs</span></header>
-        <div class="slot">
-          <span class="slot-owner">Shared Policy subteam · 1:00</span>
-          <h3 id="demo-shared-heading">User flow 3: one network, role-specific actions</h3>
-          <ul>
-            <li>What the developer configures: role heads and NPC-to-head bindings</li>
-            <li>Live: NPCs in different roles receiving their own actions from one batched call (Lyra integration if it is ready)</li>
-            <li>What to watch: one model call, correct routing per NPC</li>
-            <li>The fallback if the live run fails, with a reason</li>
-          </ul>
-          <p class="slot-known">On record: 48/48 Unreal NNE reports pass correctness; architecture C had lower request latency in 45/48 trials.</p>
+        <p class="eyebrow">User flow 3 · role-based inference</p>
+        <h2 id="demo-shared-heading">Steering NPCs by role</h2>
+        <div class="split" style="grid-template-columns:2fr 1fr">
+          <ol class="dev-steps">
+            <li><span>01</span><p style="margin:0">Assign each NPC a role and connect one ONNX model to each role.</p></li>
+            <li><span>02</span><p style="margin:0">Move the beacon with WASD. Three NPCs follow and three steer away.</p></li>
+            <li><span>03</span><p style="margin:0">Filter Unreal’s Output Log for <code>LogSharedPolicyD4</code>.</p></li>
+          </ol>
+          <div class="side-facts" aria-label="Observed per decision step">
+            <div><strong>6</strong><span>NPC actions applied</span></div>
+            <div><strong>2</strong><span>model calls per decision step</span></div>
+          </div>
         </div>
-        <aside class="speaker-notes" data-time="1:00">Shared Policy subteam: replace this slot.</aside>
+        <div class="takeaway"><span>Watch for</span><p>One batch per active role. Each NPC gets back its own steering output.</p></div>
+        <aside class="speaker-notes" data-time="1:00">0:00–0:12: Explain the developer setup: bind the two roles and their models. 0:12–0:42: Switch to the pre-opened SharedPolicy Unreal project, press Play if needed, and use WASD to change the beacon’s direction. Point to the followers and fleeing agents. 0:42–1:00: Show six actions and two calls in Output Log. The call count is the difference in Schola’s counter before and after the step. If using the trained build, show its startup line and say that the models learned from synthetic steering examples. If Unreal cannot run live, say why and narrate the recorded baseline clip if available. With no clip, walk through the observed smoke-test result on this slide.</aside>
       </section>
 
       <section class="slide" id="demo-event" aria-labelledby="demo-event-heading" data-title="Demo: event NPCs" data-section="Demo">
@@ -204,7 +207,7 @@
           </g>
           <g font-size="18" fill="#173d38" text-anchor="middle">
             <text x="400" y="146">UAdaptiveStepper</text><text x="660" y="137">UBackgroundStepper</text><text x="660" y="159">Mass processors</text><text x="920" y="146">USharedPolicyStepper</text><text x="1180" y="146">UEventStepper</text>
-            <text x="400" y="276">URLToolsNPCPolicy</text><text x="660" y="267">UNPCInferencePolicy</text><text x="660" y="289">(Background)</text><text x="920" y="267">UNNESharedPolicy</text><text x="920" y="289">role heads</text><text x="1180" y="276">any Schola policy</text>
+            <text x="400" y="276">URLToolsNPCPolicy</text><text x="660" y="267">UNPCInferencePolicy</text><text x="660" y="289">(Background)</text><text x="920" y="267">Per-head NNE policy</text><text x="920" y="289">Architecture C</text><text x="1180" y="276">any Schola policy</text>
             <text x="400" y="397">RLtools learner</text><text x="400" y="419">on a worker pool</text><text x="660" y="397">batch scheduler +</text><text x="660" y="419">NNE worker contexts</text><text x="920" y="406">Unreal NNE</text><text x="1180" y="406">caller's thread</text>
           </g>
           <g stroke="#50645c" stroke-width="2" marker-end="url(#arrow)">
@@ -215,7 +218,7 @@
           <g font-size="17" fill="#50645c"><text x="0" y="160">Schola IStepper</text><text x="0" y="290">Schola IPolicy</text><text x="0" y="420">Unreal / NNE</text></g>
         </svg>
         <div class="legend-row"><span class="is-new">Built by this project</span><span class="is-existing">Existing Schola or Unreal</span></div>
-        <aside class="speaker-notes" data-time="0:40">Walk the diagram top to bottom once. Game code only implements agents. A stepper decides when NPCs decide, a policy decides how, and the bottom row is where the work runs. The key design choice: every NPC type is a new implementation of an existing Schola interface, so game code never touches RLtools, ONNX Runtime or worker threads, and the types compose. For example, the event stepper works with any policy. Each subteam's next slide zooms into its own column.</aside>
+        <aside class="speaker-notes" data-time="0:40">Walk the diagram top to bottom once. An agent provides observations and applies actions. A stepper coordinates decisions, a policy decides how to produce actions, and the bottom row is where the work runs. Shared Policy adds a role-aware stepper and policy interface while reusing Schola’s agent contract and Unreal NNE. Each subteam’s next slide zooms into its own column.</aside>
       </section>
 
       <section class="slide" id="tech-adaptive" aria-labelledby="tech-adaptive-heading" data-title="Adaptive: learning inside the game" data-section="Technical">
@@ -401,17 +404,16 @@
 
       <section class="slide" id="tech-shared" aria-labelledby="tech-shared-heading" data-title="Shared Policy: design" data-section="Technical">
         <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Shared Policy NPCs / Deliverable 4</span></header>
-        <div class="slot">
-          <span class="slot-owner">Shared Policy subteam · 0:35</span>
-          <h3 id="tech-shared-heading">Design: choosing a shared-network architecture</h3>
-          <ul>
-            <li>A diagram of the chosen architecture and how actions route to roles (deliverables/D3/assets/shared-policy-architectures.svg)</li>
-            <li>Why C or D, the correctness gate, and the measured latency difference</li>
-            <li>What changed for D4 (memory comparison, Lyra integration)</li>
-          </ul>
-          <p class="slot-known">No code screenshots. Walk the diagram; don't just show it.</p>
+        <p class="eyebrow">Architecture C · one model per role</p>
+        <h2 id="tech-shared-heading">Schola batches observations by role</h2>
+        <div class="three-columns workflow" aria-label="Unreal collects observations, Schola groups them for inference, and Unreal applies the results">
+          <div><span class="step-number">01</span><h3 style="color:var(--ink)">Collect</h3><p>The stepper reads each NPC’s observation and assigned role.</p></div>
+          <div><span class="step-number">02</span><h3 style="color:var(--ink)">Run two batches</h3><p>Unreal NNE runs one Toward batch and one Away batch, with three observations each.</p></div>
+          <div><span class="step-number">03</span><h3 style="color:var(--ink)">Return actions</h3><p>Schola restores the original NPC order. Each actor applies its own steering output.</p></div>
         </div>
-        <aside class="speaker-notes" data-time="0:35">Shared Policy subteam: replace this slot.</aside>
+        <p class="prompt" style="margin:16px 0 0"><strong>Lyra prototype:</strong> bot StateTrees start in Unreal. Connecting states to model heads is pending.</p>
+        <div class="takeaway"><span>Why C</span><p>Correct in all 48 Unreal reports. Lower p50 than conditional D in 45 of 48 paired CPU trials, at the cost of storing a separate model for each role.</p></div>
+        <aside class="speaker-notes" data-time="0:35">The stepper collects six observations. C groups them by role, runs two models, and restores the NPC order. All 48 Unreal reports matched the reference. C had lower median request latency in 45 of 48 paired Apple Silicon NNE CPU trials against D. That’s why we used C here. Lyra bot StateTrees start in the prototype, and wiring their states to model heads is next. Sources: benchmark guide and PRs #66 and #67.</aside>
       </section>
 
       <section class="slide" id="tech-event" aria-labelledby="tech-event-heading" data-title="Event: design" data-section="Technical">
@@ -441,7 +443,7 @@
               <tr><th scope="row">Chase simulator</th><td>7 smoke checks</td><td><span class="status-pill status-ok">CI</span> every PR</td></tr>
               <tr><th scope="row">Adaptive in Unreal</th><td>Policy, stepper, world service; script fails on a missing test</td><td>Local script</td></tr>
               <tr><th scope="row">Background and Mass</th><td>43 automation tests</td><td>Local script</td></tr>
-              <tr><th scope="row">Shared Policy</th><td>pytest; 48 NNE reports gated on correctness</td><td>Local script</td></tr>
+              <tr><th scope="row">Shared Policy</th><td>Python tests, 48 NNE correctness reports, and D4 gameplay smoke test</td><td>Local scripts</td></tr>
             </tbody>
           </table>
           <div class="slot" style="padding: 24px 32px">
@@ -450,7 +452,7 @@
             <ul><li>What deploys automatically to dev, and when</li><li>What deploys to release, and when</li><li>Where the partner downloads each</li></ul>
           </div>
         </div>
-        <div class="takeaway"><span>Constraint</span><p>Hosted runners have no Unreal, so everything that builds without the engine runs in CI.</p></div>
+        <div class="takeaway"><span>Constraint</span><p>Hosted course runners lack Unreal. Engine-dependent checks run locally.</p></div>
         <aside class="speaker-notes" data-time="0:25">Every job has a 5-minute timeout and narrow path triggers to stay inside the Actions budget. Unreal automation runs through local scripts that check every registered test reported a result. PRs need a teammate's review before merge. Fill the deployment box once the dev and release workflow is merged; don't claim it before then.</aside>
       </section>
 
@@ -495,9 +497,10 @@
           <div><h3>Make the core testable off-engine</h3><p>Course CI can't run Unreal, and several of us develop on macOS. An engine-free learner build put it in CI. We'd do it in week 1.</p><p class="because">Platform → process → quality.</p></div>
         </div>
         <div class="slot" style="flex:0 0 auto; padding: 16px 32px; margin-top: 24px">
-          <span class="slot-owner">Other subteams · one technical learning each, with its cause and effect</span>
+          <span class="slot-owner">Shared Policy</span>
+          <p style="margin:0;font-size:21px">Measure the full routed request. Grouping and restoring rows cost time, so timing the model alone can mislead an architecture choice.</p>
         </div>
-        <aside class="speaker-notes" data-time="1:30">Technical learnings score above process ones, and multi-dimensional thinking is what earns full marks, so name the chain on each card. 1: D1 planned gRPC to Python; the partner's need for learning in a shipped game made a separate Python process unacceptable, which drove the move to RLtools in C++. That change is also what made the learner testable without Unreal. 2: Without a frozen-copy control and fixed criteria we would have shipped chase_sim's 60k replay buffer; the controlled runs showed 2 of 3 seeds passing versus 6 of 6 at 10k. 3: Our Unreal C++ can only be verified on Windows, which slowed review. An engine-free build from the start would have put the numerics under CI from day one.</aside>
+        <aside class="speaker-notes" data-time="1:30">Name the cause and effect on each card. 1: The partner’s need for learning in a shipped game drove the move from a separate Python process to RLtools in C++. That made the learner testable without Unreal. 2: The frozen-copy control exposed the slow recovery of the inherited 60k replay buffer. 3: Engine-free builds let us test the learner in CI. Shared Policy: we would define the timing boundary earlier. Include grouping, copies, model calls and row restoration so the benchmark matches the actual runtime request.</aside>
       </section>
 
       <!-- ============ 6. QUESTIONS ============ -->
@@ -540,7 +543,9 @@
           <ol class="reference-list" start="6">
             <li><a href="../D3/README.md">Deliverable 3</a></li>
             <li><a href="../D1/planning.md">D1 user stories</a></li>
-            <li class="placeholder">Background, Shared Policy and Event references: add here</li>
+            <li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/66">Shared Policy Unreal demo</a> and <a href="../../Prototypes/SharedPolicy/benchmarks/README.md">benchmark guide</a></li>
+            <li><a href="https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/67">Lyra StateTree prototype</a></li>
+            <li class="placeholder">Background and Event references: add here</li>
           </ol>
         </div>
         <aside class="speaker-notes" data-time="Backup">Links are relative to the repository.</aside>

@@ -33,10 +33,13 @@ Slides with a dashed **slot** are reserved. Each slot lists what the slide must 
 content, keep the slide's `id` and its time budget, and update its speaker notes.
 
 - **Background NPCs:** `demo-background`, `tech-background`. Check the background numbers on `nfr` and `quality`.
-- **Shared Policy NPCs:** `demo-shared`, `tech-shared`. Check the shared-policy numbers on `nfr` and `quality`.
 - **Event NPCs:** `demo-event`, `tech-event`, and the Event column on `architecture` if the design changed.
-- **Team:** the deployment box on `quality` once the dev/release workflow is live; one learning per
-  subteam on `learnings`; references on `references`.
+- **Team:** the deployment box on `quality` once the dev/release workflow is live; the Background
+  and Event learnings and references.
+
+The **Shared Policy NPCs** sections are filled. Rehearse `demo-shared` with the standalone
+`SharedPolicy.uproject` already open. The slide uses the verified six-action, two-call result.
+It treats the Lyra StateTree work as a separate integration in progress.
 
 ## Rubric checklist
 
