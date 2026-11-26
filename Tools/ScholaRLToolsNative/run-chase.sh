@@ -37,10 +37,17 @@ RUNNING=0
 RunSeed() {
     S=$1; shift
     if [ "$CHECKPOINT" = 1 ]; then
-        "$BIN" --seed "$S" --csv "$OUT/seed$S-save.csv" --save-checkpoint "$OUT/seed$S.ckpt" "$@" > "$OUT/seed$S-save.txt" 2>&1
-        "$BIN" --seed "$S" --csv "$OUT/seed$S-start.csv" --start-checkpoint "$OUT/seed$S.ckpt" "$@" > "$OUT/seed$S-start.txt" 2>&1
+        # A failed criterion exits 1; keep going so the start run still happens (set -e would stop here).
+        # Remove any old file first so a save that never got that far cannot leave a stale checkpoint.
+        rm -f "$OUT/seed$S.ckpt"
+        "$BIN" --seed "$S" --csv "$OUT/seed$S-save.csv" --save-checkpoint "$OUT/seed$S.ckpt" "$@" > "$OUT/seed$S-save.txt" 2>&1 || true
+        if [ -f "$OUT/seed$S.ckpt" ]; then
+            "$BIN" --seed "$S" --csv "$OUT/seed$S-start.csv" --start-checkpoint "$OUT/seed$S.ckpt" "$@" > "$OUT/seed$S-start.txt" 2>&1 || true
+        else
+            echo "error: seed $S saved no checkpoint" > "$OUT/seed$S-start.txt"
+        fi
     else
-        "$BIN" --seed "$S" --csv "$OUT/seed$S.csv" "$@" > "$OUT/seed$S.txt" 2>&1
+        "$BIN" --seed "$S" --csv "$OUT/seed$S.csv" "$@" > "$OUT/seed$S.txt" 2>&1 || true
     fi
 }
 for SEED in $SEEDS; do
