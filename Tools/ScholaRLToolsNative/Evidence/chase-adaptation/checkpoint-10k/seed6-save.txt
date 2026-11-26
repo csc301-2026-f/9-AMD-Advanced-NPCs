@@ -5,7 +5,7 @@ pretrain rightturn ep=60    moves=9235    since=0      learner=0.94 (89.3 steps)
 pretrain rightturn ep=90    moves=12697   since=0      learner=0.85 (105.7 steps) snapshot=- v=11698 replay=10000 93s
 pretrain rightturn ep=120   moves=15894   since=0      learner=0.89 (104.1 steps) snapshot=- v=14895 replay=10000 118s
 pretrain rightturn ep=150   moves=19022   since=0      learner=0.98 (105.7 steps) snapshot=- v=18023 replay=10000 141s
-saved /Users/chloelee/9-AMD-Advanced-NPCs/Tools/ScholaRLToolsNative/Evidence/chase-adaptation/checkpoint-10k/seed6.ckpt: version=18023 updates=144184 replay=10000
+saved Tools/ScholaRLToolsNative/Evidence/chase-adaptation/checkpoint-10k/seed6.ckpt: version=18023 updates=144184 replay=10000
 switch   corner    ep=150   moves=19022   since=0      learner=0.21 (92.4 steps) snapshot=0.21 v=18023 replay=10000 141s
 adapt    corner    ep=155   moves=19731   since=709    learner=0.17 (136.4 steps) snapshot=0.21 v=18732 replay=10000 147s
 adapt    corner    ep=160   moves=20675   since=1653   learner=0.28 (137.3 steps) snapshot=0.21 v=19676 replay=10000 154s

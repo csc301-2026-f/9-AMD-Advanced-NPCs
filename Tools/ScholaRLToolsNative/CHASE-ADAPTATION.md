@@ -125,6 +125,8 @@ CHECKPOINT=1 SEEDS="1 2 3 4 5 6" JOBS=3 Tools/ScholaRLToolsNative/run-chase.sh \
 - **Seed 2 was run by hand** with the same binary and flags (`ChaseAdaptation --seed 2 --save-checkpoint
   ...`, then `--start-checkpoint ...`), not through `run-chase.sh`, so its `saved` and `loaded` lines show a
   relative path. Seeds 1 and 3–6 came from the command above.
+- **Paths in the logs were made repo-relative** after the runs (the absolute repo prefix was removed from
+  the `saved` and `loaded` lines). No other text or numbers were changed.
 
 ## Limits
 

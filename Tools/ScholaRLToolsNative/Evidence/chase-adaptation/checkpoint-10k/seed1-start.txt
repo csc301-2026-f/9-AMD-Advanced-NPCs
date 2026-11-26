@@ -1,4 +1,4 @@
-loaded /Users/chloelee/9-AMD-Advanced-NPCs/Tools/ScholaRLToolsNative/Evidence/chase-adaptation/checkpoint-10k/seed1.ckpt: profile=sac/chase-r10k mode=3 version=16842 updates=134736 replay=10000
+loaded Tools/ScholaRLToolsNative/Evidence/chase-adaptation/checkpoint-10k/seed1.ckpt: profile=sac/chase-r10k mode=3 version=16842 updates=134736 replay=10000
 profile=sac/chase-r10k seed=1 lr=0.001 updates/move=8 pretrain=150 episodes, window=20000 moves, post=20000 moves
 loaded   rightturn ep=0     moves=0       since=0      learner=0.87 (95.8 steps) snapshot=- v=16842 replay=10000 0s
 frozen control on rightturn: 0.87 (learner 0.87, same file)
