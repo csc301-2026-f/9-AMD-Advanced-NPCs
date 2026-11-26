@@ -562,7 +562,9 @@ void RunProfile(const RL::FProfile& P, const std::vector<RL::FProfile>& All)
         TrainUntil(*L, P, 1, CF);
         std::atomic<bool> Done{false};
         std::atomic<unsigned> NonFinite{0}, Evaluations{0}, Bursts{0};
-        std::thread Trainer([&] { while (!Done) { L->Train(); ++Bursts; std::this_thread::yield(); } });
+        // Pause briefly between bursts. Save/Load wait for the active burst, and with back-to-back bursts
+        // they could starve on Linux (glibc mutexes are not fair), which pushed CI past its timeout.
+        std::thread Trainer([&] { while (!Done) { L->Train(); ++Bursts; std::this_thread::sleep_for(std::chrono::microseconds(100)); } });
         std::thread Decider([&]
         {
             FFeed DF;
