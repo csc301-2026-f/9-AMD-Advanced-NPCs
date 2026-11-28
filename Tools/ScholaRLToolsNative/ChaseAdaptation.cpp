@@ -55,7 +55,8 @@ struct FOptions
     std::string Csv, SaveCheckpoint, StartCheckpoint;
 };
 
-struct FEval { double CatchRate = 0, MeanSteps = 0; };
+// Fallbacks: evaluation moves where the policy returned no action and the NPC stood still.
+struct FEval { double CatchRate = 0, MeanSteps = 0; uint64_t Fallbacks = 0; };
 
 FEval Evaluate(const FPolicy& Policy, const ChaseConfig& Config, RunnerPattern Pattern, unsigned Episodes)
 {
@@ -71,7 +72,7 @@ FEval Evaluate(const FPolicy& Policy, const ChaseConfig& Config, RunnerPattern P
         for (;;)
         {
             World.Observe(Observation.data());
-            if (!Policy.Evaluate(Observation, Action)) std::fill(Action.begin(), Action.end(), 0.0f);
+            if (!Policy.Evaluate(Observation, Action)) { std::fill(Action.begin(), Action.end(), 0.0f); ++Result.Fallbacks; }
             const ChaseStepOutcome Outcome = World.Step(Action.data());
             if (Outcome.terminated || Outcome.truncated) break;
         }
@@ -102,11 +103,17 @@ public:
             {
                 World.Observe(Observation.data());
                 FDecision Decision;
+                // Game-thread cost per move: Decide + Submit. Train runs after and is not timed here.
+                const auto Begin = std::chrono::steady_clock::now();
                 if (!Learner->Decide(Observation, 0, Episode, false, Decision)) return Fail("Decide failed");
                 const std::vector<float> Action = Decision.GetAction();
+                const auto Decided = std::chrono::steady_clock::now();
                 const ChaseStepOutcome Outcome = World.Step(Action.data());
                 World.Observe(Next.data());
+                const auto Resumed = std::chrono::steady_clock::now();
                 const ESubmitResult Result = Learner->Submit(Decision, Action, Outcome.reward, Next, Outcome.terminated, Outcome.truncated);
+                GameThreadMicros.push_back(std::chrono::duration<double, std::micro>(
+                    (Decided - Begin) + (std::chrono::steady_clock::now() - Resumed)).count());
                 if (Result != ESubmitResult::Accepted) return Fail("Submit was not accepted");
                 // Start mode: the frozen control sees the same move and must refuse it without changing.
                 if (Frozen)
@@ -133,6 +140,7 @@ public:
     ChaseConfig Config;
     ChaseRng Rng;
     uint64_t Episode = 0, Moves = 0;
+    std::vector<double> GameThreadMicros;
 private:
     bool Fail(const char* What) { std::fprintf(stderr, "error: %s\n", What); return false; }
 };
@@ -223,19 +231,23 @@ int main(int Argc, char** Argv)
 
     FILE* Csv = Options.Csv.empty() ? nullptr : std::fopen(Options.Csv.c_str(), "w");
     if (!Options.Csv.empty() && !Csv) { std::fprintf(stderr, "error: cannot write %s\n", Options.Csv.c_str()); return 2; }
-    if (Csv) std::fprintf(Csv, "phase,pattern,episodes,total_moves,moves_since_switch,learner_catch,learner_steps,snapshot_catch,version,replay_size,seconds\n");
+    if (Csv) std::fprintf(Csv, "phase,pattern,episodes,total_moves,moves_since_switch,learner_catch,learner_steps,snapshot_catch,version,replay_size,seconds,accepted,rejected,dropped,learner_fallbacks,snapshot_fallbacks\n");
 
     FRun Run(Options, std::move(Learner));
     Run.Frozen = Frozen.get();
     const auto Start = std::chrono::steady_clock::now();
     std::shared_ptr<const FPolicy> Snapshot;
+    uint64_t LearnerFallbacks = 0, SnapshotFallbacks = 0;
     uint64_t SwitchMoves = 0;
     auto Seconds = [&] { return std::chrono::duration<double>(std::chrono::steady_clock::now() - Start).count(); };
     auto Record = [&](const char* Phase, RunnerPattern Pattern) {
         if (Frozen && Snapshot) Snapshot = Frozen->CapturePolicy(); // re-read: the control must not change
         const auto Current = Run.Learner->CapturePolicy();
         const FEval Learned = Evaluate(*Current, Run.Config, Pattern, Options.EvalEpisodes);
-        const double SnapshotCatch = Snapshot ? Evaluate(*Snapshot, Run.Config, Pattern, Options.EvalEpisodes).CatchRate : -1;
+        LearnerFallbacks += Learned.Fallbacks;
+        const FEval Kept = Snapshot ? Evaluate(*Snapshot, Run.Config, Pattern, Options.EvalEpisodes) : FEval{};
+        SnapshotFallbacks += Kept.Fallbacks;
+        const double SnapshotCatch = Snapshot ? Kept.CatchRate : -1;
         const FStats Stats = Run.Learner->ReadStats();
         const uint64_t Since = Snapshot ? Run.Moves - SwitchMoves : 0;
         std::printf("%-8s %-9s ep=%-5llu moves=%-7llu since=%-6llu learner=%.2f (%.1f steps) snapshot=%s v=%llu replay=%u %.0fs\n",
@@ -246,9 +258,12 @@ int main(int Argc, char** Argv)
         std::fflush(stdout);
         if (Csv)
         {
-            std::fprintf(Csv, "%s,%s,%llu,%llu,%llu,%.4f,%.2f,%.4f,%llu,%u,%.1f\n", Phase, PatternName(Pattern),
+            // Feedback counts are cumulative; the fallback columns are for this evaluation only.
+            std::fprintf(Csv, "%s,%s,%llu,%llu,%llu,%.4f,%.2f,%.4f,%llu,%u,%.1f,%llu,%llu,%llu,%llu,%llu\n", Phase, PatternName(Pattern),
                 (unsigned long long)Run.Episode, (unsigned long long)Run.Moves, (unsigned long long)Since,
-                Learned.CatchRate, Learned.MeanSteps, SnapshotCatch, (unsigned long long)Stats.Version, Stats.ReplaySize, Seconds());
+                Learned.CatchRate, Learned.MeanSteps, SnapshotCatch, (unsigned long long)Stats.Version, Stats.ReplaySize, Seconds(),
+                (unsigned long long)Stats.Accepted, (unsigned long long)Stats.Rejected, (unsigned long long)Stats.Dropped,
+                (unsigned long long)Learned.Fallbacks, (unsigned long long)Kept.Fallbacks);
             std::fflush(Csv);
         }
         return std::pair<FEval, double>{Learned, SnapshotCatch};
@@ -353,6 +368,21 @@ int main(int Argc, char** Argv)
         std::printf("INFO post-window stability (%zu evals over %u moves): min %.2f, max %.2f, final %.2f\n",
             PostCatch.size(), Options.PostMoves, *Low, *High, PostCatch.back());
     }
+    // Week 5 report metrics from the project guide: latency, rejected feedback and fallback frequency.
+    if (!Run.GameThreadMicros.empty())
+    {
+        std::vector<double> Sorted = Run.GameThreadMicros;
+        std::sort(Sorted.begin(), Sorted.end());
+        auto At = [&](double Q) { return Sorted[std::min(Sorted.size() - 1, static_cast<size_t>(Q * Sorted.size()))]; };
+        std::printf("INFO game-thread decide+submit (%zu moves): median %.1f us, p95 %.1f us, p99 %.1f us, max %.1f us\n",
+            Sorted.size(), At(0.50), At(0.95), At(0.99), Sorted.back());
+    }
+    const FStats Final = Run.Learner->ReadStats();
+    std::printf("INFO feedback: accepted %llu, rejected %llu, dropped %llu, frozen %llu, stale %llu\n",
+        (unsigned long long)Final.Accepted, (unsigned long long)Final.Rejected, (unsigned long long)Final.Dropped,
+        (unsigned long long)Final.Frozen, (unsigned long long)Final.Stale);
+    std::printf("INFO evaluation fallbacks (no action, NPC stood still): learner %llu, snapshot %llu\n",
+        (unsigned long long)LearnerFallbacks, (unsigned long long)SnapshotFallbacks);
     std::printf("INFO wall time %.0f s, %llu moves\n", Seconds(), (unsigned long long)Run.Moves);
     return C1 && C2 && C3 && C4 && ControlFrozen ? 0 : 1;
 }
