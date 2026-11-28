@@ -3,6 +3,8 @@
 param(
     [string]$EnginePath,
     [string]$Filter = 'Schola.RLTools+Schola.Inference.Adaptive',
+    # Seed for NativeLearning.ChaseAdaptation (only runs when the filter selects it).
+    [int]$ChaseSeed = 1,
     [switch]$UseBuildAccelerator
 )
 $ErrorActionPreference = 'Stop'
@@ -26,7 +28,7 @@ if ($LASTEXITCODE -ne 0) { throw 'NativeLearningEditor build failed.' }
 $saved = Join-Path $PSScriptRoot 'Saved/NativeLearning'
 New-Item -ItemType Directory -Force $saved | Out-Null
 $log = Join-Path $saved 'UnrealAutomation.log'
-& (Join-Path $EnginePath 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe') $project "-ExecCmds=Automation RunTests $Filter; Quit" -unattended -nullrhi -nosound -nop4 -nosplash "-abslog=$log" -stdout -FullStdOutLogOutput | Out-Null
+& (Join-Path $EnginePath 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe') $project "-ExecCmds=Automation RunTests $Filter; Quit" "-ChaseSeed=$ChaseSeed" -unattended -nullrhi -nosound -nop4 -nosplash "-abslog=$log" -stdout -FullStdOutLogOutput | Out-Null
 $editorExit = $LASTEXITCODE
 $results = @{}
 foreach ($line in Select-String -LiteralPath $log -Pattern 'Test Completed\. Result=\{(\w+)\}.*Path=\{([^}]+)\}') {
@@ -38,8 +40,9 @@ foreach ($line in Select-String -LiteralPath $log -Pattern 'Test Completed\. Res
 if ($editorExit -ne 0 -or !$results.Count) { throw "Editor failed or returned no tests. See $log" }
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $expected = @()
-foreach ($module in @('ScholaRLTools', 'ScholaInferenceUtils')) {
-    foreach ($source in Get-ChildItem -LiteralPath (Join-Path $root "Source/$module") -Filter '*Test.cpp' -Recurse -File) {
+$testSources = @((Join-Path $root 'Source/ScholaRLTools'), (Join-Path $root 'Source/ScholaInferenceUtils'), (Join-Path $PSScriptRoot 'Source'))
+foreach ($directory in $testSources) {
+    foreach ($source in Get-ChildItem -LiteralPath $directory -Filter '*Test.cpp' -Recurse -File) {
         foreach ($match in [regex]::Matches((Get-Content -LiteralPath $source.FullName -Raw), 'IMPLEMENT_SIMPLE_AUTOMATION_TEST\s*\([^,]+,\s*"([^"]+)"')) {
             $name = $match.Groups[1].Value
             if (@($Filter.Split('+') | Where-Object { $name.StartsWith($_, [StringComparison]::Ordinal) }).Count) { $expected += $name }

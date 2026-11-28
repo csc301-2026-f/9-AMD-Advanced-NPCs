@@ -2,6 +2,24 @@
 	"schemaVersion": 1,
 	"profiles": [
 		{
+			"name": "chase-sac",
+			"source": "/Game/ScholaGeneration/chase-sac",
+			"algorithm": "SAC",
+			"observations": 10,
+			"actions": 2,
+			"network":
+			{
+				"actorHiddenWidth": 64,
+				"criticHiddenWidth": 64,
+				"actorLayers": 3,
+				"criticLayers": 3,
+				"actorActivation": "ReLU",
+				"criticActivation": "ReLU"
+			},
+			"batchSize": 32,
+			"replayCapacity": 10000
+		},
+		{
 			"name": "guards-sac",
 			"source": "/Game/ScholaGeneration/guards-sac",
 			"algorithm": "SAC",

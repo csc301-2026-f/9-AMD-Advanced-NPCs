@@ -15,8 +15,9 @@ matching source registration has a successful result, and saves logs and JSON
 under `Saved/NativeLearning`. Build Accelerator detouring is disabled by default; use
 `-UseBuildAccelerator` if desired.
 
-The host includes three project requests in `Config/ScholaRLTools.json`, exported
-through the configuration asset API: SAC 6/3, TD3 7/4 and PPO 8/2. Building the
+The host includes four project requests in `Config/ScholaRLTools.json`: SAC 6/3,
+TD3 7/4 and PPO 8/2, exported through the configuration asset API, and the SAC 10/2
+`chase-sac` profile used by the chase adaptation test. Building the
 project generates their configurations without modifying plugin templates.
 See [configuration generation](../../Docs/Sphinx/guides/rltools_configuration_generation.rst)
 for the editor workflow.
@@ -38,6 +39,26 @@ These are numerical/API tests with `-nullrhi`, not rendering or packaged gamepla
 validation. Collection of observations/rewards and the gameplay loop remain the
 calling integration's responsibility. The complete developer guide is
 [Native adaptive policies](../../Docs/Sphinx/guides/native_adaptive_policy.rst).
+
+## Chase adaptation through the plugin
+
+`NativeLearning.ChaseAdaptation` runs the D3 chase adaptation test through the
+shipped Unreal path: `UAdaptiveStepper` drives a chase agent (the `chase_sim`
+world from `Examples/AdaptiveTag`, compiled into this host) with a
+`URLToolsNPCPolicy` on the `chase-sac` project profile (10 observations,
+2 actions, 64-wide networks, replay 10,000). It trains 150 episodes on
+`rightturn`, captures a snapshot, switches to `corner`, and checks the four D3
+criteria against chase_sim's 100 fixed evaluation starts. It takes several
+minutes per seed, so the default filter leaves it out:
+
+```powershell
+foreach ($seed in 1, 2, 3) {
+    ./Examples/NativeLearning/Test-NativeLearning.ps1 -EnginePath 'D:\Apps\Epic Games\UE_5.8' -Filter 'NativeLearning.ChaseAdaptation' -ChaseSeed $seed
+}
+```
+
+Criterion 5 passes only if all three seeds pass. The engine-free twin of this
+test, with recorded results, is `Tools/ScholaRLToolsNative/ChaseAdaptation.cpp`.
 
 ## Verified locally
 
