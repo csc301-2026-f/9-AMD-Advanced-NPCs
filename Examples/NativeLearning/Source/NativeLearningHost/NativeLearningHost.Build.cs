@@ -12,7 +12,7 @@ public class NativeLearningHost : ModuleRules
         bUseUnity = false;
         CppStandard = CppStandardVersion.Cpp20;
         FPSemantics = FPSemanticsMode.Precise;
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "Schola", "ScholaInferenceUtils", "ScholaRLTools" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Schola", "ScholaInferenceUtils", "ScholaRLTools" });
         string Chase = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../../AdaptiveTag/Source/OnlineSACRuntime"));
         PrivateIncludePaths.Add(Path.Combine(Chase, "Public"));
         PrivateDefinitions.Add("ONLINESACRUNTIME_API=");
