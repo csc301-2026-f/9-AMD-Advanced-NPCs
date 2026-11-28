@@ -74,6 +74,33 @@
 			}
 		},
 		{
+			"name": "chase-demo-sac",
+			"source": "/Game/ScholaGeneration/chase-demo-sac",
+			"algorithm": "SAC",
+			"observations": 10,
+			"actions": 2,
+			"network":
+			{
+				"actorHiddenWidth": 64,
+				"criticHiddenWidth": 64,
+				"actorLayers": 3,
+				"criticLayers": 3,
+				"actorActivation": "ReLU",
+				"criticActivation": "ReLU"
+			},
+			"batchSize": 32,
+			"replayCapacity": 10000,
+			"parameters":
+			{
+				"discount": 0.98999999761581421,
+				"targetTau": 0.0049999998882412910,
+				"actorInterval": 1,
+				"targetInterval": 1,
+				"entropyCoefficient": 0.5,
+				"adaptiveEntropy": true
+			}
+		},
+		{
 			"name": "guards-ppo",
 			"source": "/Game/ScholaGeneration/guards-ppo",
 			"algorithm": "PPO",
