@@ -217,10 +217,22 @@ alternatives are in the [D3 product evolution report](deliverables/D3/product-ev
 
 ## Install and access
 
-Schola is a source-distributed Unreal plugin, not a hosted service. To use these features in your own
-project:
+Schola is a source-distributed Unreal plugin, not a hosted service. It deploys automatically to two
+environments, both on the repository's [Releases](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/releases) page:
 
-1. Copy or link this repository into your project as `Plugins/Schola`.
+| Environment | What it is | Updated |
+| --- | --- | --- |
+| **dev** | `dev` pre-release with `Schola-dev.zip`, the plugin at the latest `main` | On every push to `main` that changes the plugin |
+| **release** | A release per tag (`D4`, later `v2.2.0`) with `Schola-<tag>.zip` | When a maintainer pushes the tag |
+
+[`deploy.yml`](.github/workflows/deploy.yml) builds both packages with
+[`Tools/Release/package-plugin.sh`](Tools/Release/package-plugin.sh), which fails if a declared module is
+missing or a Git LFS library wasn't downloaded. The package is plugin source; Unreal compiles it in your
+project. To use these features in your own project:
+
+1. Unzip `Schola-<tag>.zip` (or `Schola-dev.zip`) into your project's `Plugins/` folder, so that
+   `Plugins/Schola/Schola.uplugin` exists. To develop Schola itself, clone this repository there instead
+   and run `git lfs pull`.
 2. Enable the plugin, regenerate project files and build the editor target. This needs Unreal Engine 5.8
    and a C++ toolchain: Visual Studio 2022 on Windows, Xcode on macOS
    ([macOS setup](Docs/macOS-Setup.md)) or clang on Linux.
@@ -231,8 +243,9 @@ RLtools is vendored at a pinned revision under `Source/ThirdParty/RLTools`; noth
 time. Adaptive learning needs no Python service or pre-trained model. Background and Shared Policy
 inference need an ONNX model, and the examples include theirs.
 
-The example projects under `Examples/` are ready-made hosts. Each README has its build, run, test and
-packaging commands. Tagged releases (`D2`, `D3`, `D4`) mark each submitted snapshot.
+The example projects under `Examples/` are ready-made hosts and are not in the plugin package; use them
+from a clone. Each README has its build, run, test and packaging commands. Tagged releases (`D2`, `D3`,
+`D4`) mark each submitted snapshot.
 
 ### Docker devcontainer
 
@@ -298,7 +311,8 @@ Unreal automation tests do not run in GitHub Actions. Hosted runners have no Unr
 provisioning one exceeds the course's job time limits. Hosted CI runs the native learner checks, the
 chase simulator checks, and the Shared Policy Python tests. `shared-policy-ci.yml` installs uv with
 `pipx`, then runs `uv sync --locked --python 3.12` and `uv run --locked pytest -q`. It does not run
-the Unreal Shared Policy tests, and it does not deploy a dev or release build. The [maintainer guide](DEVELOPMENT.md#testing) lists the test
+the Unreal Shared Policy tests. Deployment is separate: [`deploy.yml`](.github/workflows/deploy.yml)
+publishes the dev and release packages described in [Install and access](#install-and-access). The [maintainer guide](DEVELOPMENT.md#testing) lists the test
 commands and expected results.
 
 ## Non-functional requirements

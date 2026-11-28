@@ -1,0 +1,83 @@
+# Deploys the Schola plugin package to two environments:
+#   dev     - every push to main replaces the "dev" pre-release with a fresh Schola-dev.zip
+#   release - pushing a tag such as D4 or v2.2.0 publishes that tag's release with Schola-<tag>.zip
+# The package is the plugin source, ready to unzip into a project's Plugins/ folder
+# (see Tools/Release/package-plugin.sh). Hosted runners have no Unreal, so nothing is compiled here;
+# PR CI and the devcontainer cover building and testing.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ["D[0-9]*", "v[0-9]*"]
+    paths:
+      - "Schola.uplugin"
+      - "Config/**"
+      - "Resources/**"
+      - "Source/**"
+      - "README.md"
+      - "README-Schola.md"
+      - "DEVELOPMENT.md"
+      - "Tools/Release/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write # create releases, move the dev tag, upload assets
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10 # required by the course on every job; the first LFS download takes the longest
+    environment:
+      name: ${{ github.ref_type == 'tag' && 'release' || 'dev' }}
+      url: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}
+    concurrency:
+      group: deploy-${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}
+      cancel-in-progress: ${{ github.ref_type != 'tag' }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      LABEL: ${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}
+    steps:
+      - name: check the trigger
+        if: github.ref_type != 'tag' && github.ref != 'refs/heads/main'
+        run: |
+          echo "deploy runs from main (dev) or a release tag, not $GITHUB_REF" >&2
+          exit 1
+
+      - uses: actions/checkout@v7 # same version the course example uses
+
+      # the gRPC libraries live in Git LFS; cache them so each deploy doesn't download ~480 MB again
+      - name: list LFS objects
+        run: git lfs ls-files -l --include "Source/**" | cut -d' ' -f1 | sort > .lfs-ids
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-source-${{ hashFiles('.lfs-ids') }}
+      - name: pull LFS files
+        run: git lfs pull --include "Source/**"
+
+      # copies the tracked plugin files and fails on a missing module or an LFS pointer
+      - name: package plugin
+        run: sh Tools/Release/package-plugin.sh "$LABEL" Saved/Release
+
+      - name: publish dev pre-release
+        if: github.ref_type != 'tag'
+        run: |
+          short=$(git rev-parse --short HEAD)
+          notes="Latest main ($short). Unzip into <YourProject>/Plugins/ and build with Unreal Engine 5.8. Not a submitted version: use the newest D or v release for that."
+          git tag -f dev "$GITHUB_SHA"
+          git push -f origin refs/tags/dev
+          if ! gh release view dev > /dev/null 2>&1; then
+            gh release create dev --prerelease --latest=false --title "Development build ($short)" --notes "$notes"
+          fi
+          gh release edit dev --prerelease --latest=false --title "Development build ($short)" --notes "$notes"
+          gh release upload dev Saved/Release/Schola-dev.zip --clobber
+
+      - name: publish release
+        if: github.ref_type == 'tag'
+        run: |
+          if ! gh release view "$LABEL" > /dev/null 2>&1; then
+            gh release create "$LABEL" --verify-tag --latest --title "$LABEL" --generate-notes
+          fi
+          gh release upload "$LABEL" "Saved/Release/Schola-$LABEL.zip" --clobber

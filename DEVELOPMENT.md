@@ -143,11 +143,12 @@ registrations, so a new test is checked automatically. Prefer controlled fakes f
 | --- | --- | --- |
 | `.github/workflows/native-learner-ci.yml` | PRs and pushes to `main` touching the learner, RLtools headers or `Tools/ScholaRLToolsNative` | Builds and runs the native learner and checkpoint checks with g++ |
 | `.github/workflows/chase-sim-ci.yml` | PRs and pushes to `main` touching `Examples/AdaptiveTag` | Builds `chase_sim` and runs 7 smoke checks |
+| `.github/workflows/deploy.yml` | Pushes to `main` touching the plugin (`Source`, `Config`, `Resources`, `Schola.uplugin`, top-level docs, `Tools/Release`); tags `D*` and `v*`; manual dispatch | Packages the plugin with `Tools/Release/package-plugin.sh` and deploys it: `main` replaces the `dev` pre-release (environment `dev`), a tag publishes its release (environment `release`). Caches Git LFS objects; 10-minute timeout |
 | `.github/workflows/shared-policy-ci.yml` | PRs and pushes to `main` that change `Prototypes/SharedPolicy/**` or this workflow file | Installs uv with `pipx`, then runs `uv sync --locked --python 3.12` and `uv run --locked pytest -q` for the prototype and architecture benchmark tests. Contents permission is read-only. A newer run on the same ref cancels the older one, and the job stops after 5 minutes |
 
 Course rules that every workflow must follow:
 
-- Every job sets `timeout-minutes` (the current jobs use 5).
+- Every job sets `timeout-minutes` (the test jobs use 5; deploy uses 10 for the first, uncached LFS download).
 - Stay within the GitHub Actions minute budget. Trigger on narrow `paths`, and never build Unreal in
   Actions: hosted runners have no engine, and installing one takes longer than any allowed job.
 - CI must stay green on `main`. A failing workflow is treated as a broken build, not ignored.
@@ -204,11 +205,18 @@ expensive work behind a policy that runs on workers.
 Each course deliverable is a GitHub release tagged `D2`, `D3`, `D4` on the merged `main` commit. To make
 one:
 
-1. Merge all PRs for the deliverable and confirm CI is green on `main`.
+1. Merge all PRs for the deliverable and confirm CI is green on `main`. The `dev` pre-release now holds
+   the same commit's package.
 2. Run the local Unreal test scripts for the features in the release, and record the results in the PR or
    the deliverable folder.
-3. `git tag D4 <commit> && git push origin D4`, then create the GitHub release from the tag with a short
-   summary and links to `deliverables/D4`.
+3. `git tag D4 <commit> && git push origin D4`. The deploy workflow creates the release with generated
+   notes and attaches `Schola-D4.zip`; edit the notes afterwards to add a summary and links to
+   `deliverables/D4`.
+
+To check a package locally before tagging, run `Tools/Release/package-plugin.sh test` after `git lfs pull`;
+it prints the zip path and file count, or a `FAIL` line for each problem.
+If a deploy fails, rerun it from the Actions tab (**deploy → Run workflow** on `main`, or re-run the tag's
+run). Never move a submitted tag; tag a new commit instead.
 
 Build CampusCrowd from the tagged checkout inside the [devcontainer](README.md#docker-devcontainer).
 Run the [package smoke test](Examples/CampusCrowd/README.md#validation-and-packaging) and attach an
