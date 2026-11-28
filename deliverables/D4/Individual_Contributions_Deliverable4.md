@@ -29,7 +29,7 @@ Each entry records that member's D4 work. Subteams maintain their own entries.
 
 ### Olivia — Adaptive NPCs: playable chase demo in Unreal
 
-- Built a playable chase demo in `Examples/NativeLearning` (this PR). A chaser NPC learns to catch a
+- Built a playable chase demo in `Examples/NativeLearning` ([#88](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/88)). A chaser NPC learns to catch a
   runner while the game runs, using the native SAC learner (`URLToolsNPCPolicy`) on a new
   `chase-demo-sac` profile. The runner's six habits are ported from the D3 terminal simulator in
   `Examples/AdaptiveTag`.
@@ -42,5 +42,5 @@ Each entry records that member's D4 work. Subteams maintain their own entries.
   evidence and scaling into one slide with the Unreal results, and noted that the Unreal chase test
   passed on Windows ([#82](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/82)).
 
-**Evidence:** [#88](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/88), [#82](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/82), chase demo PR
-(this PR)
+**Evidence:** [#82](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/82),
+[#88](https://github.com/csc301-2026-f/9-AMD-Advanced-NPCs/pull/88)
