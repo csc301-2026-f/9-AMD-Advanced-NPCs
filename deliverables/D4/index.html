@@ -869,7 +869,7 @@ if (MigrationDay)
 
       <section class="slide" id="quality" aria-labelledby="quality-heading" data-title="Testing, CI and deployment" data-section="Technical">
         <header class="slide-header"><span class="wordmark">schola<span class="brand-dot">.</span></span><span>Engineering quality / Deliverable 4</span></header>
-        <h2 id="quality-heading">Testing and packaging</h2>
+        <h2 id="quality-heading">Testing and deployment</h2>
         <div class="split" style="grid-template-columns: 1.6fr 1fr; gap: 48px">
           <table class="comparison-table compact-table"><caption class="sr-only">Automated tests by component and where they run</caption>
             <thead><tr><th scope="col" style="width:38%">Component</th><th scope="col">Automated tests</th><th scope="col" style="width:26%">Runs</th></tr></thead>
@@ -884,11 +884,11 @@ if (MigrationDay)
           </table>
           <div class="decision-list">
             <div><h3>Docker development</h3><p>Unreal 5.8.4 devcontainer for editor builds, automation, and headless smoke tests.</p></div>
-            <div><h3>Standalone Linux release</h3><p>Package and smoke-test a selected commit in Docker. Maintainers publish artifacts with the release tag.</p></div>
+            <div><h3>Deployed automatically</h3><p><b>dev:</b> every push to main updates the dev pre-release. <b>release:</b> a tag such as D4 publishes its release. Both ship the plugin package.</p></div>
           </div>
         </div>
         <div class="takeaway"><span>Constraint</span><p>GitHub Actions runs native checks. Docker provides the Unreal toolchain.</p></div>
-        <aside class="speaker-notes" data-time="0:25">Distinguish the hosted native PR checks from the Unreal suites in Docker. The devcontainer pins the engine version for both development and release packaging. A maintainer selects the commit, runs the package smoke test, and uploads the Linux artifact.</aside>
+        <aside class="speaker-notes" data-time="0:25">Distinguish the hosted native PR checks from the Unreal suites in Docker; the devcontainer pins Unreal 5.8.4. Deployment is automatic to two environments: every push to main repackages the plugin into the dev pre-release, and pushing a tag such as D4 publishes that release with its own package. The packaging step fails on a missing module or a library that was not downloaded. The CampusCrowd Linux build is still packaged in the devcontainer and attached by hand.</aside>
       </section>
 
       <section class="slide" id="nfr" aria-labelledby="nfr-heading" data-title="Non-functional requirements" data-section="Technical">

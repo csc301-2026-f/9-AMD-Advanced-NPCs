@@ -54,7 +54,7 @@ content, keep the slide's `id` and its time budget, and update its speaker notes
 
 - **Shared Policy NPCs:** Check the shared-policy numbers on `nfr` and `quality`.
 - **Event NPCs:** `demo-event`, `tech-event`, and the Event column on `architecture` if the design changed.
-- **Team:** confirm release publication and add remaining subteam learnings and references.
+- **Team:** add remaining subteam learnings and references. Releases deploy automatically (`deploy.yml`).
 
 ## Rubric checklist
 
