@@ -46,6 +46,8 @@ jobs:
           exit 1
 
       - uses: actions/checkout@v7 # same version the course example uses
+        with:
+          fetch-depth: 0 # release notes need the earlier tags
 
       # the gRPC libraries live in Git LFS; cache them so each deploy doesn't download ~480 MB again
       - name: list LFS objects
@@ -78,6 +80,9 @@ jobs:
         if: github.ref_type == 'tag'
         run: |
           if ! gh release view "$LABEL" > /dev/null 2>&1; then
-            gh release create "$LABEL" --verify-tag --latest --title "$LABEL" --generate-notes
+            # compare with the previous release tag, not the moving dev tag
+            previous=$(git tag --list 'D[0-9]*' 'v[0-9]*' --sort=-creatordate | grep -vx "$LABEL" | head -n 1 || true)
+            gh release create "$LABEL" --verify-tag --latest --title "$LABEL" --generate-notes \
+              ${previous:+--notes-start-tag "$previous"}
           fi
           gh release upload "$LABEL" "Saved/Release/Schola-$LABEL.zip" --clobber
